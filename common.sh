@@ -462,8 +462,13 @@ if [[ "${BY_INFORMATION}" == "true" ]]; then
 	else
 		PATCHVER="unknown"
 	fi
-	[[ -n ${PATCHVE} ]] && PATCHVER=$(egrep -o "${PATCHVE}.[0-9]+" ${Home}/include/kernel-version.mk)
-	
+	if [[ -n ${PATCHVE} ]]; then
+		if [[ -f ${Home}/include/kernel-${PATCHVE} ]]; then
+			PATCHVER=$(egrep -o "${PATCHVE}.[0-9]+" ${Home}/include/kernel-${PATCHVE})
+		else
+			PATCHVER=$(egrep -o "${PATCHVE}.[0-9]+" ${Home}/include/kernel-version.mk)
+		fi
+	fi
 	if [[ "${Modelfile}" == "openwrt_amlogic" ]]; then
 		[[ -e $GITHUB_WORKSPACE/amlogic_openwrt ]] && source $GITHUB_WORKSPACE/amlogic_openwrt
 		[[ "${amlogic_kernel}" == "5.12.12_5.4.127" ]] && {
@@ -602,6 +607,9 @@ if [[ ${REGULAR_UPDATE} == "true" ]]; then
 else
 	echo
 fi
+echo
+TIME z "Github使用CPU型号"
+echo `cat /proc/cpuinfo | grep name | cut -f2 -d: | uniq -c`
 echo
 TIME z " 系统空间      类型   总数  已用  可用 使用率"
 cd ../ && df -hT $PWD && cd openwrt
