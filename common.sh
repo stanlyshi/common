@@ -41,8 +41,6 @@ function __yellow_msg() {
 
 # 设置、获取环境变量
 function parse_settings() {
-	source "build/${{matrix.target}}/settings.ini"
-	
 	if [[ "${NOTICE_TYPE}" =~ 'false' ]]; then
 		NOTICE_TYPE="false"
 	elif [[ -n "$(echo "${NOTICE_TYPE}" |grep -i 'TG\|telegram')" ]]; then
@@ -112,7 +110,7 @@ function parse_settings() {
 	echo "UPLOAD_PATH=${GITHUB_WORKSPACE}/openwrt/upgrade" >> $GITHUB_ENV
 	echo "BUILD_PATH=${GITHUB_WORKSPACE}/openwrt/build" >> $GITHUB_ENV
 	echo "COMMON_PATH=${GITHUB_WORKSPACE}/openwrt/build/common" >> $GITHUB_ENV
-	echo "MATRIX_TARGET_PATH=${GITHUB_WORKSPACE}/openwrt/build/${{matrix.target}}" >> $GITHUB_ENV
+	echo "MATRIX_TARGET_PATH=${GITHUB_WORKSPACE}/openwrt/build/${MATRIX_TARGET}" >> $GITHUB_ENV
 	echo "CLEAR_FILE_PATH=${GITHUB_WORKSPACE}/openwrt/Clear" >> $GITHUB_ENV
 	
 	# https://github.com/coolsnowwolf/lede/tree/master/package/base-files/files
@@ -123,7 +121,6 @@ function parse_settings() {
 	echo "FILE_CONFIG_GEN=${GITHUB_WORKSPACE}/openwrt/package/base-files/files/bin/config_generate" >> $GITHUB_ENV
 	
 	echo "REPOSITORY=${GITHUB_REPOSITORY##*/}" >> $GITHUB_ENV
-	echo "MATRIX_TARGET=${{matrix.target}}" >> $GITHUB_ENV
 	echo "RELEASE_DEVICE=${RELEASE_DEVICE}" >> $GITHUB_ENV
 	echo "RELEASE_IP=${RELEASE_IP}" >> $GITHUB_ENV
 	echo "COMPILE_DATE=$(date +%Y%m%d%H%M)" >> $GITHUB_ENV
@@ -133,18 +130,18 @@ function parse_settings() {
 # 编译开始通知
 function notice_begin() {
 	if [[ "${NOTICE_TYPE}" == "TG" ]]; then
-		curl -k --data chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" --data "text=🎉 主人：您正在使用【${{github.repository}}】仓库【${{matrix.target}}】文件夹编译${{env.LUCI_EDITION}}-${{env.SOURCE}}固件,请耐心等待...... 😋" "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage"
+		curl -k --data chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" --data "text=🎉 主人：您正在使用【${{github.repository}}】仓库【${MATRIX_TARGET}】文件夹编译${{env.LUCI_EDITION}}-${{env.SOURCE}}固件,请耐心等待...... 😋" "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage"
 	elif [[ "${NOTICE_TYPE}" == "PUSH" ]]; then
-		curl -k --data token="${{ secrets.PUSH_PLUS_TOKEN }}" --data title="开始编译【${{matrix.target}}】" --data "content=🎉 主人：您正在使用【${{github.repository}}】仓库【${{matrix.target}}】文件夹编译${{env.LUCI_EDITION}}-${{env.SOURCE}}固件,请耐心等待...... 😋💐" "http://www.pushplus.plus/send"
+		curl -k --data token="${{ secrets.PUSH_PLUS_TOKEN }}" --data title="开始编译【${MATRIX_TARGET}】" --data "content=🎉 主人：您正在使用【${{github.repository}}】仓库【${MATRIX_TARGET}】文件夹编译${{env.LUCI_EDITION}}-${{env.SOURCE}}固件,请耐心等待...... 😋💐" "http://www.pushplus.plus/send"
 	fi
 }
 
 # 编译完成通知
 function notice_end() {
 	if [[ "${NOTICE_TYPE}" == "TG" ]]; then
-		curl -k --data chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" --data "text=我亲爱的✨主人✨：您使用【${{github.repository}}】仓库【${{matrix.target}}】文件夹编译的[${{ env.SOURCE }}-${{ env.TARGET_PROFILE }}]固件顺利编译完成了！💐https://github.com/${{github.repository}}/releases" "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage"
+		curl -k --data chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" --data "text=我亲爱的✨主人✨：您使用【${{github.repository}}】仓库【${MATRIX_TARGET}】文件夹编译的[${{ env.SOURCE }}-${{ env.TARGET_PROFILE }}]固件顺利编译完成了！💐https://github.com/${{github.repository}}/releases" "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage"
 	elif [[ "${NOTICE_TYPE}" == "PUSH" ]]; then
-		curl -k --data token="${{ secrets.PUSH_PLUS_TOKEN }}" --data title="[${{ env.SOURCE }}-${{ env.TARGET_PROFILE }}]编译成功" --data "content=我亲爱的✨主人✨：您使用【${{github.repository}}】仓库【${{matrix.target}}】文件夹编译的[${{ env.SOURCE }}-${{ env.TARGET_PROFILE }}]固件顺利编译完成了！💐https://github.com/${{github.repository}}/releases" "http://www.pushplus.plus/send"
+		curl -k --data token="${{ secrets.PUSH_PLUS_TOKEN }}" --data title="[${{ env.SOURCE }}-${{ env.TARGET_PROFILE }}]编译成功" --data "content=我亲爱的✨主人✨：您使用【${{github.repository}}】仓库【${MATRIX_TARGET}】文件夹编译的[${{ env.SOURCE }}-${{ env.TARGET_PROFILE }}]固件顺利编译完成了！💐https://github.com/${{github.repository}}/releases" "http://www.pushplus.plus/send"
 	fi
 }
 
@@ -152,7 +149,7 @@ function notice_end() {
 function git_clone_source() {
 	# 在每matrix.target目录下下载源码
 	git clone -b "${SOURCE_BRANCH}" --single-branch "${SOURCE_URL}" openwrt > /dev/null 2>&1
-	ln -sf /${{matrix.target}}/openwrt ${GITHUB_WORKSPACE}/openwrt
+	ln -sf /${MATRIX_TARGET}/openwrt ${GITHUB_WORKSPACE}/openwrt
 	
 	# 将build等文件夹复制到openwrt文件夹下
 	cp -rf `find ./ -maxdepth 1 -type d ! -path './openwrt' ! -path './'` ${GITHUB_WORKSPACE}/openwrt
@@ -168,8 +165,8 @@ function init_environment() {
 	sudo bash -c 'bash <(curl -s https://build-scripts.immortalwrt.eu.org/init_build_environment.sh)'
 	sudo apt-get install -y rename pigz libfuse-dev upx subversion
 	sudo timedatectl set-timezone "$TZ"
-	sudo mkdir -p /${{matrix.target}}
-	sudo chown ${USER}:${GROUPS} /${{matrix.target}}
+	sudo mkdir -p /${MATRIX_TARGET}
+	sudo chown ${USER}:${GROUPS} /${MATRIX_TARGET}
 	git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
     git config --global user.name "github-actions[bot]" 
 }
@@ -197,14 +194,14 @@ function do_diy() {
 	
 	# 检查.config文件是否存在
 	if [ -z "$(ls -A "${MATRIX_TARGET_PATH}/${CONFIG_FILE}" 2>/dev/null)" ]; then
-		__error_msg "编译脚本的[${{matrix.target}}文件夹内缺少${CONFIG_FILE}文件],请在[${{matrix.target}}]文件夹内补齐"
+		__error_msg "编译脚本的[${MATRIX_TARGET}文件夹内缺少${CONFIG_FILE}文件],请在[${MATRIX_TARGET}]文件夹内补齐"
 		echo
 		exit 1
 	fi
 	
 	# 检查diy_part.sh文件是否存在
 	if [ -z "$(ls -A "${MATRIX_TARGET_PATH}/${DIY_PART_SH}" 2>/dev/null)" ]; then
-		__error_msg "编译脚本的[${{matrix.target}}文件夹内缺少${DIY_PART_SH}文件],请在[${{matrix.target}}]文件夹内补齐"
+		__error_msg "编译脚本的[${MATRIX_TARGET}文件夹内缺少${DIY_PART_SH}文件],请在[${MATRIX_TARGET}]文件夹内补齐"
 		echo
 		exit 1
 	fi
@@ -297,7 +294,7 @@ function compile_info() {
 	__blue_msg "固件作者: ${GITHUB_ACTOR}"
 	__blue_msg "仓库地址: ${GITHUB_REPO_URL}"
 	__blue_msg "编译时间: ${COMPILE_DATE}"
-	__green_msg "友情提示：您当前使用【${{matrix.target}}】文件夹编译【${TARGET_PROFILE}】固件"
+	__green_msg "友情提示：您当前使用【${MATRIX_TARGET}】文件夹编译【${TARGET_PROFILE}】固件"
 	echo
 	echo
 	__red_msg "Github在线编译配置"
@@ -413,14 +410,14 @@ function update_repo() {
 	
 	# 更新.config文件
 	cd ${GITHUB_WORKSPACE}/repo
-	if [[ -n "$(ls -A "build/${{matrix.target}}/${CONFIG_FILE}" 2>/dev/null)" ]]; then
-		git rm -rf build/${{matrix.target}}/${CONFIG_FILE}
+	if [[ -n "$(ls -A "build/${MATRIX_TARGET}/${CONFIG_FILE}" 2>/dev/null)" ]]; then
+		git rm -rf build/${MATRIX_TARGET}/${CONFIG_FILE}
 	fi
-	cp -rf ${GITHUB_WORKSPACE}/${CONFIG_FILE} build/${{matrix.target}}/${CONFIG_FILE} && echo "copy ${GITHUB_WORKSPACE}/${CONFIG_FILE} to build/${{matrix.target}}/${CONFIG_FILE}"
+	cp -rf ${GITHUB_WORKSPACE}/${CONFIG_FILE} build/${MATRIX_TARGET}/${CONFIG_FILE} && echo "copy ${GITHUB_WORKSPACE}/${CONFIG_FILE} to build/${MATRIX_TARGET}/${CONFIG_FILE}"
 	#githead=`git log --oneline | sed -n '1p' | cut -d " " -f1`
 	#sed -i '/plugin/d' ${MATRIX_TARGET_PATH}/releaseinfo.md
 	#cat >> ${MATRIX_TARGET_PATH}/releaseinfo.md <<-EOF
-	#- [x] [plugin](${{ env.Github }}/blob/${githead}/build/${{matrix.target}}/plugin)
+	#- [x] [plugin](${{ env.Github }}/blob/${githead}/build/${MATRIX_TARGET}/plugin)
 	#EOF
 	echo "bool_update_target=${bool_update_target}; bool_update_config=${bool_update_config}"
 	if [[ ${bool_update_target} == "true" ]] || [[ ${bool_update_config} == "true" ]]; then
@@ -758,8 +755,8 @@ function update_plugin_list() {
 	echo "${Plug_in2}" >Plug-in
 	
 	# 覆盖原plugin文件
-	cp -f Plug-in ${GITHUB_WORKSPACE}/repo/build/${{matrix.target}}/plugin 2>/dev/null
-	sed -i 's/ /\n\n/g' ${GITHUB_WORKSPACE}/repo/build/${{matrix.target}}/plugin 2>/dev/null
+	cp -f Plug-in ${GITHUB_WORKSPACE}/repo/build/${MATRIX_TARGET}/plugin 2>/dev/null
+	sed -i 's/ /\n\n/g' ${GITHUB_WORKSPACE}/repo/build/${MATRIX_TARGET}/plugin 2>/dev/null
 }
 
 ################################################################################################################
@@ -775,7 +772,7 @@ sed -i "s#default_password#-" ${MATRIX_TARGET_PATH}/releaseinfo.md 2>/dev/null
 sed -i "s#release_source#${LUCI_EDITION}-${SOURCE_ABBR}#" ${MATRIX_TARGET_PATH}/releaseinfo.md 2>/dev/null
 sed -i "s#release_kernel#${KERNEL_PATCHVER}#" ${MATRIX_TARGET_PATH}/releaseinfo.md 2>/dev/null
 sed -i "s#repository#${GITHUB_REPOSITORY}" ${MATRIX_TARGET_PATH}/releaseinfo.md 2>/dev/null
-sed -i "s#matrixtarget#${{matrix.target}}" ${MATRIX_TARGET_PATH}/releaseinfo.md 2>/dev/null
+sed -i "s#matrixtarget#${MATRIX_TARGET}" ${MATRIX_TARGET_PATH}/releaseinfo.md 2>/dev/null
 
 cat ${MATRIX_TARGET_PATH}/releaseinfo.md 2>/dev/null
 }
