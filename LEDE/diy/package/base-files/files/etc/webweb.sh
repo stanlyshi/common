@@ -4,31 +4,37 @@
 
 cp -Rf /etc/config/network /mnt/network
 
-echo "0 1 * * 1 rm /tmp/luci-indexcache > /dev/null 2>&1" >> /etc/crontabs/root
+if [[ -f /etc/crontabs/root ]]; then
+  sed -i '/mp\/luci-/d' /etc/crontabs/root && echo "0 1 * * 1 rm -rf /tmp/luci-*cache > /dev/null 2>&1" >> /etc/crontabs/root
+else
+  mkdir -p /etc/crontabs
+  echo "0 1 * * 1 rm -rf /tmp/luci-*cache > /dev/null 2>&1" > /etc/crontabs/root
+  chmod -R 755 /etc/crontabs
+fi
 
 if [[ `grep -c "x86_64" /etc/openwrt_release` -eq '0' ]]; then
   source /etc/openwrt_release
   sed -i "s/x86_64/${DISTRIB_TARGET}/g" /etc/banner
 fi
 
-if [[ -e /usr/share/AdGuardHome ]] && [[ -e /etc/init.d/AdGuardHome ]]; then
- chmod -R +x /usr/share/AdGuardHome /etc/init.d/AdGuardHome
+if [[ -d /usr/share/AdGuardHome ]] && [[ -f /etc/init.d/AdGuardHome ]]; then
+ chmod -R 775 /usr/share/AdGuardHome /etc/init.d/AdGuardHome
+else
+  rm -fr /etc/config/AdGuardHome.yaml
+  rm -fr /etc/AdGuardHome.yaml
 fi
 
-if [[ ! -e /usr/bin/AdGuardHome ]]; then
-rm -fr /etc/config/AdGuardHome.yaml
-rm -fr /etc/AdGuardHome.yaml
-fi
+chmod -R 775 /etc/init.d /usr/share
 
-if [[ -e /etc/init.d/ddnsto ]]; then
- chmod +x /etc/init.d/ddnsto
+if [[ -f /etc/init.d/ddnsto ]]; then
+ chmod 775 /etc/init.d/ddnsto
  /etc/init.d/ddnsto enable
 fi
 
-chmod -R +x /etc/init.d /usr/share
-
-uci set argon.@global[0].bing_background=0
-uci commit argon
+if [[ -d /usr/lib/lua/luci/view/themes/argon ]]; then
+  uci set argon.@global[0].bing_background=0
+  uci commit argon
+fi
 
 rm -rf /etc/networkip
 rm -rf /etc/webweb.sh
