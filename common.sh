@@ -41,7 +41,6 @@ function __yellow_msg() {
 
 # 设置、获取环境变量
 function parse_settings() {
-	cd ${GITHUB_WORKSPACE}	
 	source "${GITHUB_WORKSPACE}/build/${{matrix.target}}/settings.ini"
 	
 	if [[ "${NOTICE_TYPE}" =~ 'false' ]]; then
