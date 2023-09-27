@@ -41,8 +41,7 @@ function __yellow_msg() {
 
 # 设置、获取环境变量
 function parse_settings() {
-	source "${GITHUB_WORKSPACE}/build/${{matrix.target}}/settings.ini"
-	
+
 	if [[ "${NOTICE_TYPE}" =~ 'false' ]]; then
 		NOTICE_TYPE="false"
 	elif [[ -n "$(echo "${NOTICE_TYPE}" |grep -i 'TG\|telegram')" ]]; then
