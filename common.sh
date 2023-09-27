@@ -41,7 +41,8 @@ function __yellow_msg() {
 
 # 设置、获取环境变量
 function parse_settings() {
-
+	source "build/${{matrix.target}}/settings.ini"
+	
 	if [[ "${NOTICE_TYPE}" =~ 'false' ]]; then
 		NOTICE_TYPE="false"
 	elif [[ -n "$(echo "${NOTICE_TYPE}" |grep -i 'TG\|telegram')" ]]; then
@@ -96,12 +97,6 @@ function parse_settings() {
 		exit 1
 	;;
 	esac
-
-	[ ${{ github.event.inputs.UPLOAD_BIN_DIR }} ] && echo "UPLOAD_BIN_DIR=${{ github.event.inputs.UPLOAD_BIN_DIR }}" >> $GITHUB_ENV || echo "UPLOAD_BIN_DIR=${UPLOAD_BIN_DIR}" >> $GITHUB_ENV
-	[ ${{ github.event.inputs.UPLOAD_FIRMWARE }} ] && echo "UPLOAD_FIRMWARE=${{ github.event.inputs.UPLOAD_FIRMWARE }}" >> $GITHUB_ENV || echo "UPLOAD_FIRMWARE=${UPLOAD_FIRMWARE}" >> $GITHUB_ENV
-	[ ${{ github.event.inputs.ENABLE_CACHEWRTBUILD }} ] && echo "ENABLE_CACHEWRTBUILD=${{ github.event.inputs.ENABLE_CACHEWRTBUILD }}" >> $GITHUB_ENV || echo "ENABLE_CACHEWRTBUILD=${ENABLE_CACHEWRTBUILD}" >> $GITHUB_ENV
-	[ ${{ github.event.inputs.KEEP_LASTEST }} ] && echo "KEEP_LASTEST=${{ github.event.inputs.KEEP_LASTEST }}" >> $GITHUB_ENV || echo "KEEP_LASTEST=6" >> $GITHUB_ENV
-	[ ${{ github.event.inputs.RETAIN_DAYS }} ] && echo "RETAIN_DAYS=${{ github.event.inputs.RETAIN_DAYS }}" >> $GITHUB_ENV || echo "RETAIN_DAYS=7" >> $GITHUB_ENV
 	
 	echo "SOURCE_URL=${SOURCE_URL}" >> $GITHUB_ENV
 	echo "SOURCE_BRANCH=${SOURCE_BRANCH}" >> $GITHUB_ENV
