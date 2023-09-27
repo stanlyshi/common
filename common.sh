@@ -65,12 +65,12 @@ function parse_settings() {
 		echo "ENABLE_PACKAGES_UPDATE=false" >> $GITHUB_ENV
 	else
 		git_packages=`echo "${PACKAGES_ADDR}" | awk -F/ '{print $1}'` 2>/dev/null
-		if [[ ${git_packages} == ${{env.GITHUB_ACTOR}} ]]; then
+		if [[ ${git_packages} == ${GITHUB_ACTOR} ]]; then
 			echo "PACKAGES_ADDR=${PACKAGES_ADDR}" >> $GITHUB_ENV
 			echo "ENABLE_PACKAGES_UPDATE=${ENABLE_PACKAGES_UPDATE}" >> $GITHUB_ENV
 		else
 			echo "插件库账号：${git_packages}"
-			echo "当前的账号：${{env.GITHUB_ACTOR}}"
+			echo "当前的账号：${GITHUB_ACTOR}"
 			echo "设置提示：插件库账号与当前账号不符，关闭\"插件库更新\"！"
 			echo "ENABLE_PACKAGES_UPDATE=false" >> $GITHUB_ENV
 		fi
