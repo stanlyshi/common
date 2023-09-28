@@ -109,9 +109,9 @@ function parse_settings() {
 	echo "BIN_PATH=${GITHUB_WORKSPACE}/openwrt/bin" >> ${GITHUB_ENV}
 	echo "UPLOAD_PATH=${GITHUB_WORKSPACE}/openwrt/upgrade" >> ${GITHUB_ENV}
 	echo "BUILD_PATH=${GITHUB_WORKSPACE}/openwrt/build" >> ${GITHUB_ENV}
-	echo "CONFIG_PATH=${GITHUB_WORKSPACE}/openwrt/build/config" >> ${GITHUB_ENV}
 	echo "COMMON_PATH=${GITHUB_WORKSPACE}/openwrt/build/common" >> ${GITHUB_ENV}
 	echo "MATRIX_TARGET_PATH=${GITHUB_WORKSPACE}/openwrt/build/${MATRIX_TARGET}" >> ${GITHUB_ENV}
+	echo "CONFIG_PATH=${GITHUB_WORKSPACE}/openwrt/build/${MATRIX_TARGET}/config" >> ${GITHUB_ENV}
 	echo "CLEAR_FILE_PATH=${GITHUB_WORKSPACE}/openwrt/Clear" >> ${GITHUB_ENV}
 	
 	# https://github.com/coolsnowwolf/lede/tree/master/package/base-files/files
@@ -206,7 +206,7 @@ function do_diy() {
 	
 	# 检查.config文件是否存在
 	if [ -z "$(ls -A "${CONFIG_PATH}/${CONFIG_FILE}" 2>/dev/null)" ]; then
-		__error_msg "编译脚本的[${MATRIX_TARGET}文件夹内缺少${CONFIG_FILE}文件],请在[${MATRIX_TARGET_PATH}/config/]文件夹内补齐"
+		__error_msg "编译脚本的[${MATRIX_TARGET}配置文件夹内缺少${CONFIG_FILE}文件],请在[${MATRIX_TARGET}/config/]文件夹内补齐"
 		echo
 		exit 1
 	fi
