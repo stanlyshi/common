@@ -68,9 +68,8 @@ function parse_settings() {
 			echo "PACKAGES_ADDR=${PACKAGES_ADDR}" >> ${GITHUB_ENV}
 			echo "ENABLE_PACKAGES_UPDATE=${ENABLE_PACKAGES_UPDATE}" >> ${GITHUB_ENV}
 		else
-			echo "插件库账号：${git_packages}"
-			echo "当前的账号：${GITHUB_ACTOR}"
-			echo "设置提示：插件库账号与当前账号不符，关闭\"插件库更新\"！"
+			echo "插件库所有者：${git_packages}"
+			__warning_msg "没有权限更新插件库，关闭\"插件库更新\"！"
 			echo "ENABLE_PACKAGES_UPDATE=false" >> ${GITHUB_ENV}
 		fi
 	fi
