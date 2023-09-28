@@ -171,15 +171,6 @@ function git_clone_source() {
 	sudo rm -rf ${BUILD_PATH}/common && git clone -b main --depth 1 https://github.com/stanlyshi/common ${BUILD_PATH}/common
 	chmod -R +x ${BUILD_PATH}
 	
-	# 内核版本
-	if [[ `grep -c "KERNEL_PATCHVER:=" ${HOME_PATH}/target/linux/${TARGET_BOARD}/Makefile` -eq '1' ]]; then
-		KERNEL_PATCHVER="$(egrep -o 'KERNEL_PATCHVER:=[0-9]+\.[0-9]+' ${HOME_PATH}/target/linux/${TARGET_BOARD}/Makefile |cut -d "=" -f2)"
-	elif [[ `grep -c "KERNEL_PATCHVER=" ${HOME_PATH}/target/linux/${TARGET_BOARD}/Makefile` -eq '1' ]]; then
-		KERNEL_PATCHVER="$(egrep -o 'KERNEL_PATCHVER=[0-9]+\.[0-9]+' ${HOME_PATH}/target/linux/${TARGET_BOARD}/Makefile |cut -d "=" -f2)"
-	else
-		export KERNEL_PATCHVER="unknown"
-	fi
-	__info_msg "内核版本：${KERNEL_PATCHVER}"
 }
 
 # 插件库更新
@@ -272,6 +263,34 @@ function make_defconfig() {
 	fi
 	__info_msg "固件CPU架构：${TARGET_PROFILE}"
 	
+	# 内核版本
+	export KERNEL_PATCHVER="$(grep "KERNEL_PATCHVER" "${HOME_PATH}/target/linux/${TARGET_BOARD}/Makefile" |grep -Eo "[0-9]+\.[0-9]+")"
+	export KERNEL_VERSION_FILE="kernel-${KERNEL_PATCHVER}"
+	if [[ -f "${HOME_PATH}/include/${KERNEL_VERSION_FILE}" ]]; then
+		export LINUX_KERNEL=$(egrep -o "${KERNEL_PATCHVER}\.[0-9]+" ${HOME_PATH}/include/${KERNEL_VERSION_FILE})
+		[[ -z ${LINUX_KERNEL} ]] && export LINUX_KERNEL="unknown"
+	else
+		export LINUX_KERNEL=$(egrep -o "${KERNEL_PATCHVER}\.[0-9]+" ${HOME_PATH}/include/kernel-version.mk)
+		[[ -z ${LINUX_KERNEL} ]] && export LINUX_KERNEL="unknown"
+	fi
+	
+	__info_msg "内核版本：${LINUX_KERNEL}"
+	
+	# 内核替换
+	if [[ -n "${NEW_KERNEL_PATCHVER}" ]]; then
+		if [[ "${NEW_KERNEL_PATCHVER}" == "0" ]]; then
+			__info_msg "使用默认内核[ ${KERNEL_PATCHVER} ]编译"
+		elif [[ `ls -1 "${HOME_PATH}/target/linux/${TARGET_BOARD}" |grep -c "kernel-${NEW_KERNEL_PATCHVER}"` -eq '1' ]]; then
+			sed -i "s/${KERNEL_PATCHVER}/${NEW_KERNEL_PATCHVER}/g" ${HOME_PATH}/target/linux/${TARGET_BOARD}/Makefile
+			__success_msg "内核[ ${NEW_KERNEL_PATCHVER} ]更换完成"
+		else
+			__error_msg "没发现与${TARGET_PROFILE}机型对应[ ${NEW_KERNEL_PATCHVER} ]内核，使用默认内核[ ${KERNEL_PATCHVER} ]编译"
+		fi
+	fi
+	#if [[ -n "${NEW_KERNEL_PATCHVER}" ]] && [[ "${KERNEL_PATCHVER}" != "unknown" ]]; then
+	#	sed -i "s/${KERNEL_PATCHVER}/${NEW_KERNEL_PATCHVER}/g" ${HOME_PATH}/target/linux/${TARGET_BOARD}/Makefile
+	#	__success_msg "内核从[${KERNEL_PATCHVER}]替换为[${NEW_KERNEL_PATCHVER}]"
+	#fi
 }
 
 ################################################################################################################
@@ -489,11 +508,7 @@ function diy_public() {
 		fi
 	fi
 	
-	# 内核替换
-	if [[ -n "${NEW_KERNEL_PATCHVER}" ]]; then
-		sed -i "s/${KERNEL_PATCHVER}/${NEW_KERNEL_PATCHVER}/g" ${HOME_PATH}/target/linux/${TARGET_BOARD}/Makefile
-		__success_msg "内核从[${KERNEL_PATCHVER}]替换为[${NEW_KERNEL_PATCHVER}]"
-	fi
+
 		
 	# 修改源码中IP设置
 	local def_ipaddress="$(grep "ipaddr:-" "${FILE_CONFIG_GEN}" | grep -v 'addr_offset' | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+")"
