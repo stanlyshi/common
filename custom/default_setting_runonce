@@ -1,0 +1,16 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2006 OpenWrt.org
+
+START=99
+
+run_default_settings_once() {
+	if [ -f "/etc/default-settings" ]; then
+		chmod +x /etc/default-settings
+		/etc/default-setting
+		rm -rf /etc/default-settings
+	fi
+}
+
+start() {
+	run_default_settings_once
+}

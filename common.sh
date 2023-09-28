@@ -60,18 +60,18 @@ function parse_settings() {
 	fi
 	
 	if [[ ${PACKAGES_ADDR} == "default" ]] || [[ ${ENABLE_PACKAGES_UPDATE} == "false" ]]; then
-		echo "PACKAGES_ADDR=default" >> $GITHUB_ENV
-		echo "ENABLE_PACKAGES_UPDATE=false" >> $GITHUB_ENV
+		echo "PACKAGES_ADDR=default" >> ${GITHUB_ENV}
+		echo "ENABLE_PACKAGES_UPDATE=false" >> ${GITHUB_ENV}
 	else
 		git_packages=`echo "${PACKAGES_ADDR}" | awk -F/ '{print $1}'` 2>/dev/null
 		if [[ ${git_packages} == ${GITHUB_ACTOR} ]]; then
-			echo "PACKAGES_ADDR=${PACKAGES_ADDR}" >> $GITHUB_ENV
-			echo "ENABLE_PACKAGES_UPDATE=${ENABLE_PACKAGES_UPDATE}" >> $GITHUB_ENV
+			echo "PACKAGES_ADDR=${PACKAGES_ADDR}" >> ${GITHUB_ENV}
+			echo "ENABLE_PACKAGES_UPDATE=${ENABLE_PACKAGES_UPDATE}" >> ${GITHUB_ENV}
 		else
 			echo "插件库账号：${git_packages}"
 			echo "当前的账号：${GITHUB_ACTOR}"
 			echo "设置提示：插件库账号与当前账号不符，关闭\"插件库更新\"！"
-			echo "ENABLE_PACKAGES_UPDATE=false" >> $GITHUB_ENV
+			echo "ENABLE_PACKAGES_UPDATE=false" >> ${GITHUB_ENV}
 		fi
 	fi
 	
@@ -82,6 +82,7 @@ function parse_settings() {
 		export LUCI_EDITION="18.06"
 		export PACKAGE_BRANCH="Lede"
 		export ZZZ_PATH="$(find "${HOME_PATH}/package" -type f -name "*-default-settings" |grep files)"
+		# https://github.com/coolsnowwolf/lede/blob/master/package/lean/default-settings/files/zzz-default-settings
 	;;
 	openwrt|OPENWRT|Openwrt|OpenWrt|OpenWRT)
 		export SOURCE_URL="https://github.com/openwrt/openwrt"
@@ -96,50 +97,49 @@ function parse_settings() {
 	;;
 	esac
 	
-	echo "SOURCE_URL=${SOURCE_URL}" >> $GITHUB_ENV
-	echo "SOURCE_BRANCH=${SOURCE_BRANCH}" >> $GITHUB_ENV
-	echo "CONFIG_FILE=${CONFIG_FILE}" >> $GITHUB_ENV
-	echo "DIY_PART_SH=${DIY_PART_SH}" >> $GITHUB_ENV
-	echo "NOTICE_TYPE=${NOTICE_TYPE}" >> $GITHUB_ENV
-	echo "UPLOAD_CONFIG=${UPLOAD_CONFIG}" >> $GITHUB_ENV
-	echo "RELEASE_TAG=${RELEASE_TAG}" >> $GITHUB_ENV
+	echo "SOURCE_URL=${SOURCE_URL}" >> ${GITHUB_ENV}
+	echo "DIY_PART_SH=${DIY_PART_SH}" >> ${GITHUB_ENV}
+	echo "NOTICE_TYPE=${NOTICE_TYPE}" >> ${GITHUB_ENV}
+	echo "UPLOAD_CONFIG=${UPLOAD_CONFIG}" >> ${GITHUB_ENV}
+	echo "RELEASE_TAG=${RELEASE_TAG}" >> ${GITHUB_ENV}
 	
 	# 路径
-	echo "HOME_PATH=${GITHUB_WORKSPACE}/openwrt" >> $GITHUB_ENV
-	echo "BIN_PATH=${GITHUB_WORKSPACE}/openwrt/bin" >> $GITHUB_ENV
-	echo "UPLOAD_PATH=${GITHUB_WORKSPACE}/openwrt/upgrade" >> $GITHUB_ENV
-	echo "BUILD_PATH=${GITHUB_WORKSPACE}/openwrt/build" >> $GITHUB_ENV
-	echo "COMMON_PATH=${GITHUB_WORKSPACE}/openwrt/build/common" >> $GITHUB_ENV
-	echo "MATRIX_TARGET_PATH=${GITHUB_WORKSPACE}/openwrt/build/${MATRIX_TARGET}" >> $GITHUB_ENV
-	echo "CLEAR_FILE_PATH=${GITHUB_WORKSPACE}/openwrt/Clear" >> $GITHUB_ENV
+	echo "HOME_PATH=${GITHUB_WORKSPACE}/openwrt" >> ${GITHUB_ENV}
+	echo "BIN_PATH=${GITHUB_WORKSPACE}/openwrt/bin" >> ${GITHUB_ENV}
+	echo "UPLOAD_PATH=${GITHUB_WORKSPACE}/openwrt/upgrade" >> ${GITHUB_ENV}
+	echo "BUILD_PATH=${GITHUB_WORKSPACE}/openwrt/build" >> ${GITHUB_ENV}
+	echo "CONFIG_PATH=${GITHUB_WORKSPACE}/openwrt/build/config" >> ${GITHUB_ENV}
+	echo "COMMON_PATH=${GITHUB_WORKSPACE}/openwrt/build/common" >> ${GITHUB_ENV}
+	echo "MATRIX_TARGET_PATH=${GITHUB_WORKSPACE}/openwrt/build/${MATRIX_TARGET}" >> ${GITHUB_ENV}
+	echo "CLEAR_FILE_PATH=${GITHUB_WORKSPACE}/openwrt/Clear" >> ${GITHUB_ENV}
 	
 	# https://github.com/coolsnowwolf/lede/tree/master/package/base-files/files
-	echo "FILES_PATH=${GITHUB_WORKSPACE}/openwrt/package/base-files/files" >> $GITHUB_ENV
-	echo "FILE_BASE_FILES=${GITHUB_WORKSPACE}/openwrt/package/base-files/files/lib/upgrade/keep.d/base-files-essential" >> $GITHUB_ENV
-	echo "FILE_DEFAULT_SETTINGS=${GITHUB_WORKSPACE}/openwrt/package/base-files/files/etc/default-settings" >> $GITHUB_ENV
-	echo "FILE_OPENWRT_RELEASE=${GITHUB_WORKSPACE}/openwrt/package/base-files/files/etc/openwrt_release" >> $GITHUB_ENV
-	echo "FILE_CONFIG_GEN=${GITHUB_WORKSPACE}/openwrt/package/base-files/files/bin/config_generate" >> $GITHUB_ENV
+	echo "FILES_PATH=${GITHUB_WORKSPACE}/openwrt/package/base-files/files" >> ${GITHUB_ENV}
+	echo "FILE_BASE_FILES=${GITHUB_WORKSPACE}/openwrt/package/base-files/files/lib/upgrade/keep.d/base-files-essential" >> ${GITHUB_ENV}
+	echo "FILE_DEFAULT_UCI=${GITHUB_WORKSPACE}/openwrt/package/base-files/files/etc/default_uci" >> ${GITHUB_ENV}
+	echo "FILE_DEFAULT_SETTINGS=${GITHUB_WORKSPACE}/openwrt/package/base-files/files/etc/default_settings" >> ${GITHUB_ENV}
+	echo "FILE_OPENWRT_RELEASE=${GITHUB_WORKSPACE}/openwrt/package/base-files/files/etc/openwrt_release" >> ${GITHUB_ENV}
+	echo "FILE_CONFIG_GEN=${GITHUB_WORKSPACE}/openwrt/package/base-files/files/bin/config_generate" >> ${GITHUB_ENV}
 	
-	echo "REPOSITORY=${GITHUB_REPOSITORY##*/}" >> $GITHUB_ENV
-	echo "COMPILE_DATE=$(date +%Y%m%d%H%M)" >> $GITHUB_ENV
+	echo "COMPILE_DATE=$(date +%Y%m%d%H%M)" >> ${GITHUB_ENV}
 	echo "COMPILE_DATE_CN=$(date +%Y年%m月%d号%H时%M分)" >> ${GITHUB_ENV}
 }
 
 # 编译开始通知
 function notice_begin() {
 	if [[ "${NOTICE_TYPE}" == "TG" ]]; then
-		curl -k --data chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" --data "text=🎉 主人：您正在使用【${{github.repository}}】仓库【${MATRIX_TARGET}】文件夹编译${{env.LUCI_EDITION}}-${{env.SOURCE}}固件,请耐心等待...... 😋" "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage"
+		curl -k --data chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" --data "text=🎉 主人：您正在使用【${{github.repository}}】仓库【${MATRIX_TARGET}】文件夹编译${LUCI_EDITION}-${SOURCE}固件,请耐心等待...... 😋" "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage"
 	elif [[ "${NOTICE_TYPE}" == "PUSH" ]]; then
-		curl -k --data token="${{ secrets.PUSH_PLUS_TOKEN }}" --data title="开始编译【${MATRIX_TARGET}】" --data "content=🎉 主人：您正在使用【${{github.repository}}】仓库【${MATRIX_TARGET}】文件夹编译${{env.LUCI_EDITION}}-${{env.SOURCE}}固件,请耐心等待...... 😋💐" "http://www.pushplus.plus/send"
+		curl -k --data token="${{ secrets.PUSH_PLUS_TOKEN }}" --data title="开始编译【${MATRIX_TARGET}】" --data "content=🎉 主人：您正在使用【${{github.repository}}】仓库【${MATRIX_TARGET}】文件夹编译${LUCI_EDITION}-${SOURCE}固件,请耐心等待...... 😋💐" "http://www.pushplus.plus/send"
 	fi
 }
 
 # 编译完成通知
 function notice_end() {
 	if [[ "${NOTICE_TYPE}" == "TG" ]]; then
-		curl -k --data chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" --data "text=我亲爱的✨主人✨：您使用【${{github.repository}}】仓库【${MATRIX_TARGET}】文件夹编译的[${{ env.SOURCE }}-${{ env.TARGET_PROFILE }}]固件顺利编译完成了！💐https://github.com/${{github.repository}}/releases" "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage"
+		curl -k --data chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" --data "text=我亲爱的✨主人✨：您使用【${{github.repository}}】仓库【${MATRIX_TARGET}】文件夹编译的[${SOURCE}-${TARGET_PROFILE }]固件顺利编译完成了！💐https://github.com/${{github.repository}}/releases" "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage"
 	elif [[ "${NOTICE_TYPE}" == "PUSH" ]]; then
-		curl -k --data token="${{ secrets.PUSH_PLUS_TOKEN }}" --data title="[${{ env.SOURCE }}-${{ env.TARGET_PROFILE }}]编译成功" --data "content=我亲爱的✨主人✨：您使用【${{github.repository}}】仓库【${MATRIX_TARGET}】文件夹编译的[${{ env.SOURCE }}-${{ env.TARGET_PROFILE }}]固件顺利编译完成了！💐https://github.com/${{github.repository}}/releases" "http://www.pushplus.plus/send"
+		curl -k --data token="${{ secrets.PUSH_PLUS_TOKEN }}" --data title="[${SOURCE}-${TARGET_PROFILE }]编译成功" --data "content=我亲爱的✨主人✨：您使用【${{github.repository}}】仓库【${MATRIX_TARGET}】文件夹编译的[${SOURCE}-${TARGET_PROFILE }]固件顺利编译完成了！💐https://github.com/${{github.repository}}/releases" "http://www.pushplus.plus/send"
 	fi
 }
 
@@ -170,22 +170,37 @@ function git_clone_source() {
 	# 下载common仓库
 	sudo rm -rf ${BUILD_PATH}/common && git clone -b main --depth 1 https://github.com/stanlyshi/common ${BUILD_PATH}/common
 	chmod -R +x ${BUILD_PATH}
+	
+	# 内核版本
+	if [[ `grep -c "KERNEL_PATCHVER:=" ${HOME_PATH}/target/linux/${TARGET_BOARD}/Makefile` -eq '1' ]]; then
+		PATCH_VER="$(egrep -o 'KERNEL_PATCHVER:=[0-9]+\.[0-9]+' ${HOME_PATH}/target/linux/${TARGET_BOARD}/Makefile |cut -d "=" -f2)"
+	elif [[ `grep -c "KERNEL_PATCHVER=" ${HOME_PATH}/target/linux/${TARGET_BOARD}/Makefile` -eq '1' ]]; then
+		PATCH_VER="$(egrep -o 'KERNEL_PATCHVER=[0-9]+\.[0-9]+' ${HOME_PATH}/target/linux/${TARGET_BOARD}/Makefile |cut -d "=" -f2)"
+	fi
+	if [[ -n ${PATCH_VER} ]] && [[ -f ${HOME_PATH}/include/kernel-${PATCH_VER} ]]; then
+		export KERNEL_PATCHVER=$(egrep -o "${PATCH_VER}\.[0-9]+" ${HOME_PATH}/include/kernel-${PATCH_VER})
+	elif [[ -n ${PATCH_VER} ]] && [[ ! -f ${HOME_PATH}/include/kernel-${PATCH_VER} ]]; then
+		export KERNEL_PATCHVER=$(egrep -o "${PATCH_VER}\.[0-9]+" ${HOME_PATH}/include/kernel-version.mk)
+	else
+		export KERNEL_PATCHVER="unknown"
+	fi
+	__info_msg "内核版本：${KERNEL_PATCHVER}"
 }
 
 # 插件库更新
 function update_packages() {
-	gitdate=$(curl -H "Authorization: token ${{ secrets.REPO_TOKEN }}" -s "https://api.github.com/repos/${{ env.PACKAGES_ADDR }}/actions/runs" | jq -r '.workflow_runs[0].created_at')
+	gitdate=$(curl -H "Authorization: token ${{ secrets.REPO_TOKEN }}" -s "https://api.github.com/repos/${PACKAGES_ADDR}/actions/runs" | jq -r '.workflow_runs[0].created_at')
 	gitdate=$(date -d "$gitdate" +%s)
 	echo "gitdate=${gitdate}"
 	now=$(date -d "$(date '+%Y-%m-%d %H:%M:%S')" +%s)
 	echo "now=${now}"
 	if [[ $(expr $gitdate + 60) < $now ]]; then
-	curl -X POST https://api.github.com/repos/${{ env.PACKAGES_ADDR }}/dispatches \
+	curl -X POST https://api.github.com/repos/${PACKAGES_ADDR}/dispatches \
 	-H "Accept: application/vnd.github.everest-preview+json" \
 	-H "Authorization: token ${{ secrets.REPO_TOKEN }}" \
 	--data '{"event_type": "updated by ${REPOSITORY}"}'
 	fi
-	echo "packages url: https://github.com/${{ env.PACKAGES_ADDR }}"
+	echo "packages url: https://github.com/${PACKAGES_ADDR}"
 }
 
 
@@ -194,8 +209,8 @@ function do_diy() {
 	cd ${HOME_PATH}
 	
 	# 检查.config文件是否存在
-	if [ -z "$(ls -A "${MATRIX_TARGET_PATH}/${CONFIG_FILE}" 2>/dev/null)" ]; then
-		__error_msg "编译脚本的[${MATRIX_TARGET}文件夹内缺少${CONFIG_FILE}文件],请在[${MATRIX_TARGET}]文件夹内补齐"
+	if [ -z "$(ls -A "${CONFIG_PATH}/${CONFIG_FILE}" 2>/dev/null)" ]; then
+		__error_msg "编译脚本的[${MATRIX_TARGET}文件夹内缺少${CONFIG_FILE}文件],请在[${MATRIX_TARGET_PATH}/config/]文件夹内补齐"
 		echo
 		exit 1
 	fi
@@ -226,7 +241,9 @@ function do_diy() {
 	./scripts/feeds update -a
 	./scripts/feeds install -a -p openwrt-packages
 	./scripts/feeds install -a > /dev/null 2>&1
-	mv "${MATRIX_TARGET_PATH}/${CONFIG_FILE}" .config
+	
+	# 复制自定义.config文件
+	cp -rf "${CONFIG_PATH}/${CONFIG_FILE}" ${HOME_PATH}/.config
 }
 
 # 生成.config文件
@@ -238,6 +255,7 @@ function make_defconfig() {
 	
 	# 生成.config文件
 	make defconfig > /dev/null 2>&1
+	${HOME_PATH}./scripts/diffconfig.sh > ${GITHUB_WORKSPACE}/${CONFIG_FILE}
 	
 	export TARGET_BOARD="$(awk -F '[="]+' '/TARGET_BOARD/{print $2}' ${HOME_PATH}/.config)"
 	export TARGET_SUBTARGET="$(awk -F '[="]+' '/TARGET_SUBTARGET/{print $2}' ${HOME_PATH}/.config)"
@@ -259,20 +277,6 @@ function make_defconfig() {
 	fi
 	__info_msg "固件CPU架构：${TARGET_PROFILE}"
 	
-	# 内核版本
-	if [[ `grep -c "KERNEL_PATCHVER:=" ${HOME_PATH}/target/linux/${TARGET_BOARD}/Makefile` -eq '1' ]]; then
-	  PATCHVE="$(egrep -o 'KERNEL_PATCHVER:=[0-9]+\.[0-9]+' ${HOME_PATH}/target/linux/${TARGET_BOARD}/Makefile |cut -d "=" -f2)"
-	elif [[ `grep -c "KERNEL_PATCHVER=" ${HOME_PATH}/target/linux/${TARGET_BOARD}/Makefile` -eq '1' ]]; then
-	  PATCHVE="$(egrep -o 'KERNEL_PATCHVER=[0-9]+\.[0-9]+' ${HOME_PATH}/target/linux/${TARGET_BOARD}/Makefile |cut -d "=" -f2)"
-	else
-	  export "KERNEL_PATCHVER=unknown"
-	fi
-	if [[ -n ${PATCHVE} ]] && [[ -f ${HOME_PATH}/include/kernel-${PATCHVE} ]]; then
-	  export KERNEL_PATCHVER=$(egrep -o "${PATCHVE}\.[0-9]+" ${HOME_PATH}/include/kernel-${PATCHVE})
-	elif [[ -n ${PATCHVE} ]] && [[ ! -f ${HOME_PATH}/include/kernel-${PATCHVE} ]]; then
-	  export KERNEL_PATCHVER=$(egrep -o "${PATCHVE}\.[0-9]+" ${HOME_PATH}/include/kernel-version.mk)
-	fi
-	__info_msg "内核版本：${KERNEL_PATCHVER}"
 }
 
 ################################################################################################################
@@ -392,7 +396,6 @@ function compile_info() {
 function update_repo() {
 	cd ${GITHUB_WORKSPACE}
 
-	
 	# 更新插件列表
 	update_plugin_list
 	
@@ -400,34 +403,29 @@ function update_repo() {
 	bool_update_target="false"
 	bool_update_config="false"
 	git clone -b main https://github.com/${{github.repository}}.git repo
-	TARGET1=$(grep 'target: \[' ${GITHUB_WORKSPACE}/.github/workflows/${{ env.COMPILE_YML }} | sed 's/^[ ]*//g' |grep '^target' |cut -d '#' -f1 |sed 's/\[/\\&/' |sed 's/\]/\\&/') && echo "TARGET1=${TARGET1}"
-	TARGET2=$(grep 'target: \[' ${GITHUB_WORKSPACE}/.github/workflows/${{env.BUILD_YML}}  |sed 's/^[ ]*//g' |grep '^target' |cut -d '#' -f1 |sed 's/\[/\\&/' |sed 's/\]/\\&/') && echo "TARGET2=${TARGET2}"
-	if [[ -n "${TARGET1}" ]] && [[ -n "${TARGET2}" ]] && [[ "${TARGET1}" != "${TARGET2}" ]]; then
-		sed -i "s/${TARGET1}/${TARGET2}/g" repo/.github/workflows/${{env.COMPILE_YML}} && echo "change ${TARGET1} to ${TARGET2}"
+	local COMPILE_YML_TARGET=$(grep 'target: \[' ${GITHUB_WORKSPACE}/.github/workflows/${COMPILE_YML} | sed 's/^[ ]*//g' |grep '^target' |cut -d '#' -f1 |sed 's/\[/\\&/' |sed 's/\]/\\&/') && echo "COMPILE_YML_TARGET=${COMPILE_YML_TARGET}"
+	local BUILD_YML_TARGET=$(grep 'target: \[' ${GITHUB_WORKSPACE}/.github/workflows/${BUILD_YML}  |sed 's/^[ ]*//g' |grep '^target' |cut -d '#' -f1 |sed 's/\[/\\&/' |sed 's/\]/\\&/') && echo "BUILD_YML_TARGET=${BUILD_YML_TARGET}"
+	if [[ -n "${COMPILE_YML_TARGET}" ]] && [[ -n "${BUILD_YML_TARGET}" ]] && [[ "${COMPILE_YML_TARGET}" != "${BUILD_YML_TARGET}" ]]; then
+		sed -i "s/${COMPILE_YML_TARGET}/${BUILD_YML_TARGET}/g" repo/.github/workflows/${COMPILE_YML} && echo "change ${COMPILE_YML_TARGET} to ${BUILD_YML_TARGET}"
 		bool_update_target="true"
 	fi
-	if [[ `cat ${GITHUB_WORKSPACE}/${CONFIG_FILE}` != `cat ${MATRIX_TARGET_PATH}/${CONFIG_FILE}` ]]; then
+
+	# 更新.config文件
+	${HOME_PATH}./scripts/diffconfig.sh > ${GITHUB_WORKSPACE}/${CONFIG_FILE}
+	
+	cd ${GITHUB_WORKSPACE}/repo
+	if [[ `cat ${GITHUB_WORKSPACE}/${CONFIG_FILE}` != `cat build/${MATRIX_TARGET}/config/${CONFIG_FILE}` ]]; then
 		bool_update_config="true"
 	fi
-	
-	# 更新.config文件
-	cd ${GITHUB_WORKSPACE}/repo
-	if [[ -n "$(ls -A "build/${MATRIX_TARGET}/${CONFIG_FILE}" 2>/dev/null)" ]]; then
-		git rm -rf build/${MATRIX_TARGET}/${CONFIG_FILE}
-	fi
-	cp -rf ${GITHUB_WORKSPACE}/${CONFIG_FILE} build/${MATRIX_TARGET}/${CONFIG_FILE} && echo "copy ${GITHUB_WORKSPACE}/${CONFIG_FILE} to build/${MATRIX_TARGET}/${CONFIG_FILE}"
-	#githead=`git log --oneline | sed -n '1p' | cut -d " " -f1`
-	#sed -i '/plugin/d' ${MATRIX_TARGET_PATH}/releaseinfo.md
-	#cat >> ${MATRIX_TARGET_PATH}/releaseinfo.md <<-EOF
-	#- [x] [plugin](${{ env.Github }}/blob/${githead}/build/${MATRIX_TARGET}/plugin)
-	#EOF
-	echo "bool_update_target=${bool_update_target}; bool_update_config=${bool_update_config}"
+	cp -rf ${GITHUB_WORKSPACE}/${CONFIG_FILE} build/${MATRIX_TARGET}/config/${CONFIG_FILE}
+	__info_msg "bool_update_target=${bool_update_target}; bool_update_config=${bool_update_config}"
 	if [[ ${bool_update_target} == "true" ]] || [[ ${bool_update_config} == "true" ]]; then
+		local BRANCH_HEAD="$(git rev-parse --abbrev-ref HEAD)"
 		git add .
-		git commit -m "Update plugin and ${CONFIG_FILE}"
-		git push --force "https://${{ secrets.REPO_TOKEN }}@github.com/${{github.repository}}" HEAD:main
+		git commit -m "Update plugins and ${CONFIG_FILE}"
+		git push --force "https://${{ secrets.REPO_TOKEN }}@github.com/${{github.repository}}" HEAD:${BRANCH_HEAD}
 	else
-		echo "Your branch is already up to date with 'origin/main'. Nothing to commit, working tree clean"
+		__info_msg "Your branch is already up to date with 'origin/main'. Nothing to commit, working tree clean"
 	fi
 }
 
@@ -440,11 +438,11 @@ function diy_public() {
 	cd ${HOME_PATH}
 	
 	# 增加插件源
-	sed -i '/roacn/d; /281677160/d; /helloworld/d; /passwall/d; /OpenClash/d' "feeds.conf.default"
+	sed -i '/roacn/d; /stanlyshi/d; /281677160/d; /helloworld/d; /passwall/d; /OpenClash/d' "feeds.conf.default"
 	
 	if [[ "${SOURCE_ABBR}" == "lede" ]]; then
 		cat >>"feeds.conf.default" <<-EOF
-		src-git openwrt-packages https://github.com/roacn/openwrt-packages.git;
+		src-git openwrt-packages https://github.com/roacn/openwrt-packages.git;main
 		EOF
 		#git clone --depth 1 -b "${SOURCE_BRANCH}" https://github.com/roacn/openwrt-packages ${HOME_PATH}/openwrt-package
 		#rm -rf ${HOME_PATH}/openwrt-package/{diy,.github,.gitignore,LICENSE,README.md} 2>/dev/null
@@ -463,13 +461,14 @@ function diy_public() {
 	cp -rf ${COMMON_PATH}/custom/openwrt.sh ${FILES_PATH}/usr/bin/openwrt && sudo chmod +x ${FILES_PATH}/usr/bin/openwrt
 	cp -rf ${COMMON_PATH}/custom/openwrt.lxc.sh ${FILES_PATH}/usr/bin/openwrt.lxc && sudo chmod +x ${FILES_PATH}/usr/bin/openwrt.lxc
 	
-	# diy文件
+	# 替换编译前源码中对应目录文件
 	if [ -n "$(ls -A "${MATRIX_TARGET_PATH}/diy" 2>/dev/null)" ]; then
-		cp -rf ${MATRIX_TARGET_PATH}/diy/* ${HOME_PATH}
+		cp -rf ${MATRIX_TARGET_PATH}/diy/* ${FILES_PATH} && chmod -R +x ${FILES_PATH}
 	fi
-	# files大法，替换固件对应目录文件
+	# 替换编译后固件中对应目录文件（备用）
 	if [ -n "$(ls -A "${MATRIX_TARGET_PATH}/files" 2>/dev/null)" ]; then
-		cp -rf "${MATRIX_TARGET_PATH}/files" ${HOME_PATH} && chmod -R +x ${HOME_PATH}/files
+		rm -rf ${MATRIX_TARGET_PATH}/files/{LICENSE,.*README}
+		cp -rf ${MATRIX_TARGET_PATH}/files ${HOME_PATH}
 	fi	
 	# 打补丁
 	if [ -n "$(ls -A "${MATRIX_TARGET_PATH}/patches" 2>/dev/null)" ]; then
@@ -478,10 +477,10 @@ function diy_public() {
 	
 	# 自动更新插件（luci-app-autoupdate）
 	if [[ ${FIRMWARE_TYPE} == "lxc" ]]; then
-	  find . -type d -name "luci-app-autoupdate" | xargs -i rm -rf {}
-	  if [[ -n "$(grep "luci-app-autoupdate" ${HOME_PATH}/include/target.mk)" ]]; then
-		sed -i 's?luci-app-autoupdate??g' ${HOME_PATH}/include/target.mk
-	  fi
+		find . -type d -name "luci-app-autoupdate" | xargs -i rm -rf {}
+		if [[ -n "$(grep "luci-app-autoupdate" ${HOME_PATH}/include/target.mk)" ]]; then
+			sed -i 's?luci-app-autoupdate??g' ${HOME_PATH}/include/target.mk
+		fi
 	else
 		find . -type d -name 'luci-app-autoupdate' | xargs -i rm -rf {}
 		git clone -b main https://github.com/stanlyshi/luci-app-autoupdate ${HOME_PATH}/package/luci-app-autoupdate 2>/dev/null
@@ -489,21 +488,36 @@ function diy_public() {
 			sed -i 's?DEFAULT_PACKAGES:=?DEFAULT_PACKAGES:=luci-app-autoupdate luci-app-ttyd ?g' ${HOME_PATH}/include/target.mk
 		fi
 		if [[ -d "${HOME_PATH}/package/luci-app-autoupdate" ]]; then
-			echo "增加定时更新固件的插件完成"
+			__success_msg "增加定时更新固件的插件成功"
 		else
-			echo "插件源码下载失败"
+			__error_msg "插件源码下载失败"
 		fi
 	fi
 	
-	# 其它
-	# 取消coremark跑分
-	sed -i '$ s/exit 0$//' ${FILES_PATH}/etc/rc.local
-	echo '
-	if [[ `grep -c "coremark" /etc/crontabs/root` -eq "1" ]]; then
-	  sed -i "/coremark/d" /etc/crontabs/root
+	# 内核替换
+	if [[ -n "${NEW_KERNEL_PATCHVER}" ]]; then
+		sed -i "s/${KERNEL_PATCHVER}/${NEW_KERNEL_PATCHVER}/g" ${HOME_PATH}/target/linux/${TARGET_BOARD}/Makefile
+		__success_msg "内核从[${KERNEL_PATCHVER}]替换为[${NEW_KERNEL_PATCHVER}]"
 	fi
+		
+	# 修改源码中IP设置
+	local def_ipaddress="$(grep "ipaddr:-" "${FILE_CONFIG_GEN}" | grep -v 'addr_offset' | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+")"
+	local new_ipaddress="$(grep "network.lan.ipaddr" ${BUILD_PATH}/${DIY_PART_SH} | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+")"
+	if [[ -z "${new_ipaddress}" ]]; then
+		sed -i "s/${def_ipaddress}/${new_ipaddress}/g" ${FILE_CONFIG_GEN}
+		__success_msg "IP地址从[${def_ipaddress}]替换为[${new_ipaddress}]"
+	else
+		__info_msg "使用默认IP地址：${def_ipaddress}."
+	fi
+	
+	# Openwrt初次运行初始化设置
+	cp -rf ${COMMON_PATH}/custom/default_settings ${FILE_DEFAULT_SETTINGS}
+	sudo chmod +x ${FILE_DEFAULT_SETTINGS}	
+	echo '
+	rm -rf /etc/init.d/default_setting_runonce
+	rm -rf /etc/default_settings
 	exit 0
-	' >> ${FILES_PATH}/etc/rc.local
+	' >> ${FILE_DEFAULT_SETTINGS}
 	
 	echo
 	echo "--------------common_diy_public end--------------"
@@ -516,6 +530,12 @@ function diy_lede() {
 	echo "--------------common_diy_lede start--------------"
 	echo
 	cd ${HOME_PATH}
+
+	__info_msg "去除防火墙规则"
+	sed -i '/to-ports 53/d' ${ZZZ_PATH}
+
+	__info_msg "设置密码为空"
+	sed -i '/CYXluq4wUazHjmCDBCqXF/d' ${ZZZ_PATH}
 
 	echo "reserved for test."
 	echo
@@ -539,212 +559,212 @@ function diy_openwrt() {
 # 判断插件冲突
 ################################################################################################################
 function resolve_conflictions() {
-cd ${HOME_PATH}
-echo
-echo "正在执行：判断插件有否冲突减少编译错误"
-make defconfig > /dev/null 2>&1
-rm -rf ${HOME_PATH}/CHONGTU && touch ${HOME_PATH}/CHONGTU
-echo "__blue_msg \"					插件冲突信息\"" > ${HOME_PATH}/CHONGTU
-if [[ `grep -c "CONFIG_PACKAGE_luci-app-adblock-plus=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-  if [[ `grep -c "CONFIG_PACKAGE_luci-app-adblock=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-    sed -i 's/CONFIG_PACKAGE_luci-app-adblock=y/# CONFIG_PACKAGE_luci-app-adblock is not set/g' ${HOME_PATH}/.config
-    sed -i 's/CONFIG_PACKAGE_adblock=y/# CONFIG_PACKAGE_adblock is not set/g' ${HOME_PATH}/.config
-    sed -i '/luci-i18n-adblock/d' ${HOME_PATH}/.config
-    echo "TIME r \"您同时选择luci-app-adblock-plus和luci-app-adblock，插件有依赖冲突，只能二选一，已删除luci-app-adblock\"" >>CHONGTU
-    echo "" >>CHONGTU
-  fi
-fi
-if [[ `grep -c "CONFIG_PACKAGE_luci-app-advanced=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-  if [[ `grep -c "CONFIG_PACKAGE_luci-app-fileassistant=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-    sed -i 's/CONFIG_PACKAGE_luci-app-fileassistant=y/# CONFIG_PACKAGE_luci-app-fileassistant is not set/g' ${HOME_PATH}/.config
-    echo "TIME r \"您同时选择luci-app-advanced和luci-app-fileassistant，luci-app-advanced已附带luci-app-fileassistant，所以删除了luci-app-fileassistant\"" >>CHONGTU
-    echo "" >>CHONGTU
-   fi
-fi
-if [[ `grep -c "CONFIG_PACKAGE_luci-app-docker=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-  if [[ `grep -c "CONFIG_PACKAGE_luci-app-dockerman=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-    sed -i 's/CONFIG_PACKAGE_luci-app-docker=y/# CONFIG_PACKAGE_luci-app-docker is not set/g' ${HOME_PATH}/.config
-    sed -i 's/CONFIG_PACKAGE_luci-i18n-docker-zh-cn=y/# CONFIG_PACKAGE_luci-i18n-docker-zh-cn is not set/g' ${HOME_PATH}/.config
-    echo "TIME r \"您同时选择luci-app-docker和luci-app-dockerman，插件有冲突，相同功能插件只能二选一，已删除luci-app-docker\"" >>CHONGTU
-    echo "" >>CHONGTU
-  fi
-fi
-if [[ `grep -c "CONFIG_PACKAGE_luci-app-dockerman=y" ${HOME_PATH}/.config` -eq '0' ]] || [[ `grep -c "CONFIG_PACKAGE_luci-app-docker=y" ${HOME_PATH}/.config` -eq '0' ]]; then
-  echo "# CONFIG_PACKAGE_luci-lib-docker is not set" >> ${HOME_PATH}/.config
-  echo "# CONFIG_PACKAGE_luci-i18n-dockerman-zh-cn is not set" >> ${HOME_PATH}/.config
-  echo "# CONFIG_PACKAGE_docker is not set" >> ${HOME_PATH}/.config
-  echo "# CONFIG_PACKAGE_dockerd is not set" >> ${HOME_PATH}/.config
-  echo "# CONFIG_PACKAGE_runc is not set" >> ${HOME_PATH}/.config
-fi
-if [[ `grep -c "CONFIG_PACKAGE_luci-app-kodexplorer=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-  if [[ `grep -c "CONFIG_PACKAGE_luci-app-vnstat=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-    sed -i 's/CONFIG_PACKAGE_luci-app-vnstat=y/# CONFIG_PACKAGE_luci-app-vnstat is not set/g' ${HOME_PATH}/.config
-    sed -i 's/CONFIG_PACKAGE_vnstat=y/# CONFIG_PACKAGE_vnstat is not set/g' ${HOME_PATH}/.config
-    sed -i 's/CONFIG_PACKAGE_vnstati=y/# CONFIG_PACKAGE_vnstati is not set/g' ${HOME_PATH}/.config
-    sed -i 's/CONFIG_PACKAGE_libgd=y/# CONFIG_PACKAGE_libgd is not set/g' ${HOME_PATH}/.config
-    sed -i '/luci-i18n-vnstat/d' ${HOME_PATH}/.config
-    echo "TIME r \"您同时选择luci-app-kodexplorer和luci-app-vnstat，插件有依赖冲突，只能二选一，已删除luci-app-vnstat\"" >>CHONGTU
-    echo "" >>CHONGTU
-  fi
-fi
-if [[ `grep -c "CONFIG_PACKAGE_wpad-openssl=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-	if [[ `grep -c "CONFIG_PACKAGE_wpad=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-		sed -i 's/CONFIG_PACKAGE_wpad=y/# CONFIG_PACKAGE_wpad is not set/g' ${HOME_PATH}/.config
+	cd ${HOME_PATH}
+	echo
+	echo "正在执行：判断插件有否冲突减少编译错误"
+	make defconfig > /dev/null 2>&1
+	rm -rf ${HOME_PATH}/CHONGTU && touch ${HOME_PATH}/CHONGTU
+	echo "__blue_msg \"					插件冲突信息\"" > ${HOME_PATH}/CHONGTU
+	if [[ `grep -c "CONFIG_PACKAGE_luci-app-adblock-plus=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		if [[ `grep -c "CONFIG_PACKAGE_luci-app-adblock=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+			sed -i 's/CONFIG_PACKAGE_luci-app-adblock=y/# CONFIG_PACKAGE_luci-app-adblock is not set/g' ${HOME_PATH}/.config
+			sed -i 's/CONFIG_PACKAGE_adblock=y/# CONFIG_PACKAGE_adblock is not set/g' ${HOME_PATH}/.config
+			sed -i '/luci-i18n-adblock/d' ${HOME_PATH}/.config
+			echo "TIME r \"您同时选择luci-app-adblock-plus和luci-app-adblock，插件有依赖冲突，只能二选一，已删除luci-app-adblock\"" >>CHONGTU
+			echo "" >>CHONGTU
+		fi
 	fi
-fi
-if [[ `grep -c "CONFIG_PACKAGE_luci-i18n-qbittorrent-zh-cn=y" ${HOME_PATH}/.config` -eq '0' ]]; then
-	sed -i 's/CONFIG_PACKAGE_luci-app-qbittorrent_static=y/# CONFIG_PACKAGE_luci-app-qbittorrent_static is not set/g' ${HOME_PATH}/.config
-	sed -i 's/CONFIG_DEFAULT_luci-app-qbittorrent=y/# CONFIG_DEFAULT_luci-app-qbittorrent is not set/g' ${HOME_PATH}/.config
-	sed -i 's/CONFIG_PACKAGE_luci-app-qbittorrent_dynamic=y/# CONFIG_PACKAGE_luci-app-qbittorrent_dynamic is not set/g' ${HOME_PATH}/.config
-	sed -i 's/CONFIG_PACKAGE_qBittorrent-static=y/# CONFIG_PACKAGE_qBittorrent-static is not set/g' ${HOME_PATH}/.config
-	sed -i 's/CONFIG_PACKAGE_qbittorrent=y/# CONFIG_PACKAGE_qbittorrent is not set/g' ${HOME_PATH}/.config
-fi
-if [[ `grep -c "CONFIG_PACKAGE_luci-app-samba4=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-  if [[ `grep -c "CONFIG_PACKAGE_luci-app-samba=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-    sed -i 's/CONFIG_PACKAGE_autosamba=y/# CONFIG_PACKAGE_autosamba is not set/g' ${HOME_PATH}/.config
-    sed -i 's/CONFIG_PACKAGE_luci-app-samba=y/# CONFIG_PACKAGE_luci-app-samba is not set/g' ${HOME_PATH}/.config
-    sed -i 's/CONFIG_PACKAGE_luci-i18n-samba-zh-cn=y/# CONFIG_PACKAGE_luci-i18n-samba-zh-cn is not set/g' ${HOME_PATH}/.config
-    sed -i 's/CONFIG_PACKAGE_samba36-server=y/# CONFIG_PACKAGE_samba36-server is not set/g' ${HOME_PATH}/.config
-    echo "TIME r \"您同时选择luci-app-samba和luci-app-samba4，插件有冲突，相同功能插件只能二选一，已删除luci-app-samba\"" >>CHONGTU
-    echo "" >>CHONGTU
-  fi
-elif [[ `grep -c "CONFIG_PACKAGE_samba4-server=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-  echo "# CONFIG_PACKAGE_samba4-admin is not set" >> ${HOME_PATH}/.config
-  echo "# CONFIG_PACKAGE_samba4-client is not set" >> ${HOME_PATH}/.config
-  echo "# CONFIG_PACKAGE_samba4-libs is not set" >> ${HOME_PATH}/.config
-  echo "# CONFIG_PACKAGE_samba4-server is not set" >> ${HOME_PATH}/.config
-  echo "# CONFIG_PACKAGE_samba4-utils is not set" >> ${HOME_PATH}/.config
-fi
-if [[ `grep -c "CONFIG_PACKAGE_luci-app-sfe=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-  if [[ `grep -c "CONFIG_PACKAGE_luci-app-flowoffload=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-    sed -i 's/CONFIG_DEFAULT_luci-app-flowoffload=y/# CONFIG_DEFAULT_luci-app-flowoffload is not set/g' ${HOME_PATH}/.config
-    sed -i 's/CONFIG_PACKAGE_luci-app-flowoffload=y/# CONFIG_PACKAGE_luci-app-flowoffload is not set/g' ${HOME_PATH}/.config
-    sed -i 's/CONFIG_PACKAGE_luci-i18n-flowoffload-zh-cn=y/# CONFIG_PACKAGE_luci-i18n-flowoffload-zh-cn is not set/g' ${HOME_PATH}/.config
-    echo "TIME r \"提示：您同时选择了luci-app-sfe和luci-app-flowoffload，两个ACC网络加速，已删除luci-app-flowoffload\"" >>CHONGTU
-    echo "" >>CHONGTU
-  fi
-fi
-if [[ `grep -c "CONFIG_PACKAGE_luci-app-ssr-plus=y" ${HOME_PATH}/.config` -ge '1' ]]; then
-  if [[ `grep -c "CONFIG_PACKAGE_luci-app-cshark=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-    sed -i 's/CONFIG_PACKAGE_luci-app-cshark=y/# CONFIG_PACKAGE_luci-app-cshark is not set/g' ${HOME_PATH}/.config
-    sed -i 's/CONFIG_PACKAGE_cshark=y/# CONFIG_PACKAGE_cshark is not set/g' ${HOME_PATH}/.config
-    sed -i 's/CONFIG_PACKAGE_libustream-mbedtls=y/# CONFIG_PACKAGE_libustream-mbedtls is not set/g' ${HOME_PATH}/.config
-    echo "TIME r \"您同时选择luci-app-ssr-plus和luci-app-cshark，插件有依赖冲突，只能二选一，已删除luci-app-cshark\"" >>CHONGTU
-    echo "" >>CHONGTU
-  fi
-fi
-if [[ `grep -c "CONFIG_PACKAGE_luci-app-turboacc_INCLUDE_SHORTCUT_FE_CM=y" ${HOME_PATH}/.config` -ge '1' ]]; then
-  if [[ `grep -c "CONFIG_PACKAGE_luci-app-turboacc_INCLUDE_SHORTCUT_FE=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-    sed -i 's/CONFIG_PACKAGE_luci-app-turboacc_INCLUDE_SHORTCUT_FE=y/# CONFIG_PACKAGE_luci-app-turboacc_INCLUDE_SHORTCUT_FE is not set/g' ${HOME_PATH}/.config
-    sed -i 's/CONFIG_PACKAGE_kmod-fast-classifier=y/# CONFIG_PACKAGE_kmod-fast-classifier is not set/g' ${HOME_PATH}/.config
-    echo "TIME r \"luci-app-turboacc同时选择Include Shortcut-FE CM和Include Shortcut-FE，有冲突，只能二选一，已删除Include Shortcut-FE\"" >>CHONGTU
-    echo "" >>CHONGTU
-  fi
-fi
-if [[ `grep -c "CONFIG_PACKAGE_luci-app-unblockneteasemusic=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-  if [[ `grep -c "CONFIG_PACKAGE_luci-app-unblockneteasemusic-go=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-    sed -i 's/CONFIG_PACKAGE_luci-app-unblockneteasemusic-go=y/# CONFIG_PACKAGE_luci-app-unblockneteasemusic-go is not set/g' ${HOME_PATH}/.config
-    echo "TIME r \"您选择了luci-app-unblockneteasemusic-go，会和luci-app-unblockneteasemusic冲突导致编译错误，已删除luci-app-unblockneteasemusic-go\"" >>CHONGTU
-    echo "" >>CHONGTU
-  fi
-  if [[ `grep -c "CONFIG_PACKAGE_luci-app-unblockmusic=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-    sed -i 's/CONFIG_PACKAGE_luci-app-unblockmusic=y/# CONFIG_PACKAGE_luci-app-unblockmusic is not set/g' ${HOME_PATH}/.config
-    echo "TIME r \"您选择了luci-app-unblockmusic，会和luci-app-unblockneteasemusic冲突导致编译错误，已删除luci-app-unblockmusic\"" >>CHONGTU
-    echo "" >>CHONGTU
-  fi
-fi
-if [[ `grep -c "CONFIG_PACKAGE_dnsmasq-full=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-	if [[ `grep -c "CONFIG_PACKAGE_dnsmasq=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_PACKAGE_dnsmasq-dhcpv6=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-		sed -i 's/CONFIG_PACKAGE_dnsmasq=y/# CONFIG_PACKAGE_dnsmasq is not set/g' ${HOME_PATH}/.config
-		sed -i 's/CONFIG_PACKAGE_dnsmasq-dhcpv6=y/# CONFIG_PACKAGE_dnsmasq-dhcpv6 is not set/g' ${HOME_PATH}/.config
+	if [[ `grep -c "CONFIG_PACKAGE_luci-app-advanced=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		if [[ `grep -c "CONFIG_PACKAGE_luci-app-fileassistant=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+			sed -i 's/CONFIG_PACKAGE_luci-app-fileassistant=y/# CONFIG_PACKAGE_luci-app-fileassistant is not set/g' ${HOME_PATH}/.config
+			echo "TIME r \"您同时选择luci-app-advanced和luci-app-fileassistant，luci-app-advanced已附带luci-app-fileassistant，所以删除了luci-app-fileassistant\"" >>CHONGTU
+			echo "" >>CHONGTU
+		fi
 	fi
-	if [[ `grep -c "CONFIG_PACKAGE_dnsmasq_full_conntrack=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-		sed -i 's/CONFIG_PACKAGE_dnsmasq_full_conntrack=y/# CONFIG_PACKAGE_dnsmasq_full_conntrack is not set/g' ${HOME_PATH}/.config
+	if [[ `grep -c "CONFIG_PACKAGE_luci-app-docker=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		if [[ `grep -c "CONFIG_PACKAGE_luci-app-dockerman=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+			sed -i 's/CONFIG_PACKAGE_luci-app-docker=y/# CONFIG_PACKAGE_luci-app-docker is not set/g' ${HOME_PATH}/.config
+			sed -i 's/CONFIG_PACKAGE_luci-i18n-docker-zh-cn=y/# CONFIG_PACKAGE_luci-i18n-docker-zh-cn is not set/g' ${HOME_PATH}/.config
+			echo "TIME r \"您同时选择luci-app-docker和luci-app-dockerman，插件有冲突，相同功能插件只能二选一，已删除luci-app-docker\"" >>CHONGTU
+			echo "" >>CHONGTU
+		fi
 	fi
-fi
-if [[ `grep -c "CONFIG_PACKAGE_wpad-openssl=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-  if [[ `grep -c "CONFIG_PACKAGE_wpad=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-    sed -i 's/CONFIG_PACKAGE_wpad=y/# CONFIG_PACKAGE_wpad is not set/g' ${HOME_PATH}/.config
-  fi
-fi
-if [[ `grep -c "CONFIG_PACKAGE_luci-theme-argon=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-  if [[ `grep -c "CONFIG_PACKAGE_luci-theme-argon_new=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-    sed -i 's/CONFIG_PACKAGE_luci-theme-argon_new=y/# CONFIG_PACKAGE_luci-theme-argon_new is not set/g' ${HOME_PATH}/.config
-    echo "TIME r \"您同时选择luci-theme-argon和luci-theme-argon_new，插件有冲突，相同功能插件只能二选一，已删除luci-theme-argon_new\"" >>CHONGTU
-    echo "" >>CHONGTU
-  fi
-  if [[ `grep -c "CONFIG_PACKAGE_luci-theme-argonne=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-    sed -i 's/CONFIG_PACKAGE_luci-theme-argonne=y/# CONFIG_PACKAGE_luci-theme-argonne is not set/g' ${HOME_PATH}/.config
-    echo "TIME r \"您同时选择luci-theme-argon和luci-theme-argonne，插件有冲突，相同功能插件只能二选一，已删除luci-theme-argonne\"" >>CHONGTU
-    echo "" >>CHONGTU
-  fi
-  if [[ `grep -c "CONFIG_PACKAGE_luci-app-argon-config=y" ${HOME_PATH}/.config` -eq '0' ]] && [[ `grep -c "CONFIG_TARGET_x86=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-    sed -i '/argon=y/i\CONFIG_PACKAGE_luci-app-argon-config=y' "${HOME_PATH}/.config"
-  fi
-fi
-if [[ `grep -c "CONFIG_PACKAGE_luci-theme-argon=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-	if [[ `grep -c "CONFIG_PACKAGE_luci-app-argon-config=y" ${HOME_PATH}/.config` == '0' ]]; then
+	if [[ `grep -c "CONFIG_PACKAGE_luci-app-dockerman=y" ${HOME_PATH}/.config` -eq '0' ]] || [[ `grep -c "CONFIG_PACKAGE_luci-app-docker=y" ${HOME_PATH}/.config` -eq '0' ]]; then
+		echo "# CONFIG_PACKAGE_luci-lib-docker is not set" >> ${HOME_PATH}/.config
+		echo "# CONFIG_PACKAGE_luci-i18n-dockerman-zh-cn is not set" >> ${HOME_PATH}/.config
+		echo "# CONFIG_PACKAGE_docker is not set" >> ${HOME_PATH}/.config
+		echo "# CONFIG_PACKAGE_dockerd is not set" >> ${HOME_PATH}/.config
+		echo "# CONFIG_PACKAGE_runc is not set" >> ${HOME_PATH}/.config
+	fi
+	if [[ `grep -c "CONFIG_PACKAGE_luci-app-kodexplorer=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		if [[ `grep -c "CONFIG_PACKAGE_luci-app-vnstat=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+			sed -i 's/CONFIG_PACKAGE_luci-app-vnstat=y/# CONFIG_PACKAGE_luci-app-vnstat is not set/g' ${HOME_PATH}/.config
+			sed -i 's/CONFIG_PACKAGE_vnstat=y/# CONFIG_PACKAGE_vnstat is not set/g' ${HOME_PATH}/.config
+			sed -i 's/CONFIG_PACKAGE_vnstati=y/# CONFIG_PACKAGE_vnstati is not set/g' ${HOME_PATH}/.config
+			sed -i 's/CONFIG_PACKAGE_libgd=y/# CONFIG_PACKAGE_libgd is not set/g' ${HOME_PATH}/.config
+			sed -i '/luci-i18n-vnstat/d' ${HOME_PATH}/.config
+			echo "TIME r \"您同时选择luci-app-kodexplorer和luci-app-vnstat，插件有依赖冲突，只能二选一，已删除luci-app-vnstat\"" >>CHONGTU
+			echo "" >>CHONGTU
+		fi
+	fi
+	if [[ `grep -c "CONFIG_PACKAGE_wpad-openssl=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		if [[ `grep -c "CONFIG_PACKAGE_wpad=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+			sed -i 's/CONFIG_PACKAGE_wpad=y/# CONFIG_PACKAGE_wpad is not set/g' ${HOME_PATH}/.config
+		fi
+	fi
+	if [[ `grep -c "CONFIG_PACKAGE_luci-i18n-qbittorrent-zh-cn=y" ${HOME_PATH}/.config` -eq '0' ]]; then
+		sed -i 's/CONFIG_PACKAGE_luci-app-qbittorrent_static=y/# CONFIG_PACKAGE_luci-app-qbittorrent_static is not set/g' ${HOME_PATH}/.config
+		sed -i 's/CONFIG_DEFAULT_luci-app-qbittorrent=y/# CONFIG_DEFAULT_luci-app-qbittorrent is not set/g' ${HOME_PATH}/.config
+		sed -i 's/CONFIG_PACKAGE_luci-app-qbittorrent_dynamic=y/# CONFIG_PACKAGE_luci-app-qbittorrent_dynamic is not set/g' ${HOME_PATH}/.config
+		sed -i 's/CONFIG_PACKAGE_qBittorrent-static=y/# CONFIG_PACKAGE_qBittorrent-static is not set/g' ${HOME_PATH}/.config
+		sed -i 's/CONFIG_PACKAGE_qbittorrent=y/# CONFIG_PACKAGE_qbittorrent is not set/g' ${HOME_PATH}/.config
+	fi
+	if [[ `grep -c "CONFIG_PACKAGE_luci-app-samba4=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		if [[ `grep -c "CONFIG_PACKAGE_luci-app-samba=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+			sed -i 's/CONFIG_PACKAGE_autosamba=y/# CONFIG_PACKAGE_autosamba is not set/g' ${HOME_PATH}/.config
+			sed -i 's/CONFIG_PACKAGE_luci-app-samba=y/# CONFIG_PACKAGE_luci-app-samba is not set/g' ${HOME_PATH}/.config
+			sed -i 's/CONFIG_PACKAGE_luci-i18n-samba-zh-cn=y/# CONFIG_PACKAGE_luci-i18n-samba-zh-cn is not set/g' ${HOME_PATH}/.config
+			sed -i 's/CONFIG_PACKAGE_samba36-server=y/# CONFIG_PACKAGE_samba36-server is not set/g' ${HOME_PATH}/.config
+			echo "TIME r \"您同时选择luci-app-samba和luci-app-samba4，插件有冲突，相同功能插件只能二选一，已删除luci-app-samba\"" >>CHONGTU
+			echo "" >>CHONGTU
+		fi
+	elif [[ `grep -c "CONFIG_PACKAGE_samba4-server=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		echo "# CONFIG_PACKAGE_samba4-admin is not set" >> ${HOME_PATH}/.config
+		echo "# CONFIG_PACKAGE_samba4-client is not set" >> ${HOME_PATH}/.config
+		echo "# CONFIG_PACKAGE_samba4-libs is not set" >> ${HOME_PATH}/.config
+		echo "# CONFIG_PACKAGE_samba4-server is not set" >> ${HOME_PATH}/.config
+		echo "# CONFIG_PACKAGE_samba4-utils is not set" >> ${HOME_PATH}/.config
+	fi
+	if [[ `grep -c "CONFIG_PACKAGE_luci-app-sfe=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		if [[ `grep -c "CONFIG_PACKAGE_luci-app-flowoffload=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+			sed -i 's/CONFIG_DEFAULT_luci-app-flowoffload=y/# CONFIG_DEFAULT_luci-app-flowoffload is not set/g' ${HOME_PATH}/.config
+			sed -i 's/CONFIG_PACKAGE_luci-app-flowoffload=y/# CONFIG_PACKAGE_luci-app-flowoffload is not set/g' ${HOME_PATH}/.config
+			sed -i 's/CONFIG_PACKAGE_luci-i18n-flowoffload-zh-cn=y/# CONFIG_PACKAGE_luci-i18n-flowoffload-zh-cn is not set/g' ${HOME_PATH}/.config
+			echo "TIME r \"提示：您同时选择了luci-app-sfe和luci-app-flowoffload，两个ACC网络加速，已删除luci-app-flowoffload\"" >>CHONGTU
+			echo "" >>CHONGTU
+		fi
+	fi
+	if [[ `grep -c "CONFIG_PACKAGE_luci-app-ssr-plus=y" ${HOME_PATH}/.config` -ge '1' ]]; then
+		if [[ `grep -c "CONFIG_PACKAGE_luci-app-cshark=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+			sed -i 's/CONFIG_PACKAGE_luci-app-cshark=y/# CONFIG_PACKAGE_luci-app-cshark is not set/g' ${HOME_PATH}/.config
+			sed -i 's/CONFIG_PACKAGE_cshark=y/# CONFIG_PACKAGE_cshark is not set/g' ${HOME_PATH}/.config
+			sed -i 's/CONFIG_PACKAGE_libustream-mbedtls=y/# CONFIG_PACKAGE_libustream-mbedtls is not set/g' ${HOME_PATH}/.config
+			echo "TIME r \"您同时选择luci-app-ssr-plus和luci-app-cshark，插件有依赖冲突，只能二选一，已删除luci-app-cshark\"" >>CHONGTU
+			echo "" >>CHONGTU
+		fi
+	fi
+	if [[ `grep -c "CONFIG_PACKAGE_luci-app-turboacc_INCLUDE_SHORTCUT_FE_CM=y" ${HOME_PATH}/.config` -ge '1' ]]; then
+		if [[ `grep -c "CONFIG_PACKAGE_luci-app-turboacc_INCLUDE_SHORTCUT_FE=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+			sed -i 's/CONFIG_PACKAGE_luci-app-turboacc_INCLUDE_SHORTCUT_FE=y/# CONFIG_PACKAGE_luci-app-turboacc_INCLUDE_SHORTCUT_FE is not set/g' ${HOME_PATH}/.config
+			sed -i 's/CONFIG_PACKAGE_kmod-fast-classifier=y/# CONFIG_PACKAGE_kmod-fast-classifier is not set/g' ${HOME_PATH}/.config
+			echo "TIME r \"luci-app-turboacc同时选择Include Shortcut-FE CM和Include Shortcut-FE，有冲突，只能二选一，已删除Include Shortcut-FE\"" >>CHONGTU
+			echo "" >>CHONGTU
+		fi
+	fi
+	if [[ `grep -c "CONFIG_PACKAGE_luci-app-unblockneteasemusic=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		if [[ `grep -c "CONFIG_PACKAGE_luci-app-unblockneteasemusic-go=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+			sed -i 's/CONFIG_PACKAGE_luci-app-unblockneteasemusic-go=y/# CONFIG_PACKAGE_luci-app-unblockneteasemusic-go is not set/g' ${HOME_PATH}/.config
+			echo "TIME r \"您选择了luci-app-unblockneteasemusic-go，会和luci-app-unblockneteasemusic冲突导致编译错误，已删除luci-app-unblockneteasemusic-go\"" >>CHONGTU
+			echo "" >>CHONGTU
+		fi
+		if [[ `grep -c "CONFIG_PACKAGE_luci-app-unblockmusic=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+			sed -i 's/CONFIG_PACKAGE_luci-app-unblockmusic=y/# CONFIG_PACKAGE_luci-app-unblockmusic is not set/g' ${HOME_PATH}/.config
+			echo "TIME r \"您选择了luci-app-unblockmusic，会和luci-app-unblockneteasemusic冲突导致编译错误，已删除luci-app-unblockmusic\"" >>CHONGTU
+			echo "" >>CHONGTU
+		fi
+	fi
+	if [[ `grep -c "CONFIG_PACKAGE_dnsmasq-full=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		if [[ `grep -c "CONFIG_PACKAGE_dnsmasq=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_PACKAGE_dnsmasq-dhcpv6=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+			sed -i 's/CONFIG_PACKAGE_dnsmasq=y/# CONFIG_PACKAGE_dnsmasq is not set/g' ${HOME_PATH}/.config
+			sed -i 's/CONFIG_PACKAGE_dnsmasq-dhcpv6=y/# CONFIG_PACKAGE_dnsmasq-dhcpv6 is not set/g' ${HOME_PATH}/.config
+		fi
+		if [[ `grep -c "CONFIG_PACKAGE_dnsmasq_full_conntrack=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+			sed -i 's/CONFIG_PACKAGE_dnsmasq_full_conntrack=y/# CONFIG_PACKAGE_dnsmasq_full_conntrack is not set/g' ${HOME_PATH}/.config
+		fi
+	fi
+	if [[ `grep -c "CONFIG_PACKAGE_wpad-openssl=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		if [[ `grep -c "CONFIG_PACKAGE_wpad=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+			sed -i 's/CONFIG_PACKAGE_wpad=y/# CONFIG_PACKAGE_wpad is not set/g' ${HOME_PATH}/.config
+		fi
+	fi
+	if [[ `grep -c "CONFIG_PACKAGE_luci-theme-argon=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		if [[ `grep -c "CONFIG_PACKAGE_luci-theme-argon_new=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+			sed -i 's/CONFIG_PACKAGE_luci-theme-argon_new=y/# CONFIG_PACKAGE_luci-theme-argon_new is not set/g' ${HOME_PATH}/.config
+			echo "TIME r \"您同时选择luci-theme-argon和luci-theme-argon_new，插件有冲突，相同功能插件只能二选一，已删除luci-theme-argon_new\"" >>CHONGTU
+			echo "" >>CHONGTU
+		fi
+		if [[ `grep -c "CONFIG_PACKAGE_luci-theme-argonne=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+			sed -i 's/CONFIG_PACKAGE_luci-theme-argonne=y/# CONFIG_PACKAGE_luci-theme-argonne is not set/g' ${HOME_PATH}/.config
+			echo "TIME r \"您同时选择luci-theme-argon和luci-theme-argonne，插件有冲突，相同功能插件只能二选一，已删除luci-theme-argonne\"" >>CHONGTU
+			echo "" >>CHONGTU
+		fi
+		if [[ `grep -c "CONFIG_PACKAGE_luci-app-argon-config=y" ${HOME_PATH}/.config` -eq '0' ]] && [[ `grep -c "CONFIG_TARGET_x86=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+			sed -i '/argon=y/i\CONFIG_PACKAGE_luci-app-argon-config=y' "${HOME_PATH}/.config"
+		fi
+	fi
+	if [[ `grep -c "CONFIG_PACKAGE_luci-theme-argon=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		if [[ `grep -c "CONFIG_PACKAGE_luci-app-argon-config=y" ${HOME_PATH}/.config` == '0' ]]; then
+			sed -i '/luci-app-argon-config/d' ${HOME_PATH}/.config
+			echo -e "\nCONFIG_PACKAGE_luci-app-argon-config=y" >> ${HOME_PATH}/.config
+		fi
+	else
 		sed -i '/luci-app-argon-config/d' ${HOME_PATH}/.config
-		echo -e "\nCONFIG_PACKAGE_luci-app-argon-config=y" >> ${HOME_PATH}/.config
+		echo -e "\n# CONFIG_PACKAGE_luci-app-argon-config is not set" >> ${HOME_PATH}/.config
 	fi
-else
-	sed -i '/luci-app-argon-config/d' ${HOME_PATH}/.config
-	echo -e "\n# CONFIG_PACKAGE_luci-app-argon-config is not set" >> ${HOME_PATH}/.config
-fi
 
-if [[ `grep -c "CONFIG_TARGET_x86=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_rockchip=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_bcm27xx=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-	sed -i '/IMAGES_GZIP/d' "${HOME_PATH}/.config"
-	echo -e "\nCONFIG_TARGET_IMAGES_GZIP=y" >> "${HOME_PATH}/.config"
-	sed -i '/CONFIG_PACKAGE_openssh-sftp-server/d' "${HOME_PATH}/.config"
-	echo -e "\nCONFIG_PACKAGE_openssh-sftp-server=y" >> "${HOME_PATH}/.config"
-fi
-if [[ `grep -c "CONFIG_TARGET_mxs=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_sunxi=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_zynq=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-	sed -i '/IMAGES_GZIP/d' "${HOME_PATH}/.config"
-	echo -e "\nCONFIG_TARGET_IMAGES_GZIP=y" >> "${HOME_PATH}/.config"
-	sed -i '/CONFIG_PACKAGE_openssh-sftp-server/d' "${HOME_PATH}/.config"
-	echo -e "\nCONFIG_PACKAGE_openssh-sftp-server=y" >> "${HOME_PATH}/.config"
-fi
-if [[ `grep -c "CONFIG_TARGET_armvirt=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-	sed -i 's/CONFIG_PACKAGE_luci-app-autoupdate=y/# CONFIG_PACKAGE_luci-app-autoupdate is not set/g' ${HOME_PATH}/.config
-	export REGULAR_UPDATE="false"
-	echo "REGULAR_UPDATE=false" >> $GITHUB_ENV
-	sed -i '/CONFIG_PACKAGE_openssh-sftp-server/d' "${HOME_PATH}/.config"
-	echo -e "\nCONFIG_PACKAGE_openssh-sftp-server=y" >> "${HOME_PATH}/.config"
-fi
-if [[ `grep -c "CONFIG_TARGET_ROOTFS_EXT4FS=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-	if [[ `grep -c "CONFIG_TARGET_ROOTFS_PARTSIZE" ${HOME_PATH}/.config` -eq '0' ]]; then
-		sed -i '/CONFIG_TARGET_ROOTFS_PARTSIZE/d' ${HOME_PATH}/.config > /dev/null 2>&1
-		echo -e "\nCONFIG_TARGET_ROOTFS_PARTSIZE=950" >> ${HOME_PATH}/.config
+	if [[ `grep -c "CONFIG_TARGET_x86=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_rockchip=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_bcm27xx=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		sed -i '/IMAGES_GZIP/d' "${HOME_PATH}/.config"
+		echo -e "\nCONFIG_TARGET_IMAGES_GZIP=y" >> "${HOME_PATH}/.config"
+		sed -i '/CONFIG_PACKAGE_openssh-sftp-server/d' "${HOME_PATH}/.config"
+		echo -e "\nCONFIG_PACKAGE_openssh-sftp-server=y" >> "${HOME_PATH}/.config"
 	fi
-	egrep -o "CONFIG_TARGET_ROOTFS_PARTSIZE=+.*?[0-9]" ${HOME_PATH}/.config > ${HOME_PATH}/EXT4PARTSIZE
-	sed -i 's|CONFIG_TARGET_ROOTFS_PARTSIZE=||g' ${HOME_PATH}/EXT4PARTSIZE
-	PARTSIZE="$(cat EXT4PARTSIZE)"
-	if [[ "${PARTSIZE}" -lt "950" ]];then
-		sed -i '/CONFIG_TARGET_ROOTFS_PARTSIZE/d' ${HOME_PATH}/.config > /dev/null 2>&1
-		echo -e "\nCONFIG_TARGET_ROOTFS_PARTSIZE=950" >> ${HOME_PATH}/.config
-		echo "__green_msg \" \"" > ${HOME_PATH}/EXT4
-		echo "__red_msg \"EXT4提示：请注意，您选择了ext4安装的固件格式,而检测到您的分配的固件系统分区过小\"" >> ${HOME_PATH}/EXT4
-		echo "__yellow_msg \"为避免编译出错,建议修改成950或者以上比较好,已帮您修改成950M\"" >> ${HOME_PATH}/EXT4
-		echo "__green_msg \" \"" >> ${HOME_PATH}/EXT4
+	if [[ `grep -c "CONFIG_TARGET_mxs=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_sunxi=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_zynq=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		sed -i '/IMAGES_GZIP/d' "${HOME_PATH}/.config"
+		echo -e "\nCONFIG_TARGET_IMAGES_GZIP=y" >> "${HOME_PATH}/.config"
+		sed -i '/CONFIG_PACKAGE_openssh-sftp-server/d' "${HOME_PATH}/.config"
+		echo -e "\nCONFIG_PACKAGE_openssh-sftp-server=y" >> "${HOME_PATH}/.config"
 	fi
-	rm -rf ${HOME_PATH}/EXT4PARTSIZE
-fi
-if [[ `grep -c "CONFIG_PACKAGE_antfs-mount=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-  if [[ `grep -c "CONFIG_PACKAGE_ntfs3-mount=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-    sed -i 's/CONFIG_PACKAGE_antfs-mount=y/# CONFIG_PACKAGE_antfs-mount is not set/g' ${HOME_PATH}/.config
-  fi
-fi
-if [[ `grep -c "CONFIG_PACKAGE_dnsmasq-full=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-  if [[ `grep -c "CONFIG_PACKAGE_dnsmasq=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_PACKAGE_dnsmasq-dhcpv6=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-    sed -i 's/CONFIG_PACKAGE_dnsmasq=y/# CONFIG_PACKAGE_dnsmasq is not set/g' ${HOME_PATH}/.config
-    sed -i 's/CONFIG_PACKAGE_dnsmasq-dhcpv6=y/# CONFIG_PACKAGE_dnsmasq-dhcpv6 is not set/g' ${HOME_PATH}/.config
-  fi
-fi
-if [[ `grep -c "CONFIG_PACKAGE_libustream-wolfssl=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-  if [[ `grep -c "CONFIG_PACKAGE_libustream-openssl=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-    sed -i 's/CONFIG_PACKAGE_libustream-wolfssl=y/# CONFIG_PACKAGE_libustream-wolfssl is not set/g' ${HOME_PATH}/.config
-  fi
-fi
+	if [[ `grep -c "CONFIG_TARGET_armvirt=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		sed -i 's/CONFIG_PACKAGE_luci-app-autoupdate=y/# CONFIG_PACKAGE_luci-app-autoupdate is not set/g' ${HOME_PATH}/.config
+		export REGULAR_UPDATE="false"
+		echo "REGULAR_UPDATE=false" >> ${GITHUB_ENV}
+		sed -i '/CONFIG_PACKAGE_openssh-sftp-server/d' "${HOME_PATH}/.config"
+		echo -e "\nCONFIG_PACKAGE_openssh-sftp-server=y" >> "${HOME_PATH}/.config"
+	fi
+	if [[ `grep -c "CONFIG_TARGET_ROOTFS_EXT4FS=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		if [[ `grep -c "CONFIG_TARGET_ROOTFS_PARTSIZE" ${HOME_PATH}/.config` -eq '0' ]]; then
+			sed -i '/CONFIG_TARGET_ROOTFS_PARTSIZE/d' ${HOME_PATH}/.config > /dev/null 2>&1
+			echo -e "\nCONFIG_TARGET_ROOTFS_PARTSIZE=950" >> ${HOME_PATH}/.config
+		fi
+		egrep -o "CONFIG_TARGET_ROOTFS_PARTSIZE=+.*?[0-9]" ${HOME_PATH}/.config > ${HOME_PATH}/EXT4PARTSIZE
+		sed -i 's|CONFIG_TARGET_ROOTFS_PARTSIZE=||g' ${HOME_PATH}/EXT4PARTSIZE
+		PARTSIZE="$(cat EXT4PARTSIZE)"
+		if [[ "${PARTSIZE}" -lt "950" ]];then
+			sed -i '/CONFIG_TARGET_ROOTFS_PARTSIZE/d' ${HOME_PATH}/.config > /dev/null 2>&1
+			echo -e "\nCONFIG_TARGET_ROOTFS_PARTSIZE=950" >> ${HOME_PATH}/.config
+			echo "__green_msg \" \"" > ${HOME_PATH}/EXT4
+			echo "__red_msg \"EXT4提示：请注意，您选择了ext4安装的固件格式,而检测到您的分配的固件系统分区过小\"" >> ${HOME_PATH}/EXT4
+			echo "__yellow_msg \"为避免编译出错,建议修改成950或者以上比较好,已帮您修改成950M\"" >> ${HOME_PATH}/EXT4
+			echo "__green_msg \" \"" >> ${HOME_PATH}/EXT4
+		fi
+		rm -rf ${HOME_PATH}/EXT4PARTSIZE
+	fi
+	if [[ `grep -c "CONFIG_PACKAGE_antfs-mount=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		if [[ `grep -c "CONFIG_PACKAGE_ntfs3-mount=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+			sed -i 's/CONFIG_PACKAGE_antfs-mount=y/# CONFIG_PACKAGE_antfs-mount is not set/g' ${HOME_PATH}/.config
+		fi
+	fi
+	if [[ `grep -c "CONFIG_PACKAGE_dnsmasq-full=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		if [[ `grep -c "CONFIG_PACKAGE_dnsmasq=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_PACKAGE_dnsmasq-dhcpv6=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+			sed -i 's/CONFIG_PACKAGE_dnsmasq=y/# CONFIG_PACKAGE_dnsmasq is not set/g' ${HOME_PATH}/.config
+			sed -i 's/CONFIG_PACKAGE_dnsmasq-dhcpv6=y/# CONFIG_PACKAGE_dnsmasq-dhcpv6 is not set/g' ${HOME_PATH}/.config
+		fi
+	fi
+	if [[ `grep -c "CONFIG_PACKAGE_libustream-wolfssl=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		if [[ `grep -c "CONFIG_PACKAGE_libustream-openssl=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+			sed -i 's/CONFIG_PACKAGE_libustream-wolfssl=y/# CONFIG_PACKAGE_libustream-wolfssl is not set/g' ${HOME_PATH}/.config
+		fi
+	fi
 }
 
 
@@ -766,18 +786,18 @@ function update_plugin_list() {
 # 准备发布固件页面信息显示
 ################################################################################################################
 release_info() {
-cd ${MATRIX_TARGET_PATH}
-sed -i "s#release_device#${TARGET_PROFILE}#" ${MATRIX_TARGET_PATH}/releaseinfo.md 2>/dev/null
-ipaddr=`awk '{print $3}' ${MATRIX_TARGET_PATH}/$DIY_PART_SH | awk -F= '$1 == "network.lan.ipaddr" {print $2}' | sed "s/'//g" 2>/dev/null`
-ipaddr=${ipaddr:-192.168.1.1}
-sed -i "s#default_ip#${ipaddr}#" ${MATRIX_TARGET_PATH}/releaseinfo.md 2>/dev/null
-sed -i "s#default_password#-" ${MATRIX_TARGET_PATH}/releaseinfo.md 2>/dev/null
-sed -i "s#release_source#${LUCI_EDITION}-${SOURCE_ABBR}#" ${MATRIX_TARGET_PATH}/releaseinfo.md 2>/dev/null
-sed -i "s#release_kernel#${KERNEL_PATCHVER}#" ${MATRIX_TARGET_PATH}/releaseinfo.md 2>/dev/null
-sed -i "s#repository#${GITHUB_REPOSITORY}" ${MATRIX_TARGET_PATH}/releaseinfo.md 2>/dev/null
-sed -i "s#matrixtarget#${MATRIX_TARGET}" ${MATRIX_TARGET_PATH}/releaseinfo.md 2>/dev/null
+	cd ${MATRIX_TARGET_PATH}
+	sed -i "s#release_device#${TARGET_PROFILE}#" ${MATRIX_TARGET_PATH}/releaseinfo.md 2>/dev/null
+	ipaddr=`awk '{print $3}' ${MATRIX_TARGET_PATH}/$DIY_PART_SH | awk -F= '$1 == "network.lan.ipaddr" {print $2}' | sed "s/'//g" 2>/dev/null`
+	ipaddr=${ipaddr:-192.168.1.1}
+	sed -i "s#default_ip#${ipaddr}#" ${MATRIX_TARGET_PATH}/releaseinfo.md 2>/dev/null
+	sed -i "s#default_password#-" ${MATRIX_TARGET_PATH}/releaseinfo.md 2>/dev/null
+	sed -i "s#release_source#${LUCI_EDITION}-${SOURCE_ABBR}#" ${MATRIX_TARGET_PATH}/releaseinfo.md 2>/dev/null
+	sed -i "s#release_kernel#${KERNEL_PATCHVER}#" ${MATRIX_TARGET_PATH}/releaseinfo.md 2>/dev/null
+	sed -i "s#repository#${GITHUB_REPOSITORY}" ${MATRIX_TARGET_PATH}/releaseinfo.md 2>/dev/null
+	sed -i "s#matrixtarget#${MATRIX_TARGET}" ${MATRIX_TARGET_PATH}/releaseinfo.md 2>/dev/null
 
-cat ${MATRIX_TARGET_PATH}/releaseinfo.md 2>/dev/null
+	cat ${MATRIX_TARGET_PATH}/releaseinfo.md 2>/dev/null
 }
 
 # 整理固件
@@ -853,12 +873,12 @@ echo " target/linux/${TARGET_BOARD}/dts/${TARGET_SUBTARGET}_${TARGET_PROFILE}.dt
 if [[ ${TARGET_BOARD} == "ramips" ]]; then
 	sed -i "/read-only;/d" target/linux/${TARGET_BOARD}/dts/${TARGET_SUBTARGET}_${TARGET_PROFILE}.dts
 	if [[ `grep -c "read-only;" target/linux/${TARGET_BOARD}/dts/${TARGET_SUBTARGET}_${TARGET_PROFILE}.dts` -eq '0' ]]; then
-		__green_msg "固件分区已经解锁！"
-		echo "UNLOCK=true" >> $GITHUB_ENV
+		__success_msg "固件分区已经解锁！"
+		echo "UNLOCK=true" >> ${GITHUB_ENV}
 	else
-		__red_msg "固件分区解锁失败！"
+		__error_msg "固件分区解锁失败！"
 	fi
 else
-	__red_msg "非ramips系列，暂不支持！"
+	__warning_msg "非ramips系列，暂不支持！"
 fi
 }

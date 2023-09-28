@@ -1,5 +1,9 @@
 #!/bin/sh
 
+[[ ! -f /mnt/network ]] && chmod +x /etc/networkip && source /etc/networkip
+
+cp -Rf /etc/config/network /mnt/network
+
 chmod -R 0775 /etc/init.d /usr/share
 touch /etc/crontabs/root
 
@@ -15,8 +19,8 @@ if [[ -f "/usr/lib/lua/luci/controller/ttyd.lua" ]]; then
 	sed -i 's?services?system?g' "/usr/lib/lua/luci/controller/ttyd.lua"
 fi
 
-if [[ `grep -c "dahuilang" /etc/opkg/distfeeds.conf` -ge '1' ]]; then
-	sed -i '/dahuilang/d' /etc/opkg/distfeeds.conf
+if [[ `grep -c "roacn" /etc/opkg/distfeeds.conf` -ge '1' ]]; then
+	sed -i '/roacn/d' /etc/opkg/distfeeds.conf
 fi
 if [[ `grep -c "helloworld" /etc/opkg/distfeeds.conf` -ge '1' ]]; then
 	sed -i '/helloworld/d' /etc/opkg/distfeeds.conf
@@ -34,10 +38,6 @@ fi
 if [[ -f "/usr/share/ucode/luci/version.uc" ]]; then
 	sed -i '/export const revision/d' "/usr/share/ucode/luci/version.uc"
 	echo "export const revision = '112233', branch = '';" >> "/usr/share/ucode/luci/version.uc"
-fi
-
-if [[ -f "/etc/networkdetection" ]] && [[ `grep -c "networkdetection" /etc/crontabs/root` -eq '0' ]]; then
-	rm -rf /etc/networkdetection
 fi
 
 luci_web=/usr/lib/lua/luci/view/admin_status/index.htm

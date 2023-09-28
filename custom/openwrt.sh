@@ -159,13 +159,11 @@ fi
 }
 
 function ks_reboot() {
-if [ -f "/etc/default-setting" ]; then
-  rm -rf /etc/default-setting
+if [ -f "/etc/default_settings" ]; then
+  rm -rf /etc/default_settings
 fi
-sed -i '/openwrt -r/d' "/etc/init.d/Postapplication"
-sleep 2
-if [[ `grep -c "openwrt -r" /etc/init.d/Postapplication` -ge '1' ]]; then
-  sed -i "s?openwrt -r??g" "/etc/init.d/Postapplication"
+if [ -f "/etc/init.d/default_setting_runonce" ]; then
+  rm -rf /etc/init.d/default_setting_runonce
 fi
 reboot
 }
