@@ -97,6 +97,7 @@ function parse_settings() {
 	;;
 	esac
 	
+	# echo "REPOSITORY=${GITHUB_REPOSITORY##*/}" >> ${GITHUB_ENV}
 	echo "SOURCE_URL=${SOURCE_URL}" >> ${GITHUB_ENV}
 	echo "DIY_PART_SH=${DIY_PART_SH}" >> ${GITHUB_ENV}
 	echo "NOTICE_TYPE=${NOTICE_TYPE}" >> ${GITHUB_ENV}
@@ -173,14 +174,9 @@ function git_clone_source() {
 	
 	# 内核版本
 	if [[ `grep -c "KERNEL_PATCHVER:=" ${HOME_PATH}/target/linux/${TARGET_BOARD}/Makefile` -eq '1' ]]; then
-		PATCH_VER="$(egrep -o 'KERNEL_PATCHVER:=[0-9]+\.[0-9]+' ${HOME_PATH}/target/linux/${TARGET_BOARD}/Makefile |cut -d "=" -f2)"
+		KERNEL_PATCHVER="$(egrep -o 'KERNEL_PATCHVER:=[0-9]+\.[0-9]+' ${HOME_PATH}/target/linux/${TARGET_BOARD}/Makefile |cut -d "=" -f2)"
 	elif [[ `grep -c "KERNEL_PATCHVER=" ${HOME_PATH}/target/linux/${TARGET_BOARD}/Makefile` -eq '1' ]]; then
-		PATCH_VER="$(egrep -o 'KERNEL_PATCHVER=[0-9]+\.[0-9]+' ${HOME_PATH}/target/linux/${TARGET_BOARD}/Makefile |cut -d "=" -f2)"
-	fi
-	if [[ -n ${PATCH_VER} ]] && [[ -f ${HOME_PATH}/include/kernel-${PATCH_VER} ]]; then
-		export KERNEL_PATCHVER=$(egrep -o "${PATCH_VER}\.[0-9]+" ${HOME_PATH}/include/kernel-${PATCH_VER})
-	elif [[ -n ${PATCH_VER} ]] && [[ ! -f ${HOME_PATH}/include/kernel-${PATCH_VER} ]]; then
-		export KERNEL_PATCHVER=$(egrep -o "${PATCH_VER}\.[0-9]+" ${HOME_PATH}/include/kernel-version.mk)
+		KERNEL_PATCHVER="$(egrep -o 'KERNEL_PATCHVER=[0-9]+\.[0-9]+' ${HOME_PATH}/target/linux/${TARGET_BOARD}/Makefile |cut -d "=" -f2)"
 	else
 		export KERNEL_PATCHVER="unknown"
 	fi
