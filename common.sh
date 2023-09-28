@@ -121,8 +121,6 @@ function parse_settings() {
 	echo "FILE_CONFIG_GEN=${GITHUB_WORKSPACE}/openwrt/package/base-files/files/bin/config_generate" >> $GITHUB_ENV
 	
 	echo "REPOSITORY=${GITHUB_REPOSITORY##*/}" >> $GITHUB_ENV
-	echo "RELEASE_DEVICE=${RELEASE_DEVICE}" >> $GITHUB_ENV
-	echo "RELEASE_IP=${RELEASE_IP}" >> $GITHUB_ENV
 	echo "COMPILE_DATE=$(date +%Y%m%d%H%M)" >> $GITHUB_ENV
 	echo "COMPILE_DATE_CN=$(date +%Y年%m月%d号%H时%M分)" >> ${GITHUB_ENV}
 }
@@ -436,6 +434,7 @@ function update_repo() {
 function diy_public() {
 	echo "--------------common_diy_public start--------------"
 	echo
+	cd ${HOME_PATH}
 	
 	# 增加插件源
 	sed -i '/roacn/d; /281677160/d; /helloworld/d; /passwall/d; /OpenClash/d' "feeds.conf.default"
