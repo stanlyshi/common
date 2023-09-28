@@ -80,15 +80,13 @@ function parse_settings() {
 		export SOURCE_OWNER="Lean's"
 		export LUCI_EDITION="18.06"
 		export PACKAGE_BRANCH="Lede"
-		export ZZZ_PATH="$(find "${HOME_PATH}/package" -type f -name "*-default-settings" |grep files)"
-		# https://github.com/coolsnowwolf/lede/blob/master/package/lean/default-settings/files/zzz-default-settings
 	;;
 	openwrt|OPENWRT|Openwrt|OpenWrt|OpenWRT)
 		export SOURCE_URL="https://github.com/openwrt/openwrt"
 		export SOURCE_OWNER="openwrt's"
 		export LUCI_EDITION="$(echo "${SOURCE_BRANCH}" |sed 's/openwrt-//g')"
 		export PACKAGE_BRANCH="Official"
-		export ZZZ_PATH="$(find "${HOME_PATH}/package" -type f -name "*-default-settings" |grep files)"
+
 	;;
 	*)
 		__error_msg "不支持${SOURCE_ABBR}源码"
@@ -192,6 +190,9 @@ function update_packages() {
 
 # 加载源,补丁和自定义设置
 function do_diy() {
+	# https://github.com/coolsnowwolf/lede/blob/master/package/lean/default-settings/files/zzz-default-settings
+	export ZZZ_PATH="$(find "${HOME_PATH}/package" -type f -name "*-default-settings" |grep files)"
+
 	cd ${HOME_PATH}
 	
 	# 检查.config文件是否存在
@@ -456,14 +457,14 @@ function diy_public() {
 	
 	if [[ "${SOURCE_ABBR}" == "lede" ]]; then
 		cat >>"feeds.conf.default" <<-EOF
-		src-git openwrt-packages https://github.com/roacn/openwrt-packages.git;main
+		src/gz openwrt-packages https://github.com/roacn/openwrt-packages.git;main
 		EOF
 		#git clone --depth 1 -b "${SOURCE_BRANCH}" https://github.com/roacn/openwrt-packages ${HOME_PATH}/openwrt-package
 		#rm -rf ${HOME_PATH}/openwrt-package/{diy,.github,.gitignore,LICENSE,README.md} 2>/dev/null
 		#mv -f ${HOME_PATH}/openwrt-package/* ${HOME_PATH}/package/lean
 	else
 		cat >>"feeds.conf.default" <<-EOF
-		src-git openwrt-packages https://github.com/281677160/openwrt-package.git;${PACKAGE_BRANCH}
+		src/gz openwrt-packages https://github.com/281677160/openwrt-package.git;${PACKAGE_BRANCH}
 		EOF
 		#git clone --depth 1 -b "${SOURCE_BRANCH}" https://github.com/281677160/openwrt-package ${HOME_PATH}/openwrt-package
 		#rm -rf ${HOME_PATH}/openwrt-package/{LICENSE,README.md} 2>/dev/null
