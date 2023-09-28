@@ -145,20 +145,6 @@ function notice_end() {
 	fi
 }
 
-# 下载源码
-function git_clone_source() {
-	# 在每matrix.target目录下下载源码
-	git clone -b "${SOURCE_BRANCH}" --single-branch "${SOURCE_URL}" openwrt > /dev/null 2>&1
-	ln -sf /${MATRIX_TARGET}/openwrt ${GITHUB_WORKSPACE}/openwrt
-	
-	# 将build等文件夹复制到openwrt文件夹下
-	cp -rf `find ./ -maxdepth 1 -type d ! -path './openwrt' ! -path './'` ${GITHUB_WORKSPACE}/openwrt
-	
-	# 下载common仓库
-	sudo rm -rf ${BUILD_PATH}/common && git clone -b main --depth 1 https://github.com/stanlyshi/common ${BUILD_PATH}/common
-	chmod -R +x ${BUILD_PATH}
-}
-
 # 初始化编译环境
 function init_environment() {
 	# 安装ubuntu系统编译依赖
@@ -169,6 +155,21 @@ function init_environment() {
 	sudo chown ${USER}:${GROUPS} /${MATRIX_TARGET}
 	git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
     git config --global user.name "github-actions[bot]" 
+}
+
+# 下载源码
+function git_clone_source() {
+	# 在每matrix.target目录下下载源码
+	git clone -b "${SOURCE_BRANCH}" --single-branch "${SOURCE_URL}" openwrt > /dev/null 2>&1
+	ln -sf /${MATRIX_TARGET}/openwrt ${GITHUB_WORKSPACE}/openwrt
+	
+	# 将build等文件夹复制到openwrt文件夹下
+	#cp -rf `find ./ -maxdepth 1 -type d ! -path './openwrt' ! -path './'` ${GITHUB_WORKSPACE}/openwrt
+	cp -rf ${GITHUB_WORKSPACE}/build ${GITHUB_WORKSPACE}/openwrt
+	
+	# 下载common仓库
+	sudo rm -rf ${BUILD_PATH}/common && git clone -b main --depth 1 https://github.com/stanlyshi/common ${BUILD_PATH}/common
+	chmod -R +x ${BUILD_PATH}
 }
 
 # 插件库更新
