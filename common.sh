@@ -22,7 +22,7 @@ function __error_msg() {
 }
 
 function __info_msg() {
-	echo -e "${BLUE_COLOR}[INFO]${DEFAULT_COLOR} $*"
+	echo -e "${CYAN_COLOR}[INFO]${DEFAULT_COLOR} $*"
 }
 
 function __success_msg() {
@@ -280,7 +280,7 @@ function do_diy() {
 	# 处理插件冲突
 	resolve_conflictions > /dev/null 2>&1
 	# 编译机型CPU架构、内核版本等信息，替换内核等
-	cpuarch_and_linuxkernel
+	firmware_settings
 }
 
 
