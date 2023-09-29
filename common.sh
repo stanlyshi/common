@@ -475,18 +475,21 @@ function diy_public() {
 	
 	# 增加插件源
 	sed -i '/roacn/d; /stanlyshi/d; /281677160/d; /helloworld/d; /passwall/d; /OpenClash/d' "feeds.conf.default"
-	
+	cat feeds.conf.default|awk '!/^#/'|awk '!/^$/'|awk '!a[$1" "$2]++{print}' >uniq.conf
+	mv -f uniq.conf feeds.conf.default
 	if [[ "${SOURCE_ABBR}" == "lede" ]]; then
-		cat >>"feeds.conf.default" <<-EOF
-		src-git  diypackages https://github.com/roacn/openwrt-packages.git;main
-		EOF
+		__info_msg "添加lede源码对应packages"
+cat >> "feeds.conf.default" <<-EOF
+src-git diypackages https://github.com/roacn/openwrt-packages.git;master
+EOF
 		#git clone --depth 1 -b "${SOURCE_BRANCH}" https://github.com/roacn/openwrt-packages ${HOME_PATH}/openwrt-package
 		#rm -rf ${HOME_PATH}/openwrt-package/{diy,.github,.gitignore,LICENSE,README.md} 2>/dev/null
 		#mv -f ${HOME_PATH}/openwrt-package/* ${HOME_PATH}/package/lean
 	else
-		cat >>"feeds.conf.default" <<-EOF
-		src-git  diypackages https://github.com/281677160/openwrt-package.git;${PACKAGE_BRANCH}
-		EOF
+		__info_msg "添加${SOURCE_ABBR}源码${PACKAGE_BRANCH}分支packages"
+cat >> "feeds.conf.default" <<-EOF
+src-git diypackages https://github.com/281677160/openwrt-package.git;${PACKAGE_BRANCH}
+EOF
 		#git clone --depth 1 -b "${SOURCE_BRANCH}" https://github.com/281677160/openwrt-package ${HOME_PATH}/openwrt-package
 		#rm -rf ${HOME_PATH}/openwrt-package/{LICENSE,README.md} 2>/dev/null
 		#mv -f ${HOME_PATH}/openwrt-package/* ${HOME_PATH}
@@ -577,7 +580,6 @@ function diy_lede() {
 	__info_msg "设置密码为空"
 	sed -i '/CYXluq4wUazHjmCDBCqXF/d' ${ZZZ_PATH}
 
-	echo "reserved for test."
 	echo
 	echo "--------------common_diy_lede end--------------"
 }
