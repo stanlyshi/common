@@ -42,7 +42,7 @@ function __yellow_msg() {
 # 环境变量
 ################################################################################################################
 function parse_settings() {
-	source "build/${{matrix.target}}/settings.ini"	
+	source "build/${MATRIX_TARGET}/settings.ini"	
 	if [[ -n "${INPUTS_SOURCE_BRANCH}" ]]; then
 		SOURCE_BRANCH=${INPUTS_SOURCE_BRANCH}
 		CONFIG_FILE=${INPUTS_CONFIG_FILE}
