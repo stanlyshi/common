@@ -6,7 +6,7 @@ START=99
 run_default_settings_once() {
 	if [ -f "/etc/default-settings" ]; then
 		chmod +x /etc/default-settings
-		/etc/default-setting
+		/etc/default-settings
 		rm -rf /etc/default-settings
 	fi
 }

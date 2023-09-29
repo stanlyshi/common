@@ -652,6 +652,8 @@ function update_repo() {
 	# 提交commit，更新repo
 	if [[ "${ENABLE_UPDATE_REPO}" == "true" ]]; then
 		local branch_head="$(git rev-parse --abbrev-ref HEAD)"
+		
+		cd ${GITHUB_WORKSPACE}/repo
 		git add .
 		git commit -m "Update plugins and ${CONFIG_FILE}"
 		git push --force "https://${REPO_TOKEN}@github.com/${GITHUB_REPOSITORY}" HEAD:${branch_head}
