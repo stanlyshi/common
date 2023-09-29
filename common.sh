@@ -85,17 +85,17 @@ function parse_settings() {
 	case "${SOURCE_ABBR}" in
 	lede|LEDE|Lede)
 		__info_msg "lede source"
-		local SOURCE_URL="https://github.com/coolsnowwolf/lede"
-		local SOURCE_OWNER="Lean's"
-		local LUCI_EDITION="18.06"
-		local PACKAGE_BRANCH="Lede"
+		SOURCE_URL="https://github.com/coolsnowwolf/lede"
+		SOURCE_OWNER="Lean's"
+		LUCI_EDITION="18.06"
+		PACKAGE_BRANCH="Lede"
 	;;
 	openwrt|OPENWRT|Openwrt|OpenWrt|OpenWRT)
 		__info_msg "openwrt source"
-		local SOURCE_URL="https://github.com/openwrt/openwrt"
-		local SOURCE_OWNER="openwrt's"
-		local LUCI_EDITION="$(echo "${SOURCE_BRANCH}" |sed 's/openwrt-//g')"
-		local PACKAGE_BRANCH="Official"
+		SOURCE_URL="https://github.com/openwrt/openwrt"
+		SOURCE_OWNER="openwrt's"
+		LUCI_EDITION="$(echo "${SOURCE_BRANCH}" |sed 's/openwrt-//g')"
+		PACKAGE_BRANCH="Official"
 	;;
 	*)
 		__error_msg "不支持${SOURCE_ABBR}源码"
@@ -432,20 +432,20 @@ function compile_info() {
 # 更新仓库
 ################################################################################################################
 function update_repo() {
+	local enable_update="false"
+	
 	cd ${GITHUB_WORKSPACE}
 
 	# 更新插件列表
 	update_plugin_list
 	
 	# 更新COMPILE_YML文件中的matrix.target设置	
-	bool_update_target="false"
-	bool_update_config="false"
 	git clone -b main https://github.com/${GITHUB_REPOSITORY}.git repo
 	local COMPILE_YML_TARGET=$(grep 'target: \[' ${GITHUB_WORKSPACE}/.github/workflows/${COMPILE_YML} | sed 's/^[ ]*//g' |grep '^target' |cut -d '#' -f1 |sed 's/\[/\\&/' |sed 's/\]/\\&/') && echo "COMPILE_YML_TARGET=${COMPILE_YML_TARGET}"
 	local BUILD_YML_TARGET=$(grep 'target: \[' ${GITHUB_WORKSPACE}/.github/workflows/${BUILD_YML}  |sed 's/^[ ]*//g' |grep '^target' |cut -d '#' -f1 |sed 's/\[/\\&/' |sed 's/\]/\\&/') && echo "BUILD_YML_TARGET=${BUILD_YML_TARGET}"
 	if [[ -n "${COMPILE_YML_TARGET}" ]] && [[ -n "${BUILD_YML_TARGET}" ]] && [[ "${COMPILE_YML_TARGET}" != "${BUILD_YML_TARGET}" ]]; then
 		sed -i "s/${COMPILE_YML_TARGET}/${BUILD_YML_TARGET}/g" repo/.github/workflows/${COMPILE_YML} && echo "change ${COMPILE_YML_TARGET} to ${BUILD_YML_TARGET}"
-		bool_update_target="true"
+		enable_update="true"
 	fi
 
 	# 更新.config文件
@@ -453,17 +453,17 @@ function update_repo() {
 	
 	cd ${GITHUB_WORKSPACE}/repo
 	if [[ `cat ${GITHUB_WORKSPACE}/${CONFIG_FILE}` != `cat build/${MATRIX_TARGET}/config/${CONFIG_FILE}` ]]; then
-		bool_update_config="true"
+		enable_update="true"
 	fi
 	cp -rf ${GITHUB_WORKSPACE}/${CONFIG_FILE} build/${MATRIX_TARGET}/config/${CONFIG_FILE}
-	__info_msg "bool_update_target=${bool_update_target}; bool_update_config=${bool_update_config}"
-	if [[ ${bool_update_target} == "true" ]] || [[ ${bool_update_config} == "true" ]]; then
+	if [[ ${enable_update} == "true" ]]; then
 		local BRANCH_HEAD="$(git rev-parse --abbrev-ref HEAD)"
 		git add .
 		git commit -m "Update plugins and ${CONFIG_FILE}"
 		git push --force "https://${REPO_TOKEN}@github.com/${GITHUB_REPOSITORY}" HEAD:${BRANCH_HEAD}
+		__success_msg "Your branch is now up to latest."
 	else
-		__info_msg "Your branch is already up to date with 'origin/main'. Nothing to commit, working tree clean"
+		__info_msg "Your branch is already up to date with origin/${BRANCH_HEAD}. Nothing to commit, working tree clean"
 	fi
 }
 
