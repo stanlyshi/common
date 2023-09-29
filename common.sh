@@ -512,7 +512,7 @@ function compile_info() {
 	__blue_msg "机型架构: ${TARGET_PROFILE}"
 	__blue_msg "固件作者: ${GITHUB_ACTOR}"
 	__blue_msg "仓库地址: ${GITHUB_REPO_URL}"
-	__blue_msg "编译时间: ${COMPILE_DATE}"
+	__blue_msg "编译时间: ${COMPILE_DATE_CN}"
 	__green_msg "友情提示：您当前使用【${MATRIX_TARGET}】文件夹编译【${TARGET_PROFILE}】固件"
 	echo
 	
@@ -636,7 +636,7 @@ function update_repo() {
 
 	# 更新.config文件
 	# ${HOME_PATH}/scripts/diffconfig.sh > ${GITHUB_WORKSPACE}/${DIFFCONFIG_FILE}
-	if [[ "$(cat ${GITHUB_WORKSPACE}/${CONFIG_FILE})" != "$(cat ${GITHUB_WORKSPACE}/repo/build/${MATRIX_TARGET}/config/${CONFIG_FILE})" ]]; then
+	if [[ "$(cat ${GITHUB_WORKSPACE}/${DIFFCONFIG_FILE})" != "$(cat ${GITHUB_WORKSPACE}/repo/build/${MATRIX_TARGET}/config/${CONFIG_FILE})" ]]; then
 		ENABLE_UPDATE_REPO="true"
 		cp -rf ${GITHUB_WORKSPACE}/${DIFFCONFIG_FILE} ${GITHUB_WORKSPACE}/repo/build/${MATRIX_TARGET}/config/${CONFIG_FILE}
 	fi	
