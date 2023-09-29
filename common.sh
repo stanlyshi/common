@@ -114,6 +114,7 @@ function parse_settings() {
 	# https://github.com/coolsnowwolf/lede/tree/master/package/base-files/files
 	echo "FILES_PATH=${GITHUB_WORKSPACE}/openwrt/package/base-files/files" >> ${GITHUB_ENV}
 	echo "FILE_BASE_FILES=${GITHUB_WORKSPACE}/openwrt/package/base-files/files/lib/upgrade/keep.d/base-files-essential" >> ${GITHUB_ENV}
+	echo "FILE_DELETE=${GITHUB_WORKSPACE}/openwrt/package/base-files/files/etc/deletefile" >> ${GITHUB_ENV}
 	echo "FILE_DEFAULT_UCI=${GITHUB_WORKSPACE}/openwrt/package/base-files/files/etc/default_uci" >> ${GITHUB_ENV}
 	echo "FILE_DEFAULT_SETTINGS=${GITHUB_WORKSPACE}/openwrt/package/base-files/files/etc/default_settings" >> ${GITHUB_ENV}
 	echo "FILE_OPENWRT_RELEASE=${GITHUB_WORKSPACE}/openwrt/package/base-files/files/etc/openwrt_release" >> ${GITHUB_ENV}
@@ -457,14 +458,14 @@ function diy_public() {
 	
 	if [[ "${SOURCE_ABBR}" == "lede" ]]; then
 		cat >>"feeds.conf.default" <<-EOF
-		src/gz openwrt-packages https://github.com/roacn/openwrt-packages.git;main
+		src-git  diypackages https://github.com/roacn/openwrt-packages.git;main
 		EOF
 		#git clone --depth 1 -b "${SOURCE_BRANCH}" https://github.com/roacn/openwrt-packages ${HOME_PATH}/openwrt-package
 		#rm -rf ${HOME_PATH}/openwrt-package/{diy,.github,.gitignore,LICENSE,README.md} 2>/dev/null
 		#mv -f ${HOME_PATH}/openwrt-package/* ${HOME_PATH}/package/lean
 	else
 		cat >>"feeds.conf.default" <<-EOF
-		src/gz openwrt-packages https://github.com/281677160/openwrt-package.git;${PACKAGE_BRANCH}
+		src-git  diypackages https://github.com/281677160/openwrt-package.git;${PACKAGE_BRANCH}
 		EOF
 		#git clone --depth 1 -b "${SOURCE_BRANCH}" https://github.com/281677160/openwrt-package ${HOME_PATH}/openwrt-package
 		#rm -rf ${HOME_PATH}/openwrt-package/{LICENSE,README.md} 2>/dev/null
@@ -513,13 +514,21 @@ function diy_public() {
 		
 	# 修改源码中IP设置
 	local def_ipaddress="$(grep "ipaddr:-" "${FILE_CONFIG_GEN}" | grep -v 'addr_offset' | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+")"
-	local new_ipaddress="$(grep "network.lan.ipaddr" ${BUILD_PATH}/${DIY_PART_SH} | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+")"
+	local new_ipaddress="$(grep "network.lan.ipaddr" ${MATRIX_TARGET_PATH}/${DIY_PART_SH} | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+")"
 	if [[ -z "${new_ipaddress}" ]]; then
 		sed -i "s/${def_ipaddress}/${new_ipaddress}/g" ${FILE_CONFIG_GEN}
 		__success_msg "IP地址从[${def_ipaddress}]替换为[${new_ipaddress}]"
 	else
 		__info_msg "使用默认IP地址：${def_ipaddress}."
 	fi
+	
+	# UCI基础设置
+	echo '#!/bin/bash' > "${FILE_DEFAULT_UCI}"
+	sudo chmod +x "${FILE_DEFAULT_UCI}"
+	
+	# Openwrt固件升级时需要删除的文件
+	echo '#!/bin/bash' > "${FILE_DELETE}"
+	sudo chmod +x "${FILE_DELETE}"
 	
 	# Openwrt初次运行初始化设置
 	cp -rf ${COMMON_PATH}/custom/default_settings ${FILE_DEFAULT_SETTINGS}
