@@ -336,7 +336,7 @@ function diy_public() {
 	__yellow_msg "开始添加openwrt.sh(或openwrt.lxc.sh)..."
 	# openwrt.sh
 	[[ ! -d "${FILES_PATH}/usr/bin" ]] && mkdir -p ${FILES_PATH}/usr/bin
-	if [[ ${FIRMWARE_TYPE} == "lxc" ]]; then
+	if [[ "${FIRMWARE_TYPE}" == "lxc" ]]; then
 		cp -rf ${COMMON_PATH}/custom/openwrt.lxc.sh ${FILES_PATH}/usr/bin/openwrt.lxc && sudo chmod -f +x ${FILES_PATH}/usr/bin/openwrt.lxc
 	else
 		cp -rf ${COMMON_PATH}/custom/openwrt.sh ${FILES_PATH}/usr/bin/openwrt && sudo chmod -f +x ${FILES_PATH}/usr/bin/openwrt
@@ -363,7 +363,7 @@ function diy_public() {
 	
 	__yellow_msg "开始设置自动更新插件..."
 	# 自动更新插件（luci-app-autoupdate）
-	if [[ ${FIRMWARE_TYPE} == "lxc" ]]; then
+	if [[ "${FIRMWARE_TYPE}" == "lxc" ]]; then
 		find . -type d -name "luci-app-autoupdate" | xargs -i rm -rf {}
 		if [[ -n "$(grep "luci-app-autoupdate" ${HOME_PATH}/include/target.mk)" ]]; then
 			sed -i 's?luci-app-autoupdate??g' ${HOME_PATH}/include/target.mk
@@ -387,7 +387,7 @@ function diy_public() {
 	local new_ipaddress="$(grep "network.lan.ipaddr" ${MATRIX_TARGET_PATH}/${DIY_PART_SH} | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+")"
 	if [[ -n "${new_ipaddress}" ]]; then
 		sed -i "s/${def_ipaddress}/${new_ipaddress}/g" ${FILE_CONFIG_GEN}
-		__success_msg "IP地址从[${def_ipaddress}]替换为[${new_ipaddress}]"
+		__info_msg "IP地址从[${def_ipaddress}]替换为[${new_ipaddress}]"
 	else
 		__info_msg "使用默认IP地址：${def_ipaddress}"
 	fi
@@ -685,7 +685,7 @@ function compile_info() {
 	
 	echo
 	__red_msg "固件信息"
-	if [[ ${FIRMWARE_TYPE} == "lxc" ]]; then
+	if [[ "${FIRMWARE_TYPE}" == "lxc" ]]; then
 		echo
 		__yellow_msg "LXC固件：开启"
 		echo
@@ -1042,7 +1042,7 @@ function organize_firmware() {
 	
 	case "${TARGET_BOARD}" in
 	x86)
-		if [[ FIRMWARE_TYPE == "lxc" ]]; then
+		if [[ "${FIRMWARE_TYPE}" == "lxc" ]]; then
 			[[ -f ${Firmware_Rootfs} ]] && {
 				ROOTFSMD5="$(md5sum ${Firmware_Rootfs} |cut -c1-3)$(sha256sum ${Firmware_Rootfs} |cut -c1-3)"
 				cp ${Firmware_Rootfs} ${UPLOAD_PATH}/${AutoBuild_Rootfs}-rootfs-${ROOTFSMD5}${Firmware_sfx}
