@@ -126,18 +126,18 @@ function parse_settings() {
 # 编译开始通知
 function notice_begin() {
 	if [[ "${NOTICE_TYPE}" == "TG" ]]; then
-		curl -k --data chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" --data "text=🎉 主人：您正在使用【${{github.repository}}】仓库【${MATRIX_TARGET}】文件夹编译${LUCI_EDITION}-${SOURCE}固件,请耐心等待...... 😋" "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage"
+		curl -k --data chat_id="${TELEGRAM_CHAT_ID}" --data "text=🎉 主人：您正在使用【${GITHUB_REPOSITORY}】仓库【${MATRIX_TARGET}】文件夹编译${LUCI_EDITION}-${SOURCE}固件,请耐心等待...... 😋" "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"
 	elif [[ "${NOTICE_TYPE}" == "PUSH" ]]; then
-		curl -k --data token="${{ secrets.PUSH_PLUS_TOKEN }}" --data title="开始编译【${MATRIX_TARGET}】" --data "content=🎉 主人：您正在使用【${{github.repository}}】仓库【${MATRIX_TARGET}】文件夹编译${LUCI_EDITION}-${SOURCE}固件,请耐心等待...... 😋💐" "http://www.pushplus.plus/send"
+		curl -k --data token="${PUSH_PLUS_TOKEN}" --data title="开始编译【${MATRIX_TARGET}】" --data "content=🎉 主人：您正在使用【${GITHUB_REPOSITORY}】仓库【${MATRIX_TARGET}】文件夹编译${LUCI_EDITION}-${SOURCE}固件,请耐心等待...... 😋💐" "http://www.pushplus.plus/send"
 	fi
 }
 
 # 编译完成通知
 function notice_end() {
 	if [[ "${NOTICE_TYPE}" == "TG" ]]; then
-		curl -k --data chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" --data "text=我亲爱的✨主人✨：您使用【${{github.repository}}】仓库【${MATRIX_TARGET}】文件夹编译的[${SOURCE}-${TARGET_PROFILE }]固件顺利编译完成了！💐https://github.com/${{github.repository}}/releases" "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage"
+		curl -k --data chat_id="${TELEGRAM_CHAT_ID}" --data "text=我亲爱的✨主人✨：您使用【${GITHUB_REPOSITORY}】仓库【${MATRIX_TARGET}】文件夹编译的[${SOURCE}-${TARGET_PROFILE }]固件顺利编译完成了！💐https://github.com/${GITHUB_REPOSITORY}/releases" "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"
 	elif [[ "${NOTICE_TYPE}" == "PUSH" ]]; then
-		curl -k --data token="${{ secrets.PUSH_PLUS_TOKEN }}" --data title="[${SOURCE}-${TARGET_PROFILE }]编译成功" --data "content=我亲爱的✨主人✨：您使用【${{github.repository}}】仓库【${MATRIX_TARGET}】文件夹编译的[${SOURCE}-${TARGET_PROFILE }]固件顺利编译完成了！💐https://github.com/${{github.repository}}/releases" "http://www.pushplus.plus/send"
+		curl -k --data token="${PUSH_PLUS_TOKEN}" --data title="[${SOURCE}-${TARGET_PROFILE }]编译成功" --data "content=我亲爱的✨主人✨：您使用【${GITHUB_REPOSITORY}】仓库【${MATRIX_TARGET}】文件夹编译的[${SOURCE}-${TARGET_PROFILE }]固件顺利编译完成了！💐https://github.com/${GITHUB_REPOSITORY}/releases" "http://www.pushplus.plus/send"
 	fi
 }
 
@@ -173,7 +173,7 @@ function git_clone_source() {
 
 # 插件库更新
 function update_packages() {
-	gitdate=$(curl -H "Authorization: token ${{ secrets.REPO_TOKEN }}" -s "https://api.github.com/repos/${PACKAGES_ADDR}/actions/runs" | jq -r '.workflow_runs[0].created_at')
+	gitdate=$(curl -H "Authorization: token ${REPO_TOKEN}" -s "https://api.github.com/repos/${PACKAGES_ADDR}/actions/runs" | jq -r '.workflow_runs[0].created_at')
 	gitdate=$(date -d "$gitdate" +%s)
 	echo "gitdate=${gitdate}"
 	now=$(date -d "$(date '+%Y-%m-%d %H:%M:%S')" +%s)
@@ -181,7 +181,7 @@ function update_packages() {
 	if [[ $(expr $gitdate + 60) < $now ]]; then
 	curl -X POST https://api.github.com/repos/${PACKAGES_ADDR}/dispatches \
 	-H "Accept: application/vnd.github.everest-preview+json" \
-	-H "Authorization: token ${{ secrets.REPO_TOKEN }}" \
+	-H "Authorization: token ${REPO_TOKEN}" \
 	--data '{"event_type": "updated by ${REPOSITORY}"}'
 	fi
 	echo "packages url: https://github.com/${PACKAGES_ADDR}"
@@ -417,7 +417,7 @@ function update_repo() {
 	# 更新COMPILE_YML文件中的matrix.target设置	
 	bool_update_target="false"
 	bool_update_config="false"
-	git clone -b main https://github.com/${{github.repository}}.git repo
+	git clone -b main https://github.com/${GITHUB_REPOSITORY}.git repo
 	local COMPILE_YML_TARGET=$(grep 'target: \[' ${GITHUB_WORKSPACE}/.github/workflows/${COMPILE_YML} | sed 's/^[ ]*//g' |grep '^target' |cut -d '#' -f1 |sed 's/\[/\\&/' |sed 's/\]/\\&/') && echo "COMPILE_YML_TARGET=${COMPILE_YML_TARGET}"
 	local BUILD_YML_TARGET=$(grep 'target: \[' ${GITHUB_WORKSPACE}/.github/workflows/${BUILD_YML}  |sed 's/^[ ]*//g' |grep '^target' |cut -d '#' -f1 |sed 's/\[/\\&/' |sed 's/\]/\\&/') && echo "BUILD_YML_TARGET=${BUILD_YML_TARGET}"
 	if [[ -n "${COMPILE_YML_TARGET}" ]] && [[ -n "${BUILD_YML_TARGET}" ]] && [[ "${COMPILE_YML_TARGET}" != "${BUILD_YML_TARGET}" ]]; then
@@ -438,7 +438,7 @@ function update_repo() {
 		local BRANCH_HEAD="$(git rev-parse --abbrev-ref HEAD)"
 		git add .
 		git commit -m "Update plugins and ${CONFIG_FILE}"
-		git push --force "https://${{ secrets.REPO_TOKEN }}@github.com/${{github.repository}}" HEAD:${BRANCH_HEAD}
+		git push --force "https://${REPO_TOKEN}@github.com/${GITHUB_REPOSITORY}" HEAD:${BRANCH_HEAD}
 	else
 		__info_msg "Your branch is already up to date with 'origin/main'. Nothing to commit, working tree clean"
 	fi
