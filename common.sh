@@ -74,7 +74,8 @@ function parse_settings() {
 	
 	if [[ ${PACKAGES_ADDR} == "default" ]]; then
 		PACKAGES_ADDR="roacn/openwrt-packages"
-	elif  [[ ${ENABLE_PACKAGES_UPDATE} == "true" ]]; then
+	fi
+	if [[ ${ENABLE_PACKAGES_UPDATE} == "true" ]]; then
 		local package_repo_owner=`echo "${PACKAGES_ADDR}" | awk -F/ '{print $1}'` 2>/dev/null
 		if [[ ${package_repo_owner} != ${GITHUB_ACTOR} ]]; then
 			ENABLE_PACKAGES_UPDATE="false"
@@ -501,7 +502,7 @@ function diy_public() {
 	if [[ "${SOURCE_ABBR}" == "lede" ]]; then
 		__info_msg "添加lede源码对应packages"
 		cat >> "feeds.conf.default" <<-EOF
-		src-git diypackages https://github.com/$(PACKAGES_ADDR).git;master
+		src-git diypackages https://github.com/${PACKAGES_ADDR}.git;master
 		EOF
 		#git clone --depth 1 -b "${SOURCE_BRANCH}" https://github.com/roacn/openwrt-packages ${HOME_PATH}/openwrt-package
 		#rm -rf ${HOME_PATH}/openwrt-package/{diy,.github,.gitignore,LICENSE,README.md} 2>/dev/null
