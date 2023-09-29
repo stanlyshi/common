@@ -178,7 +178,7 @@ function git_clone_source() {
 	
 	# 将build等文件夹复制到openwrt文件夹下
 	cd ${GITHUB_WORKSPACE}
-	cp -rf $(find ./ -maxdepth 1 -type d ! -path './openwrt' ! -path './') ${GITHUB_WORKSPACE}/openwrt
+	cp -rf $(find ./ -maxdepth 1 -type d ! -path './openwrt' ! -path './') ${GITHUB_WORKSPACE}/openwrt/
 	#rm -rf ${GITHUB_WORKSPACE}/openwrt/build/ && cp -rf ${GITHUB_WORKSPACE}/build/ ${GITHUB_WORKSPACE}/openwrt/build/
 	
 	# 下载common仓库
