@@ -177,8 +177,9 @@ function git_clone_source() {
 	ln -sf ${MATRIX_TARGET}/openwrt ${GITHUB_WORKSPACE}/openwrt
 	
 	# 将build等文件夹复制到openwrt文件夹下
-	#cp -rf `find ./ -maxdepth 1 -type d ! -path './openwrt' ! -path './'` ${GITHUB_WORKSPACE}/openwrt
-	cp -rf ${GITHUB_WORKSPACE}/build ${GITHUB_WORKSPACE}/openwrt
+	cd ${GITHUB_WORKSPACE}
+	cp -rf $(find ./ -maxdepth 1 -type d ! -path './openwrt' ! -path './') ${GITHUB_WORKSPACE}/openwrt
+	#rm -rf ${GITHUB_WORKSPACE}/openwrt/build/ && cp -rf ${GITHUB_WORKSPACE}/build/ ${GITHUB_WORKSPACE}/openwrt/build/
 	
 	# 下载common仓库
 	sudo rm -rf ${BUILD_PATH}/common && git clone -b main --depth 1 https://github.com/stanlyshi/common ${BUILD_PATH}/common
