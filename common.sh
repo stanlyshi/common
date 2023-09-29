@@ -63,6 +63,7 @@ function __cyan_msg() {
 function parse_settings() {
 	source build/${MATRIX_TARGET}/settings.ini
 	if [[ -n "${INPUTS_SOURCE_BRANCH}" ]]; then
+		__info_msg "获取到actions设置，替换settings.ini设置"
 		SOURCE_BRANCH=${INPUTS_SOURCE_BRANCH}
 		CONFIG_FILE=${INPUTS_CONFIG_FILE}
 		NOTICE_TYPE=${INPUTS_NOTICE_TYPE}
@@ -84,12 +85,7 @@ function parse_settings() {
 	else
 		NOTICE_TYPE="false"
 	fi
-	
-	if [[ FIRMWARE_TYPE == "lxc" ]]; then
-		RELEASE_TAG="AutoUpdate-lxc"
-	else
-		RELEASE_TAG="AutoUpdate"
-	fi
+
 	
 	if [[ ${PACKAGES_ADDR} == "default" ]]; then
 		PACKAGES_ADDR="roacn/openwrt-packages"
@@ -103,16 +99,17 @@ function parse_settings() {
 		fi
 	fi
 	
-	echo "SOURCE_ABBR=${SOURCE_ABBR}" >> ${GITHUB_ENV}
 	case "${SOURCE_ABBR}" in
-	lede|LEDE|Lede)
+	lede|Lede|LEDE)
 		SOURCE_URL="https://github.com/coolsnowwolf/lede"
+		SOURCE="lede"
 		SOURCE_OWNER="Lean's"
 		LUCI_EDITION="18.06"
 		PACKAGE_BRANCH="Lede"
 	;;
-	openwrt|OPENWRT|Openwrt|OpenWrt|OpenWRT)
+	openwrt|Openwrt|OpenWrt|OpenWRT|OPENWRT|official|Official|OFFICIAL)
 		SOURCE_URL="https://github.com/openwrt/openwrt"
+		SOURCE="official"
 		SOURCE_OWNER="openwrt's"
 		LUCI_EDITION="$(echo "${SOURCE_BRANCH}" |sed 's/openwrt-//g')"
 		PACKAGE_BRANCH="Official"
@@ -124,50 +121,51 @@ function parse_settings() {
 	esac
 	
 	# 下拉列表选项
-	echo "SOURCE_BRANCH=${SOURCE_BRANCH}" >> ${GITHUB_ENV}
-	echo "CONFIG_FILE=${CONFIG_FILE}" >> ${GITHUB_ENV}
-	echo "NOTICE_TYPE=${NOTICE_TYPE}" >> ${GITHUB_ENV}
-	echo "ENABLE_SSH=${ENABLE_SSH}" >> ${GITHUB_ENV}
-	echo "UPLOAD_BIN_DIR=${UPLOAD_BIN_DIR}" >> ${GITHUB_ENV}
-	echo "UPLOAD_FIRMWARE=${UPLOAD_FIRMWARE}" >> ${GITHUB_ENV}
-	echo "UPLOAD_CONFIG=${UPLOAD_CONFIG}" >> ${GITHUB_ENV}
-	echo "ENABLE_CACHEWRTBUILD=${ENABLE_CACHEWRTBUILD}" >> ${GITHUB_ENV}
+	echo SOURCE_BRANCH=${SOURCE_BRANCH} >> ${GITHUB_ENV}
+	echo CONFIG_FILE=${CONFIG_FILE} >> ${GITHUB_ENV}
+	echo NOTICE_TYPE=${NOTICE_TYPE} >> ${GITHUB_ENV}
+	echo ENABLE_SSH=${ENABLE_SSH} >> ${GITHUB_ENV}
+	echo UPLOAD_BIN_DIR=${UPLOAD_BIN_DIR} >> ${GITHUB_ENV}
+	echo UPLOAD_FIRMWARE=${UPLOAD_FIRMWARE} >> ${GITHUB_ENV}
+	echo UPLOAD_CONFIG=${UPLOAD_CONFIG} >> ${GITHUB_ENV}
+	echo ENABLE_CACHEWRTBUILD=${ENABLE_CACHEWRTBUILD} >> ${GITHUB_ENV}
 	
 	# 基础设置
-	echo "SOURCE_URL=${SOURCE_URL}" >> ${GITHUB_ENV}
-	echo "SOURCE_OWNER=${SOURCE_OWNER}" >> ${GITHUB_ENV}
-	echo "LUCI_EDITION=${LUCI_EDITION}" >> ${GITHUB_ENV}
-	echo "PACKAGE_BRANCH=${PACKAGE_BRANCH}" >> ${GITHUB_ENV}	
-	echo "REPOSITORY=${GITHUB_REPOSITORY##*/}" >> ${GITHUB_ENV}
-	echo "DIY_PART_SH=${DIY_PART_SH}" >> ${GITHUB_ENV}
-	echo "PACKAGES_ADDR=${PACKAGES_ADDR}" >> ${GITHUB_ENV}
-	echo "ENABLE_PACKAGES_UPDATE=${ENABLE_PACKAGES_UPDATE}" >> ${GITHUB_ENV}
-	echo "FIRMWARE_TYPE=${FIRMWARE_TYPE}" >> ${GITHUB_ENV}
-	echo "COMPILE_DATE=$(date +%Y%m%d%H%M)" >> ${GITHUB_ENV}
-	echo "COMPILE_DATE_CN=$(date +%Y年%m月%d号%H时%M分)" >> ${GITHUB_ENV}
-	echo "RELEASE_TAG=${RELEASE_TAG}" >> ${GITHUB_ENV}
-	echo "ENABLE_UPDATE_REPO='false'" >> ${GITHUB_ENV}
-	echo "DIFFCONFIG_FILE='config.txt'" >> ${GITHUB_ENV}
+	echo SOURCE=${SOURCE} >> ${GITHUB_ENV}
+	echo SOURCE_URL=${SOURCE_URL} >> ${GITHUB_ENV}
+	echo SOURCE_OWNER=${SOURCE_OWNER} >> ${GITHUB_ENV}
+	echo LUCI_EDITION=${LUCI_EDITION} >> ${GITHUB_ENV}
+	echo PACKAGE_BRANCH=${PACKAGE_BRANCH} >> ${GITHUB_ENV}	
+	echo REPOSITORY=${GITHUB_REPOSITORY##*/} >> ${GITHUB_ENV}
+	echo DIY_PART_SH=${DIY_PART_SH} >> ${GITHUB_ENV}
+	echo PACKAGES_ADDR=${PACKAGES_ADDR} >> ${GITHUB_ENV}
+	echo ENABLE_PACKAGES_UPDATE=${ENABLE_PACKAGES_UPDATE} >> ${GITHUB_ENV}
+	echo FIRMWARE_TYPE=${FIRMWARE_TYPE} >> ${GITHUB_ENV}
+	echo COMPILE_DATE=$(date +%Y%m%d%H%M) >> ${GITHUB_ENV}
+	echo COMPILE_DATE_CN=$(date +%Y年%m月%d号%H时%M分) >> ${GITHUB_ENV}
+	echo UPGRADE_DATE=$(date -d "$(date +'%Y-%m-%d %H:%M:%S')" +%s) >> ${GITHUB_ENV}
+	echo ENABLE_UPDATE_REPO="false" >> ${GITHUB_ENV}
+	echo DIFFCONFIG_FILE="config.txt" >> ${GITHUB_ENV}
 	
 	# 路径
-	echo "HOME_PATH=${GITHUB_WORKSPACE}/openwrt" >> ${GITHUB_ENV}
-	echo "BIN_PATH=${GITHUB_WORKSPACE}/openwrt/bin" >> ${GITHUB_ENV}
-	echo "UPLOAD_PATH=${GITHUB_WORKSPACE}/openwrt/upgrade" >> ${GITHUB_ENV}
-	echo "BUILD_PATH=${GITHUB_WORKSPACE}/openwrt/build" >> ${GITHUB_ENV}
-	echo "COMMON_PATH=${GITHUB_WORKSPACE}/openwrt/build/common" >> ${GITHUB_ENV}
-	echo "MATRIX_TARGET_PATH=${GITHUB_WORKSPACE}/openwrt/build/${MATRIX_TARGET}" >> ${GITHUB_ENV}
-	echo "CONFIG_PATH=${GITHUB_WORKSPACE}/openwrt/build/${MATRIX_TARGET}/config" >> ${GITHUB_ENV}
-	echo "CLEAR_FILE_PATH=${GITHUB_WORKSPACE}/openwrt/Clear" >> ${GITHUB_ENV}
+	echo HOME_PATH=${GITHUB_WORKSPACE}/openwrt >> ${GITHUB_ENV}
+	echo BIN_PATH=${GITHUB_WORKSPACE}/openwrt/bin >> ${GITHUB_ENV}
+	echo UPLOAD_PATH=${GITHUB_WORKSPACE}/openwrt/upload >> ${GITHUB_ENV}
+	echo BUILD_PATH=${GITHUB_WORKSPACE}/openwrt/build >> ${GITHUB_ENV}
+	echo COMMON_PATH=${GITHUB_WORKSPACE}/openwrt/build/common >> ${GITHUB_ENV}
+	echo MATRIX_TARGET_PATH=${GITHUB_WORKSPACE}/openwrt/build/${MATRIX_TARGET} >> ${GITHUB_ENV}
+	echo CONFIG_PATH=${GITHUB_WORKSPACE}/openwrt/build/${MATRIX_TARGET}/config >> ${GITHUB_ENV}
+	echo CLEAR_FILE_PATH=${GITHUB_WORKSPACE}/openwrt/Clear >> ${GITHUB_ENV}
 	
 	# 文件
 	# https://github.com/coolsnowwolf/lede/tree/master/package/base-files/files
-	echo "FILES_PATH=${GITHUB_WORKSPACE}/openwrt/package/base-files/files" >> ${GITHUB_ENV}
-	echo "FILE_BASE_FILES=${GITHUB_WORKSPACE}/openwrt/package/base-files/files/lib/upgrade/keep.d/base-files-essential" >> ${GITHUB_ENV}
-	echo "FILE_DELETE=${GITHUB_WORKSPACE}/openwrt/package/base-files/files/etc/deletefile" >> ${GITHUB_ENV}
-	echo "FILE_DEFAULT_UCI=${GITHUB_WORKSPACE}/openwrt/package/base-files/files/etc/default_uci" >> ${GITHUB_ENV}
-	echo "FILE_DEFAULT_SETTINGS=${GITHUB_WORKSPACE}/openwrt/package/base-files/files/etc/default_settings" >> ${GITHUB_ENV}
-	echo "FILE_OPENWRT_RELEASE=${GITHUB_WORKSPACE}/openwrt/package/base-files/files/etc/openwrt_release" >> ${GITHUB_ENV}
-	echo "FILE_CONFIG_GEN=${GITHUB_WORKSPACE}/openwrt/package/base-files/files/bin/config_generate" >> ${GITHUB_ENV}
+	echo FILES_PATH=${GITHUB_WORKSPACE}/openwrt/package/base-files/files >> ${GITHUB_ENV}
+	echo FILE_BASE_FILES=${GITHUB_WORKSPACE}/openwrt/package/base-files/files/lib/upgrade/keep.d/base-files-essential >> ${GITHUB_ENV}
+	echo FILE_DELETE=${GITHUB_WORKSPACE}/openwrt/package/base-files/files/etc/deletefile >> ${GITHUB_ENV}
+	echo FILE_DEFAULT_UCI=${GITHUB_WORKSPACE}/openwrt/package/base-files/files/etc/default_uci >> ${GITHUB_ENV}
+	echo FILE_DEFAULT_SETTINGS=${GITHUB_WORKSPACE}/openwrt/package/base-files/files/etc/default_settings >> ${GITHUB_ENV}
+	echo FILE_OPENWRT_RELEASE=${GITHUB_WORKSPACE}/openwrt/package/base-files/files/etc/openwrt_release >> ${GITHUB_ENV}
+	echo FILE_CONFIG_GEN=${GITHUB_WORKSPACE}/openwrt/package/base-files/files/bin/config_generate >> ${GITHUB_ENV}
 	
 }
 
@@ -261,9 +259,9 @@ function do_diy() {
 	
 	
 	# 执行源码库对应的私有脚本
-	if [[ "${SOURCE_ABBR}" == "lede" ]]; then
+	if [[ "${SOURCE}" =~ (lede|Lede|LEDE) ]]; then
 		diy_lede
-	elif [[ "${SOURCE_ABBR}" == "openwrt" ]]; then
+	elif [[ "${SOURCE}" =~ (openwrt|Openwrt|OpenWrt|OpenWRT|OPENWRT|official|Official|OFFICIAL) ]]; then
 		diy_openwrt
 	fi
 	
@@ -281,7 +279,7 @@ function do_diy() {
 	cp -rf ${CONFIG_PATH}/${CONFIG_FILE} ${HOME_PATH}/.config
 	# 处理插件冲突
 	resolve_conflictions > /dev/null 2>&1
-	# 获取CPU架构、内核版本等信息，替换内核等
+	# 编译机型CPU架构、内核版本等信息，替换内核等
 	cpuarch_and_linuxkernel
 }
 
@@ -318,13 +316,13 @@ function diy_public() {
 	sed -i '/roacn/d; /stanlyshi/d; /281677160/d; /helloworld/d; /passwall/d; /OpenClash/d' "feeds.conf.default"
 	cat feeds.conf.default|awk '!/^#/'|awk '!/^$/'|awk '!a[$1" "$2]++{print}' >uniq.conf
 	mv -f uniq.conf feeds.conf.default
-	if [[ "${SOURCE_ABBR}" == "lede" ]]; then
+	if [[ "${SOURCE}" =~ (lede|Lede|LEDE) ]]; then
 		__info_msg "添加lede源码对应packages"
 		cat >> "feeds.conf.default" <<-EOF
 		src-git diypackages https://github.com/${PACKAGES_ADDR}.git;master
 		EOF
 	else
-		__info_msg "添加${SOURCE_ABBR}源码${PACKAGE_BRANCH}分支packages"
+		__info_msg "添加${SOURCE}源码${PACKAGE_BRANCH}分支packages"
 		cat >> "feeds.conf.default" <<-EOF
 		src-git diypackages https://github.com/281677160/openwrt-package.git;${PACKAGE_BRANCH}
 		EOF
@@ -455,10 +453,12 @@ function make_defconfig() {
 }
 
 ################################################################################################################
-# 获取CPU架构、内核版本等信息（依赖于make defconfig，须在生成.config之后）
+# 编译机型CPU架构、内核版本、固件信息等（依赖于make defconfig，须在生成.config之后）
 ################################################################################################################
-function cpuarch_and_linuxkernel() {
+function firmware_settings() {
+	# 如未运行过 make menuconfig，需要运行下一行命令
 	# make defconfig > /dev/null 2>&1
+	
 	TARGET_BOARD="$(awk -F '[="]+' '/TARGET_BOARD/{print $2}' ${HOME_PATH}/.config)"
 	TARGET_SUBTARGET="$(awk -F '[="]+' '/TARGET_SUBTARGET/{print $2}' ${HOME_PATH}/.config)"
 	FIRMWARE_PATH=${HOME_PATH}/bin/targets/${TARGET_BOARD}/${TARGET_SUBTARGET}
@@ -489,26 +489,145 @@ function cpuarch_and_linuxkernel() {
 		LINUX_KERNEL=$(egrep -o "${KERNEL_PATCHVER}\.[0-9]+" ${HOME_PATH}/include/kernel-version.mk)
 		[[ -z ${LINUX_KERNEL} ]] && export LINUX_KERNEL="unknown"
 	fi	
-	__info_msg "内核版本：${LINUX_KERNEL}"
+	__info_msg "linux内核版本：${LINUX_KERNEL}"
 	
 	# 内核替换
 	if [[ -n "${NEW_KERNEL_PATCHVER}" ]]; then
 		if [[ "${NEW_KERNEL_PATCHVER}" == "0" ]]; then
-			__info_msg "使用默认内核[ ${KERNEL_PATCHVER} ]编译"
+			__info_msg "编译固件内核：[ ${KERNEL_PATCHVER} ]"
 		elif [[ `ls -1 "${HOME_PATH}/target/linux/${TARGET_BOARD}" |grep -c "kernel-${NEW_KERNEL_PATCHVER}"` -eq '1' ]]; then
 			sed -i "s/${KERNEL_PATCHVER}/${NEW_KERNEL_PATCHVER}/g" ${HOME_PATH}/target/linux/${TARGET_BOARD}/Makefile
 			__success_msg "内核[ ${NEW_KERNEL_PATCHVER} ]更换完成"
 		else
 			__error_msg "没发现与${TARGET_PROFILE}机型对应[ ${NEW_KERNEL_PATCHVER} ]内核，使用默认内核[ ${KERNEL_PATCHVER} ]编译"
 		fi
+	else
+		__info_msg "编译固件内核：[ ${KERNEL_PATCHVER} ]"
 	fi
 
+
+	# 固件相关
+	if [[ FIRMWARE_TYPE == "lxc" ]]; then
+		RELEASE_TAG="AutoUpdate-${TARGET_BOARD}-lxc"
+	else
+		RELEASE_TAG="AutoUpdate-${TARGET_BOARD}"
+	fi
+	
+	local firmware_info_file="${FILES_PATH}/etc/openwrt_update"
+	local github_api_origin="${GITHUB_REPO_URL}/releases/download/${RELEASE_TAG}/zzz_api"
+	local github_api_fastgit="https://download.fastgit.org/${GITHUB_REPOSITORY}/releases/download/${RELEASE_TAG}/zzz_api"
+	local github_api_ghproxy="https://ghproxy.com/${GITHUB_REPO_URL}/releases/download/${RELEASE_TAG}/zzz_api"
+	local api_path="/tmp/Downloads/zzz_api"
+	local release_download_origin="${GITHUB_REPO_URL}/releases/download/${RELEASE_TAG}"
+	local release_download_ghproxy="https://ghproxy.com/${GITHUB_REPO_URL}/releases/download/${RELEASE_TAG}"
+	GITHUB_RELEASE_URL="${GITHUB_REPO_URL}/releases/tag/${RELEASE_TAG}"
+
+	if [[ "${TARGET_PROFILE}" =~ (phicomm_k3|phicomm-k3) ]]; then
+		TARGET_PROFILE_ER="phicomm-k3"
+	elif [[ "${TARGET_PROFILE}" =~ (k2p|phicomm_k2p|phicomm-k2p) ]]; then
+		TARGET_PROFILE_ER="phicomm-k2p"
+	elif [[ "${TARGET_PROFILE}" =~ (xiaomi_mi-router-3g-v2|xiaomi_mir3g_v2) ]]; then
+		TARGET_PROFILE_ER="xiaomi_mir3g-v2"
+	elif [[ "${TARGET_PROFILE}" == "xiaomi_mi-router-3g" ]]; then
+		TARGET_PROFILE_ER="xiaomi_mir3g"
+	elif [[ "${TARGET_PROFILE}" == "xiaomi_mi-router-3-pro" ]]; then
+		TARGET_PROFILE_ER="xiaomi_mir3p"
+	else
+		TARGET_PROFILE_ER="${TARGET_PROFILE}"
+	fi
+
+	case "${TARGET_BOARD}" in
+	x86)
+		export Firmware_sfx=".img.gz"
+		export Firmware_Legacy="openwrt-${TARGET_PROFILE}-generic-squashfs-combined.${Firmware_sfx}"
+		export Firmware_UEFI="openwrt-${TARGET_PROFILE}-generic-squashfs-combined-efi.${Firmware_sfx}"
+		export Firmware_Rootfs="openwrt-${TARGET_PROFILE}-generic-squashfs-rootfs.${Firmware_sfx}"
+		export AutoBuild_Legacy="${LUCI_EDITION}-${SOURCE}-${TARGET_PROFILE}-${COMPILE_DATE}-legacy"
+		export AutoBuild_Uefi="${LUCI_EDITION}-${SOURCE}-${TARGET_PROFILE}-${COMPILE_DATE}-uefi"
+		export AutoBuild_Rootfs="${LUCI_EDITION}-${SOURCE}-${TARGET_PROFILE}-${COMPILE_DATE}-rootfs"
+	;;
+	ramips | reltek | ath* | ipq* | bcm47xx | bmips | kirkwood | mediatek)
+		export Firmware_SFX=".bin"
+		export AutoBuild_Firmware="${LUCI_EDITION}-${SOURCE}-${TARGET_PROFILE_ER}-${UPGRADE_DATE}-sysupgrade"
+	;;
+	rockchip | bcm27xx | mxs | sunxi | zynq)
+		export Firmware_SFX=".img.gz"
+		export AutoBuild_Firmware="${LUCI_EDITION}-${SOURCE}-${TARGET_PROFILE_ER}-${UPGRADE_DATE}-sysupgrade"
+	;;
+	mvebu)
+		case "${TARGET_SUBTARGET}" in
+		cortexa53 | cortexa72)
+			export Firmware_SFX=".img.gz"
+			export AutoBuild_Firmware="${LUCI_EDITION}-${SOURCE}-${TARGET_PROFILE_ER}-${UPGRADE_DATE}-sysupgrade"
+		;;
+		esac
+	;;
+	bcm53xx)
+		export Firmware_SFX=".trx"
+		export AutoBuild_Firmware="${LUCI_EDITION}-${SOURCE}-${TARGET_PROFILE_ER}-${UPGRADE_DATE}-sysupgrade"
+	;;
+	octeon | oxnas | pistachio)
+		export Firmware_SFX=".tar"
+		export AutoBuild_Firmware="${LUCI_EDITION}-${SOURCE}-${TARGET_PROFILE_ER}-${UPGRADE_DATE}-sysupgrade"
+	;;
+	*)
+		export Firmware_SFX=".bin"
+		export AutoBuild_Firmware="${LUCI_EDITION}-${SOURCE}-${TARGET_PROFILE_ER}-${UPGRADE_DATE}-sysupgrade"
+	;;
+	esac
+
+	if [[ -f "${HOME_PATH}/package/luci-app-autoupdate/root/usr/bin/AutoUpdate" ]]; then
+		export AutoUpdate_Version=$(grep -Eo "Version=V[0-9.]+" "${HOME_PATH}/package/luci-app-autoupdate/root/usr/bin/AutoUpdate" |grep -Eo [0-9.]+)
+	fi
+	
+	export OPENWRT_VERSION="${SOURCE}-${TARGET_PROFILE_ER}-${UPGRADE_DATE}"
+	local cloud_find="${LUCI_EDITION}-${SOURCE}-${TARGET_PROFILE_ER}"
+	
+	if [[ "${TARGET_BOARD}" == "x86" ]]; then
+		echo Firmware_Legacy=${Firmware_Legacy} >> ${GITHUB_ENV}
+		echo Firmware_UEFI=${Firmware_UEFI} >> ${GITHUB_ENV}
+		echo Firmware_Rootfs=${Firmware_Rootfs} >> ${GITHUB_ENV}
+		echo AutoBuild_Legacy=${AutoBuild_Legacy} >> ${GITHUB_ENV}
+		echo AutoBuild_Uefi=${AutoBuild_Uefi} >> ${GITHUB_ENV}
+		echo AutoBuild_Rootfs=${AutoBuild_Rootfs} >> ${GITHUB_ENV}	
+	else
+		echo AutoBuild_Firmware=${AutoBuild_Firmware} >> ${GITHUB_ENV}
+	fi
+	
 	echo TARGET_BOARD=${TARGET_BOARD} >> ${GITHUB_ENV}
 	echo TARGET_SUBTARGET=${TARGET_SUBTARGET} >> ${GITHUB_ENV}
 	echo FIRMWARE_PATH=${FIRMWARE_PATH} >> ${GITHUB_ENV}
 	echo TARGET_PROFILE=${TARGET_PROFILE} >> ${GITHUB_ENV}
 	echo KERNEL_PATCHVER=${KERNEL_PATCHVER} >> ${GITHUB_ENV}
 	echo LINUX_KERNEL=${LINUX_KERNEL} >> ${GITHUB_ENV}
+	
+	echo RELEASE_TAG=${RELEASE_TAG} >> ${GITHUB_ENV}
+	echo Firmware_SFX=${Firmware_SFX} >> ${GITHUB_ENV}
+	echo AutoUpdate_Version=${AutoUpdate_Version} >> ${GITHUB_ENV}
+	echo OPENWRT_VERSION=${OPENWRT_VERSION} >> ${GITHUB_ENV}
+	echo GITHUB_RELEASE_URL=${GITHUB_RELEASE_URL} >> ${GITHUB_ENV}
+	
+	cat > "${firmware_info_file}" <<-EOF
+	GITHUB_LINK=${GITHUB_REPO_URL}
+	CURRENT_Version=${OPENWRT_VERSION}
+	SOURCE="${SOURCE}"
+	LUCI_EDITION="${LUCI_EDITION}"
+	DEFAULT_Device="${TARGET_PROFILE_ER}"
+	Firmware_SFX="${Firmware_SFX}"
+	TARGET_BOARD="${TARGET_BOARD}"
+	CLOUD_CHAZHAO="${cloud_find}"
+	Download_Path="/tmp/Downloads"
+	Version="${AutoUpdate_Version}"
+	API_PATH="${API_PATH}"
+	Github_API1="${github_api_fastgit}"
+	Github_API2="${github_api_ghproxy}"
+	Github_Release="${GITHUB_RELEASE_URL}"
+	Release_download1="${release_download_origin}"
+	Release_download2="${release_download_ghproxy}"
+	EOF
+
+	cat ${HOME_PATH}/build/common/autoupdate/replace >> ${firmware_info_file}
+	sudo chmod +x ${firmware_info_file}
 }
 
 ################################################################################################################
@@ -522,7 +641,7 @@ function compile_info() {
 		
 	echo
 	__red_msg "OpenWrt固件信息"
-	__green_msg "编译源码: ${SOURCE_ABBR}"
+	__green_msg "编译源码: ${SOURCE}"
 	__green_msg "源码链接: ${SOURCE_URL}"
 	__green_msg "源码分支: ${SOURCE_BRANCH}"
 	__green_msg "源码作者: ${SOURCE_OWNER}"
@@ -553,9 +672,9 @@ function compile_info() {
 		__blue_msg "上传.config配置文件至Github Artifacts: 关闭"
 	fi
 	if [[ ${NOTICE_TYPE} == "true" ]]; then
-		__yellow_msg "微信/电报通知: 开启"
+		__yellow_msg "pushplus/Telegram通知: 开启"
 	else
-		__blue_msg "微信/电报通知: 关闭"
+		__blue_msg "pushplus/Telegram通知: 关闭"
 	fi
 	echo
 	
@@ -577,16 +696,17 @@ function compile_info() {
 		__blue_msg "LXC固件：关闭"
 		echo
 		__red_msg "自动更新信息"
-		if [[ ${TARGET_PROFILE} == "x86-64" ]]; then
+		__yellow_msg"插件版本: ${AutoUpdate_Version}"
+		if [[ "${TARGET_PROFILE}" == "x86" ]]; then
 			__yellow_msg "传统固件: ${Firmware_Legacy}"
 			__yellow_msg "UEFI固件: ${Firmware_UEFI}"
 			__yellow_msg "固件后缀: ${Firmware_sfx}"
 		else
-			__yellow_msg "固件名称: ${Up_Firmware}"
+			__yellow_msg "固件名称: ${AutoBuild_Firmware}${Firmware_SFX}"
 			__yellow_msg "固件后缀: ${Firmware_sfx}"
 		fi
-		__yellow_msg "固件版本: ${Openwrt_Version}"
-		__yellow_msg "云端路径: ${Github_UP_RELEASE}"
+		__yellow_msg "固件版本: ${OPENWRT_VERSION}"
+		__yellow_msg "云端路径: ${GITHUB_RELEASE_URL}"
 		__green_msg "编译成功后，会自动把固件发布到指定地址，生成云端路径"
 		__green_msg "修改IP、DNS、网关或者在线更新，请输入命令：openwrt"
 	fi
@@ -896,34 +1016,15 @@ function resolve_conflictions() {
 }
 
 ################################################################################################################
-# 准备发布固件页面信息显示
-################################################################################################################
-release_info() {
-	cd ${MATRIX_TARGET_PATH}
-	local releaseinfo_md="${releaseinfo_md}"
-	local diy_part_ipaddr=`awk '{print $3}' ${MATRIX_TARGET_PATH}/$DIY_PART_SH | awk -F= '$1 == "network.lan.ipaddr" {print $2}' | sed "s/'//g" 2>/dev/null`
-	local release_ipaddr=${diy_part_ipaddr:-192.168.1.1}
-	
-	sed -i "s#release_device#${TARGET_PROFILE}#" ${MATRIX_TARGET_PATH}/${releaseinfo_md} > /dev/null 2>&1
-	sed -i "s#default_ip#${release_ipaddr}#" ${MATRIX_TARGET_PATH}/${releaseinfo_md} > /dev/null 2>&1
-	sed -i "s#default_password#-" ${MATRIX_TARGET_PATH}/${releaseinfo_md} > /dev/null 2>&1
-	sed -i "s#release_source#${LUCI_EDITION}-${SOURCE_ABBR}#" ${MATRIX_TARGET_PATH}/${releaseinfo_md} > /dev/null 2>&1
-	sed -i "s#release_kernel#${KERNEL_PATCHVER}#" ${MATRIX_TARGET_PATH}/${releaseinfo_md} > /dev/null 2>&1
-	sed -i "s#repository#${GITHUB_REPOSITORY}" ${MATRIX_TARGET_PATH}/${releaseinfo_md} > /dev/null 2>&1
-	sed -i "s#matrixtarget#${MATRIX_TARGET}" ${MATRIX_TARGET_PATH}/${releaseinfo_md} > /dev/null 2>&1
-
-	cat ${MATRIX_TARGET_PATH}/${releaseinfo_md} > /dev/null 2>&1
-}
-
-################################################################################################################
 # 整理固件
 ################################################################################################################
 function organize_firmware() {
-	[[ ! -d ${FIRMWARE_PATH} ]] && mkdir -p ${FIRMWARE_PATH} || rm -rf ${FIRMWARE_PATH}/*
+	[[ ! -d ${UPLOAD_PATH} ]] && mkdir -p ${UPLOAD_PATH} || rm -rf ${UPLOAD_PATH}/*
+	
 	cd ${FIRMWARE_PATH}
 
 	echo "files under ${FIRMWARE_PATH}:"
-	ls ${FIRMWARE_PATH}
+	ls -l ${FIRMWARE_PATH}
 	
 	# 清理无关文件
 	if [[ -e ${CLEAR_FILE} ]]; then
@@ -936,35 +1037,26 @@ function organize_firmware() {
 	
 	case "${TARGET_BOARD}" in
 	x86)
-		export Firmware_sfx="img.gz"
-		export Firmware_Legacy="openwrt-${TARGET_PROFILE}-generic-squashfs-combined.${Firmware_sfx}"
-		export Firmware_UEFI="openwrt-${TARGET_PROFILE}-generic-squashfs-combined-efi.${Firmware_sfx}"
-		export Firmware_Rootfs="openwrt-${TARGET_PROFILE}-generic-squashfs-rootfs.${Firmware_sfx}"
-		export AutoBuild_Uefi="${LUCI_EDITION}-${SOURCE_ABBR}-${TARGET_PROFILE}-${COMPILE_DATE}-uefi"
-		export AutoBuild_Legacy="${LUCI_EDITION}-${SOURCE_ABBR}-${TARGET_PROFILE}-${COMPILE_DATE}-legacy"
-		export AutoBuild_Rootfs="${LUCI_EDITION}-${SOURCE_ABBR}-${TARGET_PROFILE}-${COMPILE_DATE}-rootfs"
 		if [[ FIRMWARE_TYPE == "lxc" ]]; then
 			[[ -f ${Firmware_Rootfs} ]] && {
 				ROOTFSMD5="$(md5sum ${Firmware_Rootfs} |cut -c1-3)$(sha256sum ${Firmware_Rootfs} |cut -c1-3)"
-				cp ${Firmware_Rootfs} ${UPLOAD_PATH}/${AutoBuild_Rootfs}-rootfs-${ROOTFSMD5}.${Firmware_sfx}
-				echo "copy ${Firmware_Rootfs} to ${UPLOAD_PATH}/${AutoBuild_Rootfs}-${ROOTFSMD5}.${Firmware_sfx}"
+				cp ${Firmware_Rootfs} ${UPLOAD_PATH}/${AutoBuild_Rootfs}-rootfs-${ROOTFSMD5}${Firmware_sfx}
+				echo "copy ${Firmware_Rootfs} to ${UPLOAD_PATH}/${AutoBuild_Rootfs}-${ROOTFSMD5}${Firmware_sfx}"
 			}
 		else
 			[[ -f ${Firmware_UEFI} ]] && {
 				EFIMD5="$(md5sum ${Firmware_UEFI} |cut -c1-3)$(sha256sum ${Firmware_UEFI} |cut -c1-3)"
 				cp -rf "${Firmware_UEFI}" "${UPLOAD_PATH}/${AutoBuild_Uefi}-${EFIMD5}${Firmware_SFX}"
-				echo "copy ${Firmware_UEFI} to ${UPLOAD_PATH}/${AutoBuild_Uefi}-${EFIMD5}.${Firmware_sfx}"
+				echo "copy ${Firmware_UEFI} to ${UPLOAD_PATH}/${AutoBuild_Uefi}-${EFIMD5}${Firmware_sfx}"
 			}
 			[[ -f ${Firmware_Legacy} ]] && {
 				LEGAMD5="$(md5sum ${Firmware_Legacy} |cut -c1-3)$(sha256sum ${Firmware_Legacy} |cut -c1-3)"
 				cp -rf "${Firmware_Legacy}" "${UPLOAD_PATH}/${AutoBuild_Legacy}-${LEGAMD5}${Firmware_SFX}"
-				echo "copy ${Firmware_Legacy} to ${UPLOAD_PATH}/${AutoBuild_Legacy}-${LEGAMD5}.${Firmware_sfx}"
+				echo "copy ${Firmware_Legacy} to ${UPLOAD_PATH}/${AutoBuild_Legacy}-${LEGAMD5}${Firmware_sfx}"
 			}
 		fi
 	;;
 	*)
-		export Firmware_sfx="bin"
-		export Up_Firmware="openwrt-${TARGET_BOARD}-${TARGET_SUBTARGET}-${TARGET_PROFILE}-squashfs-sysupgrade.${Firmware_sfx}"
 		if [[ `ls -1 | grep -c "sysupgrade"` -ge '1' ]]; then
 			UP_ZHONGZHUAN="$(ls -1 |grep -Eo ".*${TARGET_PROFILE}.*sysupgrade.*${Firmware_SFX}" |grep -v "rootfs\|ext4\|factory")"
 		else
@@ -978,6 +1070,26 @@ function organize_firmware() {
 	esac
 
 	release_info	
+}
+
+################################################################################################################
+# 准备发布固件页面信息显示
+################################################################################################################
+release_info() {
+	cd ${MATRIX_TARGET_PATH}
+	local releaseinfo_md="${releaseinfo_md}"
+	local diy_part_ipaddr=`awk '{print $3}' ${MATRIX_TARGET_PATH}/$DIY_PART_SH | awk -F= '$1 == "network.lan.ipaddr" {print $2}' | sed "s/'//g" 2>/dev/null`
+	local release_ipaddr=${diy_part_ipaddr:-192.168.1.1}
+	
+	sed -i "s#release_device#${TARGET_PROFILE}#" ${MATRIX_TARGET_PATH}/${releaseinfo_md} > /dev/null 2>&1
+	sed -i "s#default_ip#${release_ipaddr}#" ${MATRIX_TARGET_PATH}/${releaseinfo_md} > /dev/null 2>&1
+	sed -i "s#default_password#-" ${MATRIX_TARGET_PATH}/${releaseinfo_md} > /dev/null 2>&1
+	sed -i "s#release_source#${LUCI_EDITION}-${SOURCE}#" ${MATRIX_TARGET_PATH}/${releaseinfo_md} > /dev/null 2>&1
+	sed -i "s#release_kernel#${KERNEL_PATCHVER}#" ${MATRIX_TARGET_PATH}/${releaseinfo_md} > /dev/null 2>&1
+	sed -i "s#repository#${GITHUB_REPOSITORY}" ${MATRIX_TARGET_PATH}/${releaseinfo_md} > /dev/null 2>&1
+	sed -i "s#matrixtarget#${MATRIX_TARGET}" ${MATRIX_TARGET_PATH}/${releaseinfo_md} > /dev/null 2>&1
+
+	cat ${MATRIX_TARGET_PATH}/${releaseinfo_md} > /dev/null 2>&1
 }
 
 ################################################################################################################
