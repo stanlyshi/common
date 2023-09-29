@@ -77,11 +77,10 @@ function parse_settings() {
 		local package_repo_owner=`echo "${PACKAGES_ADDR}" | awk -F/ '{print $1}'` 2>/dev/null
 		if [[ ${package_repo_owner} != ${GITHUB_ACTOR} ]]; then
 			ENABLE_PACKAGES_UPDATE="false"
-			echo "插件库所有者：${package_repo_owner}"
+			__warning_msg "插件库所有者：${package_repo_owner}"
 			__warning_msg "没有权限更新插件库，关闭\"插件库更新\"！"
 		fi
 	fi
-
 	
 	echo "SOURCE_ABBR=${SOURCE_ABBR}" >> ${GITHUB_ENV}
 	case "${SOURCE_ABBR}" in
@@ -468,7 +467,7 @@ function update_repo() {
 	fi
 
 	# 更新.config文件
-	${HOME_PATH}./scripts/diffconfig.sh > ${GITHUB_WORKSPACE}/${CONFIG_FILE}
+	# ${HOME_PATH}/scripts/diffconfig.sh > ${GITHUB_WORKSPACE}/${CONFIG_FILE}
 	
 	cd ${GITHUB_WORKSPACE}/repo
 	if [[ `cat ${GITHUB_WORKSPACE}/${CONFIG_FILE}` != `cat build/${MATRIX_TARGET}/config/${CONFIG_FILE}` ]]; then
@@ -500,17 +499,17 @@ function diy_public() {
 	mv -f uniq.conf feeds.conf.default
 	if [[ "${SOURCE_ABBR}" == "lede" ]]; then
 		__info_msg "添加lede源码对应packages"
-cat >> "feeds.conf.default" <<-EOF
-src-git diypackages https://github.com/$(PACKAGES_ADDR).git;master
-EOF
+		cat >> "feeds.conf.default" <<-EOF
+		src-git diypackages https://github.com/$(PACKAGES_ADDR).git;master
+		EOF
 		#git clone --depth 1 -b "${SOURCE_BRANCH}" https://github.com/roacn/openwrt-packages ${HOME_PATH}/openwrt-package
 		#rm -rf ${HOME_PATH}/openwrt-package/{diy,.github,.gitignore,LICENSE,README.md} 2>/dev/null
 		#mv -f ${HOME_PATH}/openwrt-package/* ${HOME_PATH}/package/lean
 	else
 		__info_msg "添加${SOURCE_ABBR}源码${PACKAGE_BRANCH}分支packages"
-cat >> "feeds.conf.default" <<-EOF
-src-git diypackages https://github.com/281677160/openwrt-package.git;${PACKAGE_BRANCH}
-EOF
+		cat >> "feeds.conf.default" <<-EOF
+		src-git diypackages https://github.com/281677160/openwrt-package.git;${PACKAGE_BRANCH}
+		EOF
 		#git clone --depth 1 -b "${SOURCE_BRANCH}" https://github.com/281677160/openwrt-package ${HOME_PATH}/openwrt-package
 		#rm -rf ${HOME_PATH}/openwrt-package/{LICENSE,README.md} 2>/dev/null
 		#mv -f ${HOME_PATH}/openwrt-package/* ${HOME_PATH}
