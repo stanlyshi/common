@@ -16,6 +16,7 @@ YELLOW_COLOR="\033[33m"
 BLUE_COLOR="\033[34m"
 MAGENTA_COLOR="\033[35m"
 CYAN_COLOR="\033[36m"
+WHITE_COLOR="\033[36m"
 
 function __error_msg() {
 	echo -e "${RED_COLOR}[ERROR]${DEFAULT_COLOR} $*"
@@ -55,6 +56,10 @@ function __magenta_msg() {
 
 function __cyan_msg() {
 	echo -e "${CYAN_COLOR} $*"
+}
+
+function __white_msg() {
+	echo -e "${WHITE_COLOR} $*"
 }
 
 ################################################################################################################
@@ -685,10 +690,10 @@ function compile_info() {
 		__yellow_msg "LXC固件：开启"
 		echo
 		__red_msg "LXC固件自动更新："
-		echo " 1、PVE运行："
+		__white_msg " 1、PVE运行："
 		__cyan_msg "pct pull xxx /sbin/openwrt.lxc /usr/sbin/openwrt && chmod -f +x /usr/sbin/openwrt"
-		echo " 注意：将xxx改为个人OpenWrt容器的ID，如100"
-		echo " 2、PVE运行："
+		__white_msg " 注意：将xxx改为个人OpenWrt容器的ID，如100"
+		__white_msg " 2、PVE运行："
 		__cyan_msg "openwrt"
 		echo
 	else
@@ -707,8 +712,8 @@ function compile_info() {
 		fi
 		__yellow_msg "固件版本: ${OPENWRT_VERSION}"
 		__yellow_msg "云端路径: ${GITHUB_RELEASE_URL}"
-		__green_msg "编译成功后，会自动把固件发布到指定地址，生成云端路径"
-		__green_msg "修改IP、DNS、网关或者在线更新，请输入命令：openwrt"
+		__white_msg "编译成功后，会自动把固件发布到指定地址，生成云端路径"
+		__white_msg "修改IP、DNS、网关或者在线更新，请输入命令：openwrt"
 	fi
 
 	echo
@@ -722,7 +727,7 @@ function compile_info() {
 	Intel(R) Xeon(R) CPU E5-2673 v4 @ 2.30GHz
 	Intel(R) Xeon(R) CPU E5-2673 v3 @ 2.40GHz"
 	echo
-	__blue_msg " 系统空间      类型   总数  已用  可用 使用率"
+	__white_msg " 系统空间      类型   总数  已用  可用 使用率"
 	cd ../ && df -hT $PWD && cd ${HOME_PATH}
 	echo
 	
