@@ -23,19 +23,19 @@ function __warning_msg() {
 }
 
 function __red_msg() {
-	echo -e "${RED_COLOR}${DEFAULT_COLOR} $*"
+	echo -e "${RED_COLOR} $*"
 }
 
 function __blue_msg() {
-	echo -e "${BLUE_COLOR}${DEFAULT_COLOR} $*"
+	echo -e "${BLUE_COLOR} $*"
 }
 
 function __green_msg() {
-	echo -e "${GREEN_COLOR}${DEFAULT_COLOR} $*"
+	echo -e "${GREEN_COLOR} $*"
 }
 
 function __yellow_msg() {
-	echo -e "${YELLOW_COLOR}${DEFAULT_COLOR} $*"
+	echo -e "${YELLOW_COLOR} $*"
 }
 
 ################################################################################################################
@@ -123,9 +123,12 @@ function parse_settings() {
 	echo "DIY_PART_SH=${DIY_PART_SH}" >> ${GITHUB_ENV}
 	echo "PACKAGES_ADDR=${PACKAGES_ADDR}" >> ${GITHUB_ENV}
 	echo "ENABLE_PACKAGES_UPDATE=${ENABLE_PACKAGES_UPDATE}" >> ${GITHUB_ENV}
+	echo "FIRMWARE_TYPE=${FIRMWARE_TYPE}" >> ${GITHUB_ENV}
 	echo "COMPILE_DATE=$(date +%Y%m%d%H%M)" >> ${GITHUB_ENV}
 	echo "COMPILE_DATE_CN=$(date +%Y年%m月%d号%H时%M分)" >> ${GITHUB_ENV}
 	echo "RELEASE_TAG=${RELEASE_TAG}" >> ${GITHUB_ENV}
+	echo "ENABLE_UPDATE_REPO='false'" >> ${GITHUB_ENV}
+	echo "DIFFCONFIG_FILE='config.txt'" >> ${GITHUB_ENV}
 	
 	# 路径
 	echo "HOME_PATH=${GITHUB_WORKSPACE}/openwrt" >> ${GITHUB_ENV}
@@ -203,7 +206,7 @@ function git_clone_source() {
 	
 	# 下载common仓库
 	sudo rm -rf ${BUILD_PATH}/common && git clone -b main --depth 1 https://github.com/stanlyshi/common ${BUILD_PATH}/common
-	chmod -R +x ${BUILD_PATH}
+	chmod -Rf +x ${BUILD_PATH}
 	
 }
 
@@ -233,21 +236,7 @@ function do_diy() {
 	export ZZZ_PATH="$(find "${HOME_PATH}/package" -type f -name "*-default-settings" |grep files)"
 
 	cd ${HOME_PATH}
-	
-	# 检查.config文件是否存在
-	if [ -z "$(ls -A "${CONFIG_PATH}/${CONFIG_FILE}" 2>/dev/null)" ]; then
-		__error_msg "编译脚本的[${MATRIX_TARGET}配置文件夹内缺少${CONFIG_FILE}文件],请在[${MATRIX_TARGET}/config/]文件夹内补齐"
-		echo
-		exit 1
-	fi
-	
-	# 检查diy_part.sh文件是否存在
-	if [ -z "$(ls -A "${MATRIX_TARGET_PATH}/${DIY_PART_SH}" 2>/dev/null)" ]; then
-		__error_msg "编译脚本的[${MATRIX_TARGET}文件夹内缺少${DIY_PART_SH}文件],请在[${MATRIX_TARGET}]文件夹内补齐"
-		echo
-		exit 1
-	fi
-	
+		
 	# 执行公共脚本
 	diy_public
 	
@@ -268,224 +257,15 @@ function do_diy() {
 	./scripts/feeds install -a -p openwrt-packages
 	./scripts/feeds install -a > /dev/null 2>&1
 	
+	# .config相关
 	# 复制自定义.config文件
-	cp -rf "${CONFIG_PATH}/${CONFIG_FILE}" ${HOME_PATH}/.config
-}
-
-################################################################################################################
-# 生成.config文件
-################################################################################################################
-function make_defconfig() {
-	cd ${HOME_PATH}
-	
+	cp -rf ${CONFIG_PATH}/${CONFIG_FILE} ${HOME_PATH}/.config
 	# 处理插件冲突
 	resolve_conflictions > /dev/null 2>&1
-	
-	# 生成.config文件
-	make defconfig > /dev/null 2>&1
-	${HOME_PATH}/scripts/diffconfig.sh > ${GITHUB_WORKSPACE}/${CONFIG_FILE}
-	
-	export TARGET_BOARD="$(awk -F '[="]+' '/TARGET_BOARD/{print $2}' ${HOME_PATH}/.config)"
-	export TARGET_SUBTARGET="$(awk -F '[="]+' '/TARGET_SUBTARGET/{print $2}' ${HOME_PATH}/.config)"
-	export FIRMWARE_PATH=${HOME_PATH}/bin/targets/${TARGET_BOARD}/${TARGET_SUBTARGET}
-	
-	# CPU架构
-	if [ `grep -c "CONFIG_TARGET_x86_64=y" .config` -eq '1' ]; then
-		export TARGET_PROFILE="x86-64"
-	elif [[ `grep -c "CONFIG_TARGET_x86=y" .config` == '1' ]] && [[ `grep -c "CONFIG_TARGET_x86_64=y" .config` == '0' ]]; then
-		export TARGET_PROFILE="x86-32"
-	elif [[ -n "$(grep -Eo 'CONFIG_TARGET.*armsr.*armv8.*=y' ${HOME_PATH}/.config)" ]]; then
-		export TARGET_PROFILE="Armvirt_64"
-	elif [[ -n "$(grep -Eo 'CONFIG_TARGET.*armvirt.*64.*=y' ${HOME_PATH}/.config)" ]]; then
-		export TARGET_PROFILE="Armvirt_64"
-	elif [[ -n "$(grep -Eo 'CONFIG_TARGET.*DEVICE.*=y' ${HOME_PATH}/.config)" ]]; then
-		export TARGET_PROFILE="$(grep -Eo "CONFIG_TARGET.*DEVICE.*=y" ${HOME_PATH}/.config | sed -r 's/.*DEVICE_(.*)=y/\1/')"
-	else
-		export TARGET_PROFILE="$(awk -F '[="]+' '/TARGET_PROFILE/{print $2}' ${HOME_PATH}/.config)"
-	fi
-	__info_msg "固件CPU架构：${TARGET_PROFILE}"
-	
-	# 内核版本
-	export KERNEL_PATCHVER="$(grep "KERNEL_PATCHVER" "${HOME_PATH}/target/linux/${TARGET_BOARD}/Makefile" |grep -Eo "[0-9]+\.[0-9]+")"
-	export KERNEL_VERSION_FILE="kernel-${KERNEL_PATCHVER}"
-	if [[ -f "${HOME_PATH}/include/${KERNEL_VERSION_FILE}" ]]; then
-		export LINUX_KERNEL=$(egrep -o "${KERNEL_PATCHVER}\.[0-9]+" ${HOME_PATH}/include/${KERNEL_VERSION_FILE})
-		[[ -z ${LINUX_KERNEL} ]] && export LINUX_KERNEL="unknown"
-	else
-		export LINUX_KERNEL=$(egrep -o "${KERNEL_PATCHVER}\.[0-9]+" ${HOME_PATH}/include/kernel-version.mk)
-		[[ -z ${LINUX_KERNEL} ]] && export LINUX_KERNEL="unknown"
-	fi
-	
-	__info_msg "内核版本：${LINUX_KERNEL}"
-	
-	# 内核替换
-	if [[ -n "${NEW_KERNEL_PATCHVER}" ]]; then
-		if [[ "${NEW_KERNEL_PATCHVER}" == "0" ]]; then
-			__info_msg "使用默认内核[ ${KERNEL_PATCHVER} ]编译"
-		elif [[ `ls -1 "${HOME_PATH}/target/linux/${TARGET_BOARD}" |grep -c "kernel-${NEW_KERNEL_PATCHVER}"` -eq '1' ]]; then
-			sed -i "s/${KERNEL_PATCHVER}/${NEW_KERNEL_PATCHVER}/g" ${HOME_PATH}/target/linux/${TARGET_BOARD}/Makefile
-			__success_msg "内核[ ${NEW_KERNEL_PATCHVER} ]更换完成"
-		else
-			__error_msg "没发现与${TARGET_PROFILE}机型对应[ ${NEW_KERNEL_PATCHVER} ]内核，使用默认内核[ ${KERNEL_PATCHVER} ]编译"
-		fi
-	fi
-	#if [[ -n "${NEW_KERNEL_PATCHVER}" ]] && [[ "${KERNEL_PATCHVER}" != "unknown" ]]; then
-	#	sed -i "s/${KERNEL_PATCHVER}/${NEW_KERNEL_PATCHVER}/g" ${HOME_PATH}/target/linux/${TARGET_BOARD}/Makefile
-	#	__success_msg "内核从[${KERNEL_PATCHVER}]替换为[${NEW_KERNEL_PATCHVER}]"
-	#fi
+	# 获取CPU架构、内核版本等信息，替换内核等
+	cpuarch_and_linuxkernel
 }
 
-################################################################################################################
-# 编译信息
-################################################################################################################
-function compile_info() {
-	cd ${HOME_PATH}
-	Plug_in1="$(grep -Eo "CONFIG_PACKAGE_luci-app-.*=y|CONFIG_PACKAGE_luci-theme-.*=y" .config |grep -v 'INCLUDE\|_Proxy\|_static\|_dynamic' |sed 's/=y//' |sed 's/CONFIG_PACKAGE_//g')"
-	Plug_in2="$(echo "${Plug_in1}" |sed 's/^/、/g' |sed 's/$/\"/g' |awk '$0=NR$0' |sed 's/^/TIME g \"       /g')"
-	echo "${Plug_in2}" >Plug-in
-		
-	echo
-	__red_msg "OpenWrt固件信息"
-	__blue_msg "编译源码: ${SOURCE_ABBR}"
-	__blue_msg "源码链接: ${SOURCE_URL}"
-	__blue_msg "源码分支: ${SOURCE_BRANCH}"
-	__blue_msg "源码作者: ${SOURCE_OWNER}"
-	__blue_msg "内核版本: ${KERNEL_PATCHVER}"
-	__blue_msg "Luci版本: ${LUCI_EDITION}"
-	__blue_msg "机型架构: ${TARGET_PROFILE}"
-	__blue_msg "固件作者: ${GITHUB_ACTOR}"
-	__blue_msg "仓库地址: ${GITHUB_REPO_URL}"
-	__blue_msg "编译时间: ${COMPILE_DATE}"
-	__green_msg "友情提示：您当前使用【${MATRIX_TARGET}】文件夹编译【${TARGET_PROFILE}】固件"
-	echo
-	echo
-	__red_msg "Github在线编译配置"
-	if [[ ${UPLOAD_FIRMWARE} == "true" ]]; then
-		__yellow_msg "上传固件在github actions: 开启"
-	else
-		__blue_msg "上传固件在github actions: 关闭"
-	fi
-	if [[ ${UPLOAD_CONFIG} == "true" ]]; then
-		__yellow_msg "上传[.config]配置文件: 开启"
-	else
-		__blue_msg "上传[.config]配置文件: 关闭"
-	fi
-	if [[ ${UPLOAD_BIN_DIR} == "true" ]]; then
-		__yellow_msg "上传BIN文件夹(固件+IPK): 开启"
-	else
-		__blue_msg "上传BIN文件夹(固件+IPK): 关闭"
-	fi
-	if [[ ${NOTICE_TYPE} == "true" ]]; then
-		__yellow_msg "微信/电报通知: 开启"
-	else
-		__blue_msg "微信/电报通知: 关闭"
-	fi
-	if [[ ${FIRMWARE_TYPE} == "lxc" ]]; then
-		echo
-		__yellow_msg "LXC固件：开启"
-		echo
-		__red_msg "LXC固件自动更新："
-		echo " 1、PVE运行："
-		__green_msg "pct pull xxx /sbin/openwrt.lxc /usr/sbin/openwrt && chmod +x /usr/sbin/openwrt"
-		echo " 注意：将xxx改为个人OpenWrt容器的ID，如100"
-		echo " 2、PVE运行："
-		__green_msg "openwrt"
-		echo
-	else
-		echo
-		__red_msg "自动更新信息"
-		TIME z "插件版本: ${AutoUpdate_Version}"
-		if [[ ${TARGET_PROFILE} == "x86-64" ]]; then
-			__yellow_msg "传统固件: ${Firmware_Legacy}"
-			__yellow_msg "UEFI固件: ${Firmware_UEFI}"
-			__yellow_msg "固件后缀: ${Firmware_sfx}"
-		else
-			__yellow_msg "固件名称: ${Up_Firmware}"
-			__yellow_msg "固件后缀: ${Firmware_sfx}"
-		fi
-		__yellow_msg "固件版本: ${Openwrt_Version}"
-		__yellow_msg "云端路径: ${Github_UP_RELEASE}"
-		__green_msg "编译成功后，会自动把固件发布到指定地址，生成云端路径"
-		__green_msg "修改IP、DNS、网关或者在线更新，请输入命令：openwrt"
-	fi
-
-	echo
-	__red_msg "Github在线编译CPU型号"
-	echo `cat /proc/cpuinfo | grep name | cut -f2 -d: | uniq -c`
-	__yellow_msg "常见CPU类型及性能排行"
-	echo -e "Intel(R) Xeon(R) Platinum 8370C CPU @ 2.80GHz
-	Intel(R) Xeon(R) Platinum 8272CL CPU @ 2.60GHz
-	Intel(R) Xeon(R) Platinum 8171M CPU @ 2.60GHz
-	Intel(R) Xeon(R) CPU E5-2673 v4 @ 2.30GHz
-	Intel(R) Xeon(R) CPU E5-2673 v3 @ 2.40GHz"
-	echo
-	__red_msg " 系统空间      类型   总数  已用  可用 使用率"
-	cd ../ && df -hT $PWD && cd ${HOME_PATH}
-	echo
-	echo
-	if [ -n "$(ls -A "${HOME_PATH}/EXT4" 2>/dev/null)" ]; then
-		echo
-		echo
-		chmod -R +x ${HOME_PATH}/EXT4
-		source ${HOME_PATH}/EXT4
-		rm -rf ${HOME_PATH}/EXT4
-	fi
-	if [ -n "$(ls -A "${HOME_PATH}/Chajianlibiao" 2>/dev/null)" ]; then
-		echo
-		echo
-		chmod -R +x ${HOME_PATH}/CHONGTU
-		source ${HOME_PATH}/CHONGTU
-		rm -rf ${HOME_PATH}/{CHONGTU,Chajianlibiao}
-		echo
-		echo
-	fi
-	if [ -n "$(ls -A "${HOME_PATH}/Plug-in" 2>/dev/null)" ]; then
-		__red_msg "	      已选插件列表"
-		chmod -R +x ${HOME_PATH}/Plug-in
-		source ${HOME_PATH}/Plug-in
-		rm -rf ${HOME_PATH}/{Plug-in,Plug-2}
-		echo
-	fi
-}
-
-################################################################################################################
-# 更新仓库
-################################################################################################################
-function update_repo() {
-	local enable_update="false"
-	
-	cd ${GITHUB_WORKSPACE}
-
-	# 更新插件列表
-	update_plugin_list
-	
-	# 更新COMPILE_YML文件中的matrix.target设置	
-	git clone -b main https://github.com/${GITHUB_REPOSITORY}.git repo
-	local COMPILE_YML_TARGET=$(grep 'target: \[' ${GITHUB_WORKSPACE}/.github/workflows/${COMPILE_YML} | sed 's/^[ ]*//g' |grep '^target' |cut -d '#' -f1 |sed 's/\[/\\&/' |sed 's/\]/\\&/') && echo "COMPILE_YML_TARGET=${COMPILE_YML_TARGET}"
-	local BUILD_YML_TARGET=$(grep 'target: \[' ${GITHUB_WORKSPACE}/.github/workflows/${BUILD_YML}  |sed 's/^[ ]*//g' |grep '^target' |cut -d '#' -f1 |sed 's/\[/\\&/' |sed 's/\]/\\&/') && echo "BUILD_YML_TARGET=${BUILD_YML_TARGET}"
-	if [[ -n "${COMPILE_YML_TARGET}" ]] && [[ -n "${BUILD_YML_TARGET}" ]] && [[ "${COMPILE_YML_TARGET}" != "${BUILD_YML_TARGET}" ]]; then
-		sed -i "s/${COMPILE_YML_TARGET}/${BUILD_YML_TARGET}/g" repo/.github/workflows/${COMPILE_YML} && echo "change ${COMPILE_YML_TARGET} to ${BUILD_YML_TARGET}"
-		enable_update="true"
-	fi
-
-	# 更新.config文件
-	# ${HOME_PATH}/scripts/diffconfig.sh > ${GITHUB_WORKSPACE}/${CONFIG_FILE}
-	
-	cd ${GITHUB_WORKSPACE}/repo
-	if [[ `cat ${GITHUB_WORKSPACE}/${CONFIG_FILE}` != `cat build/${MATRIX_TARGET}/config/${CONFIG_FILE}` ]]; then
-		enable_update="true"
-	fi
-	cp -rf ${GITHUB_WORKSPACE}/${CONFIG_FILE} build/${MATRIX_TARGET}/config/${CONFIG_FILE}
-	if [[ ${enable_update} == "true" ]]; then
-		local BRANCH_HEAD="$(git rev-parse --abbrev-ref HEAD)"
-		git add .
-		git commit -m "Update plugins and ${CONFIG_FILE}"
-		git push --force "https://${REPO_TOKEN}@github.com/${GITHUB_REPOSITORY}" HEAD:${BRANCH_HEAD}
-		__success_msg "Your branch is now up to latest."
-	else
-		__info_msg "Your branch is already up to date with origin/${BRANCH_HEAD}. Nothing to commit, working tree clean"
-	fi
-}
 
 ################################################################################################################
 # 各源码库的公共脚本
@@ -494,8 +274,28 @@ function diy_public() {
 	echo "--------------common_diy_public start--------------"
 	echo
 	cd ${HOME_PATH}
+
+	__yellow_msg "开始检测文件是否存在..."
+	# 检查.config文件是否存在
+	if [ -z "$(ls -A "${CONFIG_PATH}/${CONFIG_FILE}" 2>/dev/null)" ]; then
+		__error_msg "编译脚本的[${MATRIX_TARGET}配置文件夹内缺少${CONFIG_FILE}文件],请在[${MATRIX_TARGET}/config/]文件夹内补齐"
+		echo
+		exit 1
+	else
+		__info_msg "[${MATRIX_TARGET}/config/${CONFIG_FILE}] OK."
+	fi
 	
-	# 增加插件源
+	# 检查diy_part.sh文件是否存在
+	if [ -z "$(ls -A "${MATRIX_TARGET_PATH}/${DIY_PART_SH}" 2>/dev/null)" ]; then
+		__error_msg "编译脚本的[${MATRIX_TARGET}文件夹内缺少${DIY_PART_SH}文件],请在[${MATRIX_TARGET}]文件夹内补齐"
+		echo
+		exit 1
+	else
+		__info_msg "[${MATRIX_TARGET}/${DIY_PART_SH}] OK."
+	fi
+	
+	__yellow_msg "开始添加插件源..."
+	# 添加插件源
 	sed -i '/roacn/d; /stanlyshi/d; /281677160/d; /helloworld/d; /passwall/d; /OpenClash/d' "feeds.conf.default"
 	cat feeds.conf.default|awk '!/^#/'|awk '!/^$/'|awk '!a[$1" "$2]++{print}' >uniq.conf
 	mv -f uniq.conf feeds.conf.default
@@ -504,38 +304,42 @@ function diy_public() {
 		cat >> "feeds.conf.default" <<-EOF
 		src-git diypackages https://github.com/${PACKAGES_ADDR}.git;master
 		EOF
-		#git clone --depth 1 -b "${SOURCE_BRANCH}" https://github.com/roacn/openwrt-packages ${HOME_PATH}/openwrt-package
-		#rm -rf ${HOME_PATH}/openwrt-package/{diy,.github,.gitignore,LICENSE,README.md} 2>/dev/null
-		#mv -f ${HOME_PATH}/openwrt-package/* ${HOME_PATH}/package/lean
 	else
 		__info_msg "添加${SOURCE_ABBR}源码${PACKAGE_BRANCH}分支packages"
 		cat >> "feeds.conf.default" <<-EOF
 		src-git diypackages https://github.com/281677160/openwrt-package.git;${PACKAGE_BRANCH}
 		EOF
-		#git clone --depth 1 -b "${SOURCE_BRANCH}" https://github.com/281677160/openwrt-package ${HOME_PATH}/openwrt-package
-		#rm -rf ${HOME_PATH}/openwrt-package/{LICENSE,README.md} 2>/dev/null
-		#mv -f ${HOME_PATH}/openwrt-package/* ${HOME_PATH}
 	fi
 
+	__yellow_msg "开始添加openwrt.sh(或openwrt.lxc.sh)..."
 	# openwrt.sh
 	[[ ! -d "${FILES_PATH}/usr/bin" ]] && mkdir -p ${FILES_PATH}/usr/bin
-	cp -rf ${COMMON_PATH}/custom/openwrt.sh ${FILES_PATH}/usr/bin/openwrt && sudo chmod +x ${FILES_PATH}/usr/bin/openwrt
-	cp -rf ${COMMON_PATH}/custom/openwrt.lxc.sh ${FILES_PATH}/usr/bin/openwrt.lxc && sudo chmod +x ${FILES_PATH}/usr/bin/openwrt.lxc
+	if [[ ${FIRMWARE_TYPE} == "lxc" ]]; then
+		cp -rf ${COMMON_PATH}/custom/openwrt.lxc.sh ${FILES_PATH}/usr/bin/openwrt.lxc && sudo chmod -f +x ${FILES_PATH}/usr/bin/openwrt.lxc
+	else
+		cp -rf ${COMMON_PATH}/custom/openwrt.sh ${FILES_PATH}/usr/bin/openwrt && sudo chmod -f +x ${FILES_PATH}/usr/bin/openwrt
+	fi
 	
+	__yellow_msg "开始替换diy文件夹内文件..."
 	# 替换编译前源码中对应目录文件
 	if [ -n "$(ls -A "${MATRIX_TARGET_PATH}/diy" 2>/dev/null)" ]; then
-		cp -rf ${MATRIX_TARGET_PATH}/diy/* ${FILES_PATH} && chmod -R +x ${FILES_PATH}
+		cp -rf ${MATRIX_TARGET_PATH}/diy/* ${FILES_PATH} && chmod -Rf +x ${FILES_PATH}
 	fi
+	
+	__yellow_msg "开始替换files文件夹内文件..."
 	# 替换编译后固件中对应目录文件（备用）
 	if [ -n "$(ls -A "${MATRIX_TARGET_PATH}/files" 2>/dev/null)" ]; then
 		rm -rf ${MATRIX_TARGET_PATH}/files/{LICENSE,.*README}
 		cp -rf ${MATRIX_TARGET_PATH}/files ${HOME_PATH}
-	fi	
+	fi
+	
+	__yellow_msg "开始执行补丁文件..."
 	# 打补丁
 	if [ -n "$(ls -A "${MATRIX_TARGET_PATH}/patches" 2>/dev/null)" ]; then
 		find "${MATRIX_TARGET_PATH}/patches" -type f -name '*.patch' -print0 | sort -z | xargs -I % -t -0 -n 1 sh -c "cat '%'  | patch -d './' -p1 --forward --no-backup-if-mismatch"
 	fi
 	
+	__yellow_msg "开始设置自动更新插件..."
 	# 自动更新插件（luci-app-autoupdate）
 	if [[ ${FIRMWARE_TYPE} == "lxc" ]]; then
 		find . -type d -name "luci-app-autoupdate" | xargs -i rm -rf {}
@@ -555,8 +359,7 @@ function diy_public() {
 		fi
 	fi
 	
-
-		
+	__yellow_msg "开始修改IP设置..."
 	# 修改源码中IP设置
 	local def_ipaddress="$(grep "ipaddr:-" "${FILE_CONFIG_GEN}" | grep -v 'addr_offset' | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+")"
 	local new_ipaddress="$(grep "network.lan.ipaddr" ${MATRIX_TARGET_PATH}/${DIY_PART_SH} | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+")"
@@ -567,17 +370,18 @@ function diy_public() {
 		__info_msg "使用默认IP地址：${def_ipaddress}"
 	fi
 	
+	__yellow_msg "开始执行其它设置..."
 	# UCI基础设置
 	echo '#!/bin/bash' > "${FILE_DEFAULT_UCI}"
-	sudo chmod +x "${FILE_DEFAULT_UCI}"
+	sudo chmod -f +x "${FILE_DEFAULT_UCI}"
 	
 	# Openwrt固件升级时需要删除的文件
 	echo '#!/bin/bash' > "${FILE_DELETE}"
-	sudo chmod +x "${FILE_DELETE}"
+	sudo chmod -f +x "${FILE_DELETE}"
 	
 	# Openwrt初次运行初始化设置
 	cp -rf ${COMMON_PATH}/custom/default_settings ${FILE_DEFAULT_SETTINGS}
-	sudo chmod +x ${FILE_DEFAULT_SETTINGS}	
+	sudo chmod -f +x ${FILE_DEFAULT_SETTINGS}	
 	echo '
 	rm -rf /etc/init.d/default_setting_runonce
 	rm -rf /etc/default_settings
@@ -617,6 +421,244 @@ function diy_openwrt() {
 	echo "reserved for test."
 	echo
 	echo "--------------common_diy_openwrt end--------------"
+}
+
+################################################################################################################
+# 生成.config文件
+################################################################################################################
+function make_defconfig() {
+	cd ${HOME_PATH}
+	
+	# 生成.config文件
+	make defconfig > /dev/null 2>&1
+	# 生成diffconfig文件
+	${HOME_PATH}/scripts/diffconfig.sh > ${GITHUB_WORKSPACE}/${DIFFCONFIG_FILE}
+}
+
+################################################################################################################
+# 获取CPU架构、内核版本等信息（依赖于make defconfig，须在生成.config之后）
+################################################################################################################
+function cpuarch_and_linuxkernel() {
+	# make defconfig > /dev/null 2>&1
+	TARGET_BOARD="$(awk -F '[="]+' '/TARGET_BOARD/{print $2}' ${HOME_PATH}/.config)"
+	TARGET_SUBTARGET="$(awk -F '[="]+' '/TARGET_SUBTARGET/{print $2}' ${HOME_PATH}/.config)"
+	FIRMWARE_PATH=${HOME_PATH}/bin/targets/${TARGET_BOARD}/${TARGET_SUBTARGET}
+	
+	# CPU架构
+	if [ `grep -c "CONFIG_TARGET_x86_64=y" .config` -eq '1' ]; then
+		TARGET_PROFILE="x86-64"
+	elif [[ `grep -c "CONFIG_TARGET_x86=y" .config` == '1' ]] && [[ `grep -c "CONFIG_TARGET_x86_64=y" .config` == '0' ]]; then
+		TARGET_PROFILE="x86-32"
+	elif [[ -n "$(grep -Eo 'CONFIG_TARGET.*armsr.*armv8.*=y' ${HOME_PATH}/.config)" ]]; then
+		TARGET_PROFILE="Armvirt_64"
+	elif [[ -n "$(grep -Eo 'CONFIG_TARGET.*armvirt.*64.*=y' ${HOME_PATH}/.config)" ]]; then
+		TARGET_PROFILE="Armvirt_64"
+	elif [[ -n "$(grep -Eo 'CONFIG_TARGET.*DEVICE.*=y' ${HOME_PATH}/.config)" ]]; then
+		TARGET_PROFILE="$(grep -Eo "CONFIG_TARGET.*DEVICE.*=y" ${HOME_PATH}/.config | sed -r 's/.*DEVICE_(.*)=y/\1/')"
+	else
+		TARGET_PROFILE="$(awk -F '[="]+' '/TARGET_PROFILE/{print $2}' ${HOME_PATH}/.config)"
+	fi
+	__info_msg "CPU架构：${TARGET_PROFILE}"
+	
+	# 内核版本
+	KERNEL_PATCHVER="$(grep "KERNEL_PATCHVER" "${HOME_PATH}/target/linux/${TARGET_BOARD}/Makefile" |grep -Eo "[0-9]+\.[0-9]+")"
+	local kernel_version_file="kernel-${KERNEL_PATCHVER}"
+	if [[ -f "${HOME_PATH}/include/${kernel_version_file}" ]]; then
+		LINUX_KERNEL=$(egrep -o "${KERNEL_PATCHVER}\.[0-9]+" ${HOME_PATH}/include/${kernel_version_file})
+		[[ -z ${LINUX_KERNEL} ]] && export LINUX_KERNEL="unknown"
+	else
+		LINUX_KERNEL=$(egrep -o "${KERNEL_PATCHVER}\.[0-9]+" ${HOME_PATH}/include/kernel-version.mk)
+		[[ -z ${LINUX_KERNEL} ]] && export LINUX_KERNEL="unknown"
+	fi	
+	__info_msg "内核版本：${LINUX_KERNEL}"
+	
+	# 内核替换
+	if [[ -n "${NEW_KERNEL_PATCHVER}" ]]; then
+		if [[ "${NEW_KERNEL_PATCHVER}" == "0" ]]; then
+			__info_msg "使用默认内核[ ${KERNEL_PATCHVER} ]编译"
+		elif [[ `ls -1 "${HOME_PATH}/target/linux/${TARGET_BOARD}" |grep -c "kernel-${NEW_KERNEL_PATCHVER}"` -eq '1' ]]; then
+			sed -i "s/${KERNEL_PATCHVER}/${NEW_KERNEL_PATCHVER}/g" ${HOME_PATH}/target/linux/${TARGET_BOARD}/Makefile
+			__success_msg "内核[ ${NEW_KERNEL_PATCHVER} ]更换完成"
+		else
+			__error_msg "没发现与${TARGET_PROFILE}机型对应[ ${NEW_KERNEL_PATCHVER} ]内核，使用默认内核[ ${KERNEL_PATCHVER} ]编译"
+		fi
+	fi
+
+	echo TARGET_BOARD=${TARGET_BOARD} >> ${GITHUB_ENV}
+	echo TARGET_SUBTARGET=${TARGET_SUBTARGET} >> ${GITHUB_ENV}
+	echo FIRMWARE_PATH=${FIRMWARE_PATH} >> ${GITHUB_ENV}
+	echo TARGET_PROFILE=${TARGET_PROFILE} >> ${GITHUB_ENV}
+	echo KERNEL_PATCHVER=${KERNEL_PATCHVER} >> ${GITHUB_ENV}
+	echo LINUX_KERNEL=${LINUX_KERNEL} >> ${GITHUB_ENV}
+}
+
+################################################################################################################
+# 编译信息
+################################################################################################################
+function compile_info() {
+	cd ${HOME_PATH}
+	Plug_in1="$(grep -Eo "CONFIG_PACKAGE_luci-app-.*=y|CONFIG_PACKAGE_luci-theme-.*=y" .config |grep -v 'INCLUDE\|_Proxy\|_static\|_dynamic' |sed 's/=y//' |sed 's/CONFIG_PACKAGE_//g')"
+	Plug_in2="$(echo "${Plug_in1}" |sed 's/^/、/g' |sed 's/$/\"/g' |awk '$0=NR$0' |sed 's/^/__green_msg \"       /g')"
+	echo "${Plug_in2}" >Plug-in
+		
+	echo
+	__red_msg "OpenWrt固件信息"
+	__blue_msg "编译源码: ${SOURCE_ABBR}"
+	__blue_msg "源码链接: ${SOURCE_URL}"
+	__blue_msg "源码分支: ${SOURCE_BRANCH}"
+	__blue_msg "源码作者: ${SOURCE_OWNER}"
+	__blue_msg "内核版本: ${LINUX_KERNEL}"
+	__blue_msg "Luci版本: ${LUCI_EDITION}"
+	__blue_msg "机型架构: ${TARGET_PROFILE}"
+	__blue_msg "固件作者: ${GITHUB_ACTOR}"
+	__blue_msg "仓库地址: ${GITHUB_REPO_URL}"
+	__blue_msg "编译时间: ${COMPILE_DATE}"
+	__green_msg "友情提示：您当前使用【${MATRIX_TARGET}】文件夹编译【${TARGET_PROFILE}】固件"
+	echo
+	
+	echo
+	__red_msg "Github在线编译配置"
+	if [[ ${UPLOAD_BIN_DIR} == "true" ]]; then
+		__yellow_msg "上传bin文件夹(固件+ipk)至Github Artifacts: 开启"
+	else
+		__blue_msg "上传bin文件夹(固件+ipk)至Github Artifacts: 关闭"
+	fi
+	if [[ ${UPLOAD_FIRMWARE} == "true" ]]; then
+		__yellow_msg "上传固件至Github Artifacts: 开启"
+	else
+		__blue_msg "上传固件至Github Artifacts: 关闭"
+	fi
+	if [[ ${UPLOAD_CONFIG} == "true" ]]; then
+		__yellow_msg "上传.config配置文件至Github Artifacts: 开启"
+	else
+		__blue_msg "上传.config配置文件至Github Artifacts: 关闭"
+	fi
+	if [[ ${NOTICE_TYPE} == "true" ]]; then
+		__yellow_msg "微信/电报通知: 开启"
+	else
+		__blue_msg "微信/电报通知: 关闭"
+	fi
+	echo
+	
+	echo
+	__red_msg "固件信息"
+	if [[ ${FIRMWARE_TYPE} == "lxc" ]]; then
+		echo
+		__yellow_msg "LXC固件：开启"
+		echo
+		__red_msg "LXC固件自动更新："
+		echo " 1、PVE运行："
+		__green_msg "pct pull xxx /sbin/openwrt.lxc /usr/sbin/openwrt && chmod -f +x /usr/sbin/openwrt"
+		echo " 注意：将xxx改为个人OpenWrt容器的ID，如100"
+		echo " 2、PVE运行："
+		__green_msg "openwrt"
+		echo
+	else
+		echo
+		__blue_msg "LXC固件：关闭"
+		echo
+		__red_msg "自动更新信息"
+		if [[ ${TARGET_PROFILE} == "x86-64" ]]; then
+			__yellow_msg "传统固件: ${Firmware_Legacy}"
+			__yellow_msg "UEFI固件: ${Firmware_UEFI}"
+			__yellow_msg "固件后缀: ${Firmware_sfx}"
+		else
+			__yellow_msg "固件名称: ${Up_Firmware}"
+			__yellow_msg "固件后缀: ${Firmware_sfx}"
+		fi
+		__yellow_msg "固件版本: ${Openwrt_Version}"
+		__yellow_msg "云端路径: ${Github_UP_RELEASE}"
+		__green_msg "编译成功后，会自动把固件发布到指定地址，生成云端路径"
+		__green_msg "修改IP、DNS、网关或者在线更新，请输入命令：openwrt"
+	fi
+
+	echo
+	__red_msg "Github在线编译CPU型号"
+	echo `cat /proc/cpuinfo | grep name | cut -f2 -d: | uniq -c`
+	__blue_msg "常见CPU类型及性能排行"
+	echo -e "Intel(R) Xeon(R) Platinum 8370C CPU @ 2.80GHz
+	Intel(R) Xeon(R) Platinum 8272CL CPU @ 2.60GHz
+	Intel(R) Xeon(R) Platinum 8171M CPU @ 2.60GHz
+	Intel(R) Xeon(R) CPU E5-2673 v4 @ 2.30GHz
+	Intel(R) Xeon(R) CPU E5-2673 v3 @ 2.40GHz"
+	echo
+	__blue_msg " 系统空间      类型   总数  已用  可用 使用率"
+	cd ../ && df -hT $PWD && cd ${HOME_PATH}
+	echo
+	
+	echo
+	if [ -n "$(ls -A "${HOME_PATH}/EXT4" 2>/dev/null)" ]; then
+		echo
+		echo
+		chmod -Rf +x ${HOME_PATH}/EXT4
+		source ${HOME_PATH}/EXT4
+		rm -rf ${HOME_PATH}/EXT4
+	fi
+	echo
+	
+	echo
+	if [ -n "$(ls -A "${HOME_PATH}/Plug-in" 2>/dev/null)" ]; then
+		__red_msg "插件列表"
+		chmod -Rf +x ${HOME_PATH}/Plug-in
+		source ${HOME_PATH}/Plug-in
+		rm -rf ${HOME_PATH}/Plug-in
+		echo
+	fi
+}
+
+################################################################################################################
+# 插件列表
+################################################################################################################
+function update_plugin_list() {
+	cd ${HOME_PATH}
+	Plug_in1="$(grep -Eo "CONFIG_PACKAGE_luci-app-.*=y|CONFIG_PACKAGE_luci-theme-.*=y" .config |grep -v 'INCLUDE\|_Proxy\|_static\|_dynamic' |sed 's/=y//' |sed 's/CONFIG_PACKAGE_//g')"
+	Plug_in2="$(echo "${Plug_in1}" |sed 's/^/、/g' |sed 's/$/\"/g' |awk '$0=NR$0' |sed 's/^/\"/g')"
+	echo "${Plug_in2}" > ${HOME_PATH}/pluginlist
+}
+
+################################################################################################################
+# 更新仓库
+################################################################################################################
+function update_repo() {
+	cd ${GITHUB_WORKSPACE}
+	git clone https://github.com/${GITHUB_REPOSITORY}.git repo
+	
+	# 更新COMPILE_YML文件中的matrix.target设置
+	local compile_yml_target=$(grep 'target: \[' ${GITHUB_WORKSPACE}/.github/workflows/${COMPILE_YML} | sed 's/^[ ]*//g' |grep '^target' |cut -d '#' -f1 |sed 's/\[/\\&/' |sed 's/\]/\\&/') && echo "compile_yml_target=${compile_yml_target}"
+	local build_yml_target=$(grep 'target: \[' ${GITHUB_WORKSPACE}/.github/workflows/${BUILD_YML}  |sed 's/^[ ]*//g' |grep '^target' |cut -d '#' -f1 |sed 's/\[/\\&/' |sed 's/\]/\\&/') && echo "build_yml_target=${build_yml_target}"
+	if [[ -n "${compile_yml_target}" ]] && [[ -n "${build_yml_target}" ]] && [[ "${compile_yml_target}" != "${build_yml_target}" ]]; then
+		ENABLE_UPDATE_REPO="true"
+		sed -i "s/${compile_yml_target}/${build_yml_target}/g" repo/.github/workflows/${COMPILE_YML} && echo "change compile target ${compile_yml_target} to ${build_yml_target}"
+	fi
+
+	# 更新settings文件
+	
+
+	# 更新.config文件
+	# ${HOME_PATH}/scripts/diffconfig.sh > ${GITHUB_WORKSPACE}/${DIFFCONFIG_FILE}
+	if [[ "$(cat ${GITHUB_WORKSPACE}/${CONFIG_FILE})" != "$(cat ${GITHUB_WORKSPACE}/repo/build/${MATRIX_TARGET}/config/${CONFIG_FILE})" ]]; then
+		ENABLE_UPDATE_REPO="true"
+		cp -rf ${GITHUB_WORKSPACE}/${DIFFCONFIG_FILE} ${GITHUB_WORKSPACE}/repo/build/${MATRIX_TARGET}/config/${CONFIG_FILE}
+	fi	
+	
+	# 更新插件列表
+	update_plugin_list
+	if [[ "$(cat ${HOME_PATH}/pluginlist)" != "$(cat ${GITHUB_WORKSPACE}/repo/build/${MATRIX_TARGET}/plugins)" ]]; then
+		ENABLE_UPDATE_REPO="true"
+		# 覆盖原plugin文件
+		cp -f ${HOME_PATH}/pluginlist ${GITHUB_WORKSPACE}/repo/build/${MATRIX_TARGET}/plugins > /dev/null 2>&1
+	fi
+	
+	# 提交commit，更新repo
+	if [[ "${ENABLE_UPDATE_REPO}" == "true" ]]; then
+		local branch_head="$(git rev-parse --abbrev-ref HEAD)"
+		git add .
+		git commit -m "Update plugins and ${CONFIG_FILE}"
+		git push --force "https://${REPO_TOKEN}@github.com/${GITHUB_REPOSITORY}" HEAD:${branch_head}
+		__success_msg "Your branch is now up to latest."
+	else
+		__info_msg "Your branch is already up to date with origin/${branch_head}. Nothing to commit, working tree clean"
+	fi
 }
 
 ################################################################################################################
@@ -831,56 +873,43 @@ function resolve_conflictions() {
 	fi
 }
 
-
-################################################################################################################
-# 获取安装插件信息
-################################################################################################################
-function update_plugin_list() {
-	cd ${HOME_PATH}
-	Plug_in1="$(grep -Eo "CONFIG_PACKAGE_luci-app-.*=y|CONFIG_PACKAGE_luci-theme-.*=y" .config |grep -v 'INCLUDE\|_Proxy\|_static\|_dynamic' |sed 's/=y//' |sed 's/CONFIG_PACKAGE_//g')"
-	Plug_in2="$(echo "${Plug_in1}" |sed 's/^/、/g' |sed 's/$/\"/g' |awk '$0=NR$0' |sed 's/^/TIME g \"       /g')"
-	echo "${Plug_in2}" >Plug-in
-	
-	# 覆盖原plugin文件
-	cp -f Plug-in ${GITHUB_WORKSPACE}/repo/build/${MATRIX_TARGET}/plugin 2>/dev/null
-	sed -i 's/ /\n\n/g' ${GITHUB_WORKSPACE}/repo/build/${MATRIX_TARGET}/plugin 2>/dev/null
-}
-
 ################################################################################################################
 # 准备发布固件页面信息显示
 ################################################################################################################
 release_info() {
 	cd ${MATRIX_TARGET_PATH}
-	sed -i "s#release_device#${TARGET_PROFILE}#" ${MATRIX_TARGET_PATH}/releaseinfo.md 2>/dev/null
-	ipaddr=`awk '{print $3}' ${MATRIX_TARGET_PATH}/$DIY_PART_SH | awk -F= '$1 == "network.lan.ipaddr" {print $2}' | sed "s/'//g" 2>/dev/null`
-	ipaddr=${ipaddr:-192.168.1.1}
-	sed -i "s#default_ip#${ipaddr}#" ${MATRIX_TARGET_PATH}/releaseinfo.md 2>/dev/null
-	sed -i "s#default_password#-" ${MATRIX_TARGET_PATH}/releaseinfo.md 2>/dev/null
-	sed -i "s#release_source#${LUCI_EDITION}-${SOURCE_ABBR}#" ${MATRIX_TARGET_PATH}/releaseinfo.md 2>/dev/null
-	sed -i "s#release_kernel#${KERNEL_PATCHVER}#" ${MATRIX_TARGET_PATH}/releaseinfo.md 2>/dev/null
-	sed -i "s#repository#${GITHUB_REPOSITORY}" ${MATRIX_TARGET_PATH}/releaseinfo.md 2>/dev/null
-	sed -i "s#matrixtarget#${MATRIX_TARGET}" ${MATRIX_TARGET_PATH}/releaseinfo.md 2>/dev/null
+	local releaseinfo_md="${releaseinfo_md}"
+	local diy_part_ipaddr=`awk '{print $3}' ${MATRIX_TARGET_PATH}/$DIY_PART_SH | awk -F= '$1 == "network.lan.ipaddr" {print $2}' | sed "s/'//g" 2>/dev/null`
+	local release_ipaddr=${diy_part_ipaddr:-192.168.1.1}
+	
+	sed -i "s#release_device#${TARGET_PROFILE}#" ${MATRIX_TARGET_PATH}/${releaseinfo_md} > /dev/null 2>&1
+	sed -i "s#default_ip#${release_ipaddr}#" ${MATRIX_TARGET_PATH}/${releaseinfo_md} > /dev/null 2>&1
+	sed -i "s#default_password#-" ${MATRIX_TARGET_PATH}/${releaseinfo_md} > /dev/null 2>&1
+	sed -i "s#release_source#${LUCI_EDITION}-${SOURCE_ABBR}#" ${MATRIX_TARGET_PATH}/${releaseinfo_md} > /dev/null 2>&1
+	sed -i "s#release_kernel#${KERNEL_PATCHVER}#" ${MATRIX_TARGET_PATH}/${releaseinfo_md} > /dev/null 2>&1
+	sed -i "s#repository#${GITHUB_REPOSITORY}" ${MATRIX_TARGET_PATH}/${releaseinfo_md} > /dev/null 2>&1
+	sed -i "s#matrixtarget#${MATRIX_TARGET}" ${MATRIX_TARGET_PATH}/${releaseinfo_md} > /dev/null 2>&1
 
-	cat ${MATRIX_TARGET_PATH}/releaseinfo.md 2>/dev/null
+	cat ${MATRIX_TARGET_PATH}/${releaseinfo_md} > /dev/null 2>&1
 }
 
 ################################################################################################################
 # 整理固件
 ################################################################################################################
 function organize_firmware() {
-	[[ ! -d ${HOME_PATH}/upgrade ]] && mkdir -p ${HOME_PATH}/upgrade || rm -rf ${HOME_PATH}/upgrade/*
-	echo
+	[[ ! -d ${FIRMWARE_PATH} ]] && mkdir -p ${FIRMWARE_PATH} || rm -rf ${FIRMWARE_PATH}/*
 	cd ${FIRMWARE_PATH}
+
 	echo "files under ${FIRMWARE_PATH}:"
 	ls ${FIRMWARE_PATH}
 	
 	# 清理无关文件
 	if [[ -e ${CLEAR_FILE} ]]; then
 		cp -rf ${CLEAR_FILE} ./
-		chmod +x ${CLEAR_FILE} && source ${CLEAR_FILE}
+		chmod -f +x ${CLEAR_FILE} && source ${CLEAR_FILE}
 		rm -rf ${CLEAR_FILE}
 	fi
-	rm -rf packages
+	rm -rf packages > /dev/null 2>&1
 	sudo rm -rf ${CLEAR_PATH}
 	
 	case "${TARGET_BOARD}" in
@@ -929,12 +958,10 @@ function organize_firmware() {
 	release_info	
 }
 
-
-
 ################################################################################################################
 # 解锁固件分区：Bootloader、Bdata、factory、reserved0，ramips系列路由器专用
 ################################################################################################################
-Diy_unlock() {
+function unlock_bootloader() {
 echo " target/linux/${TARGET_BOARD}/dts/${TARGET_SUBTARGET}_${TARGET_PROFILE}.dts"
 if [[ ${TARGET_BOARD} == "ramips" ]]; then
 	sed -i "/read-only;/d" target/linux/${TARGET_BOARD}/dts/${TARGET_SUBTARGET}_${TARGET_PROFILE}.dts
