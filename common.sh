@@ -67,40 +67,45 @@ function parse_settings() {
 	echo "RELEASE_TAG=${RELEASE_TAG}" >> ${GITHUB_ENV}
 	
 	if [[ ${PACKAGES_ADDR} == "default" ]] || [[ ${ENABLE_PACKAGES_UPDATE} == "false" ]]; then
-		echo "PACKAGES_ADDR=default" >> ${GITHUB_ENV}
-		echo "ENABLE_PACKAGES_UPDATE=false" >> ${GITHUB_ENV}
+		ENABLE_PACKAGES_UPDATE="false"
 	else
-		git_packages=`echo "${PACKAGES_ADDR}" | awk -F/ '{print $1}'` 2>/dev/null
-		if [[ ${git_packages} == ${GITHUB_ACTOR} ]]; then
-			echo "PACKAGES_ADDR=${PACKAGES_ADDR}" >> ${GITHUB_ENV}
-			echo "ENABLE_PACKAGES_UPDATE=${ENABLE_PACKAGES_UPDATE}" >> ${GITHUB_ENV}
+		local git_owner=`echo "${PACKAGES_ADDR}" | awk -F/ '{print $1}'` 2>/dev/null
+		if [[ ${git_owner} == ${GITHUB_ACTOR} ]]; then
+			ENABLE_PACKAGES_UPDATE="true"
 		else
+			ENABLE_PACKAGES_UPDATE="false"
 			echo "插件库所有者：${git_packages}"
 			__warning_msg "没有权限更新插件库，关闭\"插件库更新\"！"
-			echo "ENABLE_PACKAGES_UPDATE=false" >> ${GITHUB_ENV}
 		fi
 	fi
+	echo "PACKAGES_ADDR=${PACKAGES_ADDR}" >> ${GITHUB_ENV}
+	echo "ENABLE_PACKAGES_UPDATE=${ENABLE_PACKAGES_UPDATE}" >> ${GITHUB_ENV}
 	
 	echo "SOURCE_ABBR=${SOURCE_ABBR}" >> ${GITHUB_ENV}
 	case "${SOURCE_ABBR}" in
 	lede|LEDE|Lede)
-		export SOURCE_URL="https://github.com/coolsnowwolf/lede"
-		export SOURCE_OWNER="Lean's"
-		export LUCI_EDITION="18.06"
-		export PACKAGE_BRANCH="Lede"
+		__info_msg "lede source"
+		local SOURCE_URL="https://github.com/coolsnowwolf/lede"
+		local SOURCE_OWNER="Lean's"
+		local LUCI_EDITION="18.06"
+		local PACKAGE_BRANCH="Lede"
 	;;
 	openwrt|OPENWRT|Openwrt|OpenWrt|OpenWRT)
-		export SOURCE_URL="https://github.com/openwrt/openwrt"
-		export SOURCE_OWNER="openwrt's"
-		export LUCI_EDITION="$(echo "${SOURCE_BRANCH}" |sed 's/openwrt-//g')"
-		export PACKAGE_BRANCH="Official"
-
+		__info_msg "openwrt source"
+		local SOURCE_URL="https://github.com/openwrt/openwrt"
+		local SOURCE_OWNER="openwrt's"
+		local LUCI_EDITION="$(echo "${SOURCE_BRANCH}" |sed 's/openwrt-//g')"
+		local PACKAGE_BRANCH="Official"
 	;;
 	*)
 		__error_msg "不支持${SOURCE_ABBR}源码"
 		exit 1
 	;;
 	esac
+	echo "SOURCE_URL=${SOURCE_URL}" >> ${GITHUB_ENV}
+	echo "SOURCE_OWNER=${SOURCE_OWNER}" >> ${GITHUB_ENV}
+	echo "LUCI_EDITION=${LUCI_EDITION}" >> ${GITHUB_ENV}
+	echo "PACKAGE_BRANCH=${PACKAGE_BRANCH}" >> ${GITHUB_ENV}	
 	
 	# 路径
 	echo "HOME_PATH=${GITHUB_WORKSPACE}/openwrt" >> ${GITHUB_ENV}
