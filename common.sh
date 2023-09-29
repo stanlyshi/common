@@ -1,10 +1,21 @@
 #!/bin/bash
+# Black: \033[30m
+# Red: \033[31m
+# Green: \033[32m
+# Yellow: \033[33m
+# Blue: \033[34m
+# Magenta:\033[35m
+# Cyan: \033[36m
+# White: \033[37m
+# Reset: \033[0m
 
 DEFAULT_COLOR="\033[0m"
-BLUE_COLOR="\033[36m"
-GREEN_COLOR="\033[32m"
 RED_COLOR="\033[31m"
+GREEN_COLOR="\033[32m"
 YELLOW_COLOR="\033[33m"
+BLUE_COLOR="\033[34m"
+MAGENTA_COLOR="\033[35m"
+CYAN_COLOR="\033[36m"
 
 function __error_msg() {
 	echo -e "${RED_COLOR}[ERROR]${DEFAULT_COLOR} $*"
@@ -26,16 +37,24 @@ function __red_msg() {
 	echo -e "${RED_COLOR} $*"
 }
 
-function __blue_msg() {
-	echo -e "${BLUE_COLOR} $*"
-}
-
 function __green_msg() {
 	echo -e "${GREEN_COLOR} $*"
 }
 
 function __yellow_msg() {
 	echo -e "${YELLOW_COLOR} $*"
+}
+
+function __blue_msg() {
+	echo -e "${BLUE_COLOR} $*"
+}
+
+function __magenta_msg() {
+	echo -e "${MAGENTA_COLOR} $*"
+}
+
+function __cyan_msg() {
+	echo -e "${CYAN_COLOR} $*"
 }
 
 ################################################################################################################
@@ -503,17 +522,17 @@ function compile_info() {
 		
 	echo
 	__red_msg "OpenWrt固件信息"
-	__blue_msg "编译源码: ${SOURCE_ABBR}"
-	__blue_msg "源码链接: ${SOURCE_URL}"
-	__blue_msg "源码分支: ${SOURCE_BRANCH}"
-	__blue_msg "源码作者: ${SOURCE_OWNER}"
-	__blue_msg "内核版本: ${LINUX_KERNEL}"
-	__blue_msg "Luci版本: ${LUCI_EDITION}"
-	__blue_msg "机型架构: ${TARGET_PROFILE}"
-	__blue_msg "固件作者: ${GITHUB_ACTOR}"
-	__blue_msg "仓库地址: ${GITHUB_REPO_URL}"
-	__blue_msg "编译时间: ${COMPILE_DATE_CN}"
-	__green_msg "友情提示：您当前使用【${MATRIX_TARGET}】文件夹编译【${TARGET_PROFILE}】固件"
+	__green_msg "编译源码: ${SOURCE_ABBR}"
+	__green_msg "源码链接: ${SOURCE_URL}"
+	__green_msg "源码分支: ${SOURCE_BRANCH}"
+	__green_msg "源码作者: ${SOURCE_OWNER}"
+	__green_msg "内核版本: ${LINUX_KERNEL}"
+	__green_msg "Luci版本: ${LUCI_EDITION}"
+	__green_msg "机型架构: ${TARGET_PROFILE}"
+	__green_msg "固件作者: ${GITHUB_ACTOR}"
+	__green_msg "仓库地址: ${GITHUB_REPO_URL}"
+	__green_msg "编译时间: ${COMPILE_DATE_CN}"
+	__blue_msg "友情提示：您当前使用【${MATRIX_TARGET}】文件夹编译【${TARGET_PROFILE}】固件"
 	echo
 	
 	echo
@@ -548,10 +567,10 @@ function compile_info() {
 		echo
 		__red_msg "LXC固件自动更新："
 		echo " 1、PVE运行："
-		__green_msg "pct pull xxx /sbin/openwrt.lxc /usr/sbin/openwrt && chmod -f +x /usr/sbin/openwrt"
+		__cyan_msg "pct pull xxx /sbin/openwrt.lxc /usr/sbin/openwrt && chmod -f +x /usr/sbin/openwrt"
 		echo " 注意：将xxx改为个人OpenWrt容器的ID，如100"
 		echo " 2、PVE运行："
-		__green_msg "openwrt"
+		__cyan_msg "openwrt"
 		echo
 	else
 		echo
@@ -575,8 +594,9 @@ function compile_info() {
 	echo
 	__red_msg "Github在线编译CPU型号"
 	echo `cat /proc/cpuinfo | grep name | cut -f2 -d: | uniq -c`
-	__blue_msg "常见CPU类型及性能排行"
-	echo -e "Intel(R) Xeon(R) Platinum 8370C CPU @ 2.80GHz
+	echo
+	echo -e "常见CPU类型及性能排行:
+	Intel(R) Xeon(R) Platinum 8370C CPU @ 2.80GHz
 	Intel(R) Xeon(R) Platinum 8272CL CPU @ 2.60GHz
 	Intel(R) Xeon(R) Platinum 8171M CPU @ 2.60GHz
 	Intel(R) Xeon(R) CPU E5-2673 v4 @ 2.30GHz
