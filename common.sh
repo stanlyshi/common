@@ -84,14 +84,12 @@ function parse_settings() {
 	echo "SOURCE_ABBR=${SOURCE_ABBR}" >> ${GITHUB_ENV}
 	case "${SOURCE_ABBR}" in
 	lede|LEDE|Lede)
-		__info_msg "lede source"
 		SOURCE_URL="https://github.com/coolsnowwolf/lede"
 		SOURCE_OWNER="Lean's"
 		LUCI_EDITION="18.06"
 		PACKAGE_BRANCH="Lede"
 	;;
 	openwrt|OPENWRT|Openwrt|OpenWrt|OpenWRT)
-		__info_msg "openwrt source"
 		SOURCE_URL="https://github.com/openwrt/openwrt"
 		SOURCE_OWNER="openwrt's"
 		LUCI_EDITION="$(echo "${SOURCE_BRANCH}" |sed 's/openwrt-//g')"
@@ -174,7 +172,7 @@ function init_environment() {
 function git_clone_source() {
 	# 在每matrix.target目录下下载源码
 	git clone -b "${SOURCE_BRANCH}" --single-branch "${SOURCE_URL}" openwrt > /dev/null 2>&1
-	ln -sf ${MATRIX_TARGET}/openwrt ${GITHUB_WORKSPACE}/openwrt
+	ln -sf /${MATRIX_TARGET}/openwrt ${GITHUB_WORKSPACE}/openwrt
 	
 	# 将build等文件夹复制到openwrt文件夹下
 	cd ${GITHUB_WORKSPACE}
