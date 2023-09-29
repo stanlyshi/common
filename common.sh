@@ -69,12 +69,12 @@ function parse_settings() {
 	if [[ ${PACKAGES_ADDR} == "default" ]] || [[ ${ENABLE_PACKAGES_UPDATE} == "false" ]]; then
 		ENABLE_PACKAGES_UPDATE="false"
 	else
-		local git_owner=`echo "${PACKAGES_ADDR}" | awk -F/ '{print $1}'` 2>/dev/null
-		if [[ ${git_owner} == ${GITHUB_ACTOR} ]]; then
+		local package_repo_owner=`echo "${PACKAGES_ADDR}" | awk -F/ '{print $1}'` 2>/dev/null
+		if [[ ${package_repo_owner} == ${GITHUB_ACTOR} ]]; then
 			ENABLE_PACKAGES_UPDATE="true"
 		else
 			ENABLE_PACKAGES_UPDATE="false"
-			echo "插件库所有者：${git_packages}"
+			echo "插件库所有者：${package_repo_owner}"
 			__warning_msg "没有权限更新插件库，关闭\"插件库更新\"！"
 		fi
 	fi
