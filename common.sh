@@ -454,7 +454,7 @@ function make_defconfig() {
 	# 生成.config文件
 	make defconfig > /dev/null 2>&1
 	# 生成diffconfig文件
-	${HOME_PATH}/scripts/diffconfig.sh > ${GITHUB_WORKSPACE}/${DIFFCONFIG_FILE}
+	bash ${HOME_PATH}/scripts/diffconfig.sh > "${GITHUB_WORKSPACE}/${DIFFCONFIG_FILE}"
 }
 
 ################################################################################################################
@@ -780,7 +780,7 @@ function update_repo() {
 	
 
 	# 更新.config文件
-	# ${HOME_PATH}/scripts/diffconfig.sh > ${GITHUB_WORKSPACE}/${DIFFCONFIG_FILE}
+	# ${HOME_PATH}/scripts/diffconfig.sh > "${GITHUB_WORKSPACE}/${DIFFCONFIG_FILE}"
 	if [[ "$(cat ${GITHUB_WORKSPACE}/${DIFFCONFIG_FILE})" != "$(cat ${GITHUB_WORKSPACE}/repo/build/${MATRIX_TARGET}/config/${CONFIG_FILE})" ]]; then
 		ENABLE_UPDATE_REPO="true"
 		cp -rf ${GITHUB_WORKSPACE}/${DIFFCONFIG_FILE} ${GITHUB_WORKSPACE}/repo/build/${MATRIX_TARGET}/config/${CONFIG_FILE}
