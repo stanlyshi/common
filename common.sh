@@ -38,8 +38,9 @@ function __yellow_msg() {
 	echo -e "${YELLOW_COLOR}${DEFAULT_COLOR} $*"
 }
 
-
-# 设置、获取环境变量
+################################################################################################################
+# 环境变量
+################################################################################################################
 function parse_settings() {
 	echo "REPOSITORY=${GITHUB_REPOSITORY##*/}" >> ${GITHUB_ENV}
 	echo "DIY_PART_SH=${DIY_PART_SH}" >> ${GITHUB_ENV}
@@ -124,7 +125,9 @@ function parse_settings() {
 	echo "COMPILE_DATE_CN=$(date +%Y年%m月%d号%H时%M分)" >> ${GITHUB_ENV}
 }
 
+################################################################################################################
 # 编译开始通知
+################################################################################################################
 function notice_begin() {
 	if [[ "${NOTICE_TYPE}" == "TG" ]]; then
 		curl -k --data chat_id="${TELEGRAM_CHAT_ID}" --data "text=🎉 主人：您正在使用【${GITHUB_REPOSITORY}】仓库【${MATRIX_TARGET}】文件夹编译${LUCI_EDITION}-${SOURCE}固件,请耐心等待...... 😋" "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"
@@ -133,7 +136,9 @@ function notice_begin() {
 	fi
 }
 
+################################################################################################################
 # 编译完成通知
+################################################################################################################
 function notice_end() {
 	if [[ "${NOTICE_TYPE}" == "TG" ]]; then
 		curl -k --data chat_id="${TELEGRAM_CHAT_ID}" --data "text=我亲爱的✨主人✨：您使用【${GITHUB_REPOSITORY}】仓库【${MATRIX_TARGET}】文件夹编译的[${SOURCE}-${TARGET_PROFILE }]固件顺利编译完成了！💐https://github.com/${GITHUB_REPOSITORY}/releases" "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"
@@ -142,7 +147,9 @@ function notice_end() {
 	fi
 }
 
+################################################################################################################
 # 初始化编译环境
+################################################################################################################
 function init_environment() {
 	sudo -E apt-get -qq update -y
 	sudo -E apt-get -qq full-upgrade -y
@@ -156,11 +163,13 @@ function init_environment() {
     git config --global user.name "github-actions[bot]" 
 }
 
+################################################################################################################
 # 下载源码
+################################################################################################################
 function git_clone_source() {
 	# 在每matrix.target目录下下载源码
 	git clone -b "${SOURCE_BRANCH}" --single-branch "${SOURCE_URL}" openwrt > /dev/null 2>&1
-	ln -sf /${MATRIX_TARGET}/openwrt ${GITHUB_WORKSPACE}/openwrt
+	ln -sf ${MATRIX_TARGET}/openwrt ${GITHUB_WORKSPACE}/openwrt
 	
 	# 将build等文件夹复制到openwrt文件夹下
 	#cp -rf `find ./ -maxdepth 1 -type d ! -path './openwrt' ! -path './'` ${GITHUB_WORKSPACE}/openwrt
@@ -172,7 +181,9 @@ function git_clone_source() {
 	
 }
 
+################################################################################################################
 # 插件库更新
+################################################################################################################
 function update_packages() {
 	gitdate=$(curl -H "Authorization: token ${REPO_TOKEN}" -s "https://api.github.com/repos/${PACKAGES_ADDR}/actions/runs" | jq -r '.workflow_runs[0].created_at')
 	gitdate=$(date -d "$gitdate" +%s)
@@ -188,8 +199,9 @@ function update_packages() {
 	echo "packages url: https://github.com/${PACKAGES_ADDR}"
 }
 
-
+################################################################################################################
 # 加载源,补丁和自定义设置
+################################################################################################################
 function do_diy() {
 	# https://github.com/coolsnowwolf/lede/blob/master/package/lean/default-settings/files/zzz-default-settings
 	export ZZZ_PATH="$(find "${HOME_PATH}/package" -type f -name "*-default-settings" |grep files)"
@@ -234,7 +246,9 @@ function do_diy() {
 	cp -rf "${CONFIG_PATH}/${CONFIG_FILE}" ${HOME_PATH}/.config
 }
 
+################################################################################################################
 # 生成.config文件
+################################################################################################################
 function make_defconfig() {
 	cd ${HOME_PATH}
 	
@@ -408,7 +422,9 @@ function compile_info() {
 	fi
 }
 
-# 更新仓库的commit
+################################################################################################################
+# 更新仓库
+################################################################################################################
 function update_repo() {
 	cd ${GITHUB_WORKSPACE}
 
@@ -576,7 +592,7 @@ function diy_openwrt() {
 }
 
 ################################################################################################################
-# 判断插件冲突
+# 处理插件冲突
 ################################################################################################################
 function resolve_conflictions() {
 	cd ${HOME_PATH}
@@ -820,7 +836,9 @@ release_info() {
 	cat ${MATRIX_TARGET_PATH}/releaseinfo.md 2>/dev/null
 }
 
+################################################################################################################
 # 整理固件
+################################################################################################################
 function organize_firmware() {
 	[[ ! -d ${HOME_PATH}/upgrade ]] && mkdir -p ${HOME_PATH}/upgrade || rm -rf ${HOME_PATH}/upgrade/*
 	echo
