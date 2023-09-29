@@ -42,9 +42,16 @@ function __yellow_msg() {
 # 环境变量
 ################################################################################################################
 function parse_settings() {
-	echo "REPOSITORY=${GITHUB_REPOSITORY##*/}" >> ${GITHUB_ENV}
-	echo "DIY_PART_SH=${DIY_PART_SH}" >> ${GITHUB_ENV}
-	echo "UPLOAD_CONFIG=${UPLOAD_CONFIG}" >> ${GITHUB_ENV}
+	source "build/${{matrix.target}}/settings.ini"	
+	if [[ -n "${INPUTS_SOURCE_BRANCH}" ]]; then
+		SOURCE_BRANCH=${INPUTS_SOURCE_BRANCH}
+		CONFIG_FILE=${INPUTS_CONFIG_FILE}
+		NOTICE_TYPE=${INPUTS_NOTICE_TYPE}
+		ENABLE_SSH=${INPUTS_ENABLE_SSH}
+		UPLOAD_BIN_DIR=${INPUTS_UPLOAD_BIN_DIR}
+		UPLOAD_FIRMWARE=${INPUTS_UPLOAD_FIRMWARE}
+		ENABLE_CACHEWRTBUILD=${INPUTS_ENABLE_CACHEWRTBUILD}
+	fi
 	
 	if [[ "${NOTICE_TYPE}" =~ 'false' ]]; then
 		NOTICE_TYPE="false"
@@ -57,29 +64,24 @@ function parse_settings() {
 	else
 		NOTICE_TYPE="false"
 	fi
-	echo "NOTICE_TYPE=${NOTICE_TYPE}" >> ${GITHUB_ENV}
 	
 	if [[ FIRMWARE_TYPE == "lxc" ]]; then
 		RELEASE_TAG="AutoUpdate-lxc"
 	else
 		RELEASE_TAG="AutoUpdate"
 	fi
-	echo "RELEASE_TAG=${RELEASE_TAG}" >> ${GITHUB_ENV}
 	
-	if [[ ${PACKAGES_ADDR} == "default" ]] || [[ ${ENABLE_PACKAGES_UPDATE} == "false" ]]; then
-		ENABLE_PACKAGES_UPDATE="false"
-	else
+	if [[ ${PACKAGES_ADDR} == "default" ]]; then
+		PACKAGES_ADDR="roacn/openwrt-packages"
+	elif  [[ ${ENABLE_PACKAGES_UPDATE} == "true" ]]; then
 		local package_repo_owner=`echo "${PACKAGES_ADDR}" | awk -F/ '{print $1}'` 2>/dev/null
-		if [[ ${package_repo_owner} == ${GITHUB_ACTOR} ]]; then
-			ENABLE_PACKAGES_UPDATE="true"
-		else
+		if [[ ${package_repo_owner} != ${GITHUB_ACTOR} ]]; then
 			ENABLE_PACKAGES_UPDATE="false"
 			echo "插件库所有者：${package_repo_owner}"
 			__warning_msg "没有权限更新插件库，关闭\"插件库更新\"！"
 		fi
 	fi
-	echo "PACKAGES_ADDR=${PACKAGES_ADDR}" >> ${GITHUB_ENV}
-	echo "ENABLE_PACKAGES_UPDATE=${ENABLE_PACKAGES_UPDATE}" >> ${GITHUB_ENV}
+
 	
 	echo "SOURCE_ABBR=${SOURCE_ABBR}" >> ${GITHUB_ENV}
 	case "${SOURCE_ABBR}" in
@@ -100,10 +102,29 @@ function parse_settings() {
 		exit 1
 	;;
 	esac
+	
+	# 下拉列表选项
+	echo "SOURCE_BRANCH=${SOURCE_BRANCH}" >> ${GITHUB_ENV}
+	echo "CONFIG_FILE=${CONFIG_FILE}" >> ${GITHUB_ENV}
+	echo "NOTICE_TYPE=${NOTICE_TYPE}" >> ${GITHUB_ENV}
+	echo "ENABLE_SSH=${ENABLE_SSH}" >> ${GITHUB_ENV}
+	echo "UPLOAD_BIN_DIR=${UPLOAD_BIN_DIR}" >> ${GITHUB_ENV}
+	echo "UPLOAD_FIRMWARE=${UPLOAD_FIRMWARE}" >> ${GITHUB_ENV}
+	echo "ENABLE_CACHEWRTBUILD=${ENABLE_CACHEWRTBUILD}" >> ${GITHUB_ENV}
+	
+	# 基础设置
 	echo "SOURCE_URL=${SOURCE_URL}" >> ${GITHUB_ENV}
 	echo "SOURCE_OWNER=${SOURCE_OWNER}" >> ${GITHUB_ENV}
 	echo "LUCI_EDITION=${LUCI_EDITION}" >> ${GITHUB_ENV}
 	echo "PACKAGE_BRANCH=${PACKAGE_BRANCH}" >> ${GITHUB_ENV}	
+	echo "REPOSITORY=${GITHUB_REPOSITORY##*/}" >> ${GITHUB_ENV}
+	echo "DIY_PART_SH=${DIY_PART_SH}" >> ${GITHUB_ENV}
+	echo "UPLOAD_CONFIG=${UPLOAD_CONFIG}" >> ${GITHUB_ENV}
+	echo "PACKAGES_ADDR=${PACKAGES_ADDR}" >> ${GITHUB_ENV}
+	echo "ENABLE_PACKAGES_UPDATE=${ENABLE_PACKAGES_UPDATE}" >> ${GITHUB_ENV}
+	echo "COMPILE_DATE=$(date +%Y%m%d%H%M)" >> ${GITHUB_ENV}
+	echo "COMPILE_DATE_CN=$(date +%Y年%m月%d号%H时%M分)" >> ${GITHUB_ENV}
+	echo "RELEASE_TAG=${RELEASE_TAG}" >> ${GITHUB_ENV}
 	
 	# 路径
 	echo "HOME_PATH=${GITHUB_WORKSPACE}/openwrt" >> ${GITHUB_ENV}
@@ -115,6 +136,7 @@ function parse_settings() {
 	echo "CONFIG_PATH=${GITHUB_WORKSPACE}/openwrt/build/${MATRIX_TARGET}/config" >> ${GITHUB_ENV}
 	echo "CLEAR_FILE_PATH=${GITHUB_WORKSPACE}/openwrt/Clear" >> ${GITHUB_ENV}
 	
+	# 文件
 	# https://github.com/coolsnowwolf/lede/tree/master/package/base-files/files
 	echo "FILES_PATH=${GITHUB_WORKSPACE}/openwrt/package/base-files/files" >> ${GITHUB_ENV}
 	echo "FILE_BASE_FILES=${GITHUB_WORKSPACE}/openwrt/package/base-files/files/lib/upgrade/keep.d/base-files-essential" >> ${GITHUB_ENV}
@@ -124,8 +146,6 @@ function parse_settings() {
 	echo "FILE_OPENWRT_RELEASE=${GITHUB_WORKSPACE}/openwrt/package/base-files/files/etc/openwrt_release" >> ${GITHUB_ENV}
 	echo "FILE_CONFIG_GEN=${GITHUB_WORKSPACE}/openwrt/package/base-files/files/bin/config_generate" >> ${GITHUB_ENV}
 	
-	echo "COMPILE_DATE=$(date +%Y%m%d%H%M)" >> ${GITHUB_ENV}
-	echo "COMPILE_DATE_CN=$(date +%Y年%m月%d号%H时%M分)" >> ${GITHUB_ENV}
 }
 
 ################################################################################################################
@@ -160,6 +180,7 @@ function init_environment() {
 	sudo -E apt-get -qq autoremove -y --purge
 	sudo -E apt-get -qq clean
 	sudo timedatectl set-timezone "$TZ"
+	# "/"目录创建文件夹${MATRIX_TARGET}
 	sudo mkdir -p /${MATRIX_TARGET}
 	sudo chown ${USER}:${GROUPS} /${MATRIX_TARGET}
 	git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -261,7 +282,7 @@ function make_defconfig() {
 	
 	# 生成.config文件
 	make defconfig > /dev/null 2>&1
-	${HOME_PATH}./scripts/diffconfig.sh > ${GITHUB_WORKSPACE}/${CONFIG_FILE}
+	${HOME_PATH}/scripts/diffconfig.sh > ${GITHUB_WORKSPACE}/${CONFIG_FILE}
 	
 	export TARGET_BOARD="$(awk -F '[="]+' '/TARGET_BOARD/{print $2}' ${HOME_PATH}/.config)"
 	export TARGET_SUBTARGET="$(awk -F '[="]+' '/TARGET_SUBTARGET/{print $2}' ${HOME_PATH}/.config)"
@@ -480,7 +501,7 @@ function diy_public() {
 	if [[ "${SOURCE_ABBR}" == "lede" ]]; then
 		__info_msg "添加lede源码对应packages"
 cat >> "feeds.conf.default" <<-EOF
-src-git diypackages https://github.com/roacn/openwrt-packages.git;master
+src-git diypackages https://github.com/$(PACKAGES_ADDR).git;master
 EOF
 		#git clone --depth 1 -b "${SOURCE_BRANCH}" https://github.com/roacn/openwrt-packages ${HOME_PATH}/openwrt-package
 		#rm -rf ${HOME_PATH}/openwrt-package/{diy,.github,.gitignore,LICENSE,README.md} 2>/dev/null
