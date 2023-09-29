@@ -41,6 +41,10 @@ function __yellow_msg() {
 
 # 设置、获取环境变量
 function parse_settings() {
+	echo "REPOSITORY=${GITHUB_REPOSITORY##*/}" >> ${GITHUB_ENV}
+	echo "DIY_PART_SH=${DIY_PART_SH}" >> ${GITHUB_ENV}
+	echo "UPLOAD_CONFIG=${UPLOAD_CONFIG}" >> ${GITHUB_ENV}
+	
 	if [[ "${NOTICE_TYPE}" =~ 'false' ]]; then
 		NOTICE_TYPE="false"
 	elif [[ -n "$(echo "${NOTICE_TYPE}" |grep -i 'TG\|telegram')" ]]; then
@@ -52,12 +56,14 @@ function parse_settings() {
 	else
 		NOTICE_TYPE="false"
 	fi
+	echo "NOTICE_TYPE=${NOTICE_TYPE}" >> ${GITHUB_ENV}
 	
 	if [[ FIRMWARE_TYPE == "lxc" ]]; then
 		RELEASE_TAG="AutoUpdate-lxc"
 	else
 		RELEASE_TAG="AutoUpdate"
 	fi
+	echo "RELEASE_TAG=${RELEASE_TAG}" >> ${GITHUB_ENV}
 	
 	if [[ ${PACKAGES_ADDR} == "default" ]] || [[ ${ENABLE_PACKAGES_UPDATE} == "false" ]]; then
 		echo "PACKAGES_ADDR=default" >> ${GITHUB_ENV}
@@ -74,6 +80,7 @@ function parse_settings() {
 		fi
 	fi
 	
+	echo "SOURCE_ABBR=${SOURCE_ABBR}" >> ${GITHUB_ENV}
 	case "${SOURCE_ABBR}" in
 	lede|LEDE|Lede)
 		export SOURCE_URL="https://github.com/coolsnowwolf/lede"
@@ -93,13 +100,6 @@ function parse_settings() {
 		exit 1
 	;;
 	esac
-	
-	# echo "REPOSITORY=${GITHUB_REPOSITORY##*/}" >> ${GITHUB_ENV}
-	echo "SOURCE_URL=${SOURCE_URL}" >> ${GITHUB_ENV}
-	echo "DIY_PART_SH=${DIY_PART_SH}" >> ${GITHUB_ENV}
-	echo "NOTICE_TYPE=${NOTICE_TYPE}" >> ${GITHUB_ENV}
-	echo "UPLOAD_CONFIG=${UPLOAD_CONFIG}" >> ${GITHUB_ENV}
-	echo "RELEASE_TAG=${RELEASE_TAG}" >> ${GITHUB_ENV}
 	
 	# 路径
 	echo "HOME_PATH=${GITHUB_WORKSPACE}/openwrt" >> ${GITHUB_ENV}
@@ -515,11 +515,11 @@ function diy_public() {
 	# 修改源码中IP设置
 	local def_ipaddress="$(grep "ipaddr:-" "${FILE_CONFIG_GEN}" | grep -v 'addr_offset' | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+")"
 	local new_ipaddress="$(grep "network.lan.ipaddr" ${MATRIX_TARGET_PATH}/${DIY_PART_SH} | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+")"
-	if [[ -z "${new_ipaddress}" ]]; then
+	if [[ -n "${new_ipaddress}" ]]; then
 		sed -i "s/${def_ipaddress}/${new_ipaddress}/g" ${FILE_CONFIG_GEN}
 		__success_msg "IP地址从[${def_ipaddress}]替换为[${new_ipaddress}]"
 	else
-		__info_msg "使用默认IP地址：${def_ipaddress}."
+		__info_msg "使用默认IP地址：${def_ipaddress}"
 	fi
 	
 	# UCI基础设置
