@@ -831,7 +831,7 @@ function update_repo() {
 		git add .
 		git commit -m "Update plugins, ${CONFIG_FILE} and settings.ini, etc."
 		git push --force "https://${REPO_TOKEN}@github.com/${GITHUB_REPOSITORY}" HEAD:${branch_head}
-		__success_msg "Your branch is now up to latest."
+		__success_msg "Your branch is now up to the latest."
 	else
 		__info_msg "Your branch is already up to date with origin/${branch_head}. Nothing to commit, working tree clean"
 	fi
