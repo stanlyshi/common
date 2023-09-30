@@ -2,15 +2,6 @@
 
 ACTIONS_VERSION="1.0.3"
 
-# Black: \033[30m
-# Red: \033[31m
-# Green: \033[32m
-# Yellow: \033[33m
-# Blue: \033[34m
-# Magenta:\033[35m
-# Cyan: \033[36m
-# White: \033[37m
-# Reset: \033[0m
 DEFAULT_COLOR="\033[0m"
 RED_COLOR="\033[31m"
 GREEN_COLOR="\033[32m"
@@ -19,6 +10,15 @@ BLUE_COLOR="\033[34m"
 MAGENTA_COLOR="\033[35m"
 CYAN_COLOR="\033[36m"
 WHITE_COLOR="\033[37m"
+
+BLACK_BG_COLOR="\033[40m"
+RED_BG_COLOR="\033[41m"
+GREEN_BG_COLOR="\033[42m"
+YELLOW_BG_COLOR="\033[43m"
+BLUE_BG_COLOR="\033[44m"
+MAGENTA_BG_COLOR="\033[45m"
+CYAN_BG_COLOR="\033[46m"
+WHITE_BG_COLOR="\033[47m"
 
 function __error_msg() {
 	echo -e "${RED_COLOR}[ERROR]${DEFAULT_COLOR} $*"
@@ -65,6 +65,34 @@ function __cyan_color() {
 
 function __white_color() {
 	echo -e "${WHITE_COLOR} $*${DEFAULT_COLOR}"
+}
+
+function __red_bg_color() {
+	echo -e "${RED_BG_COLOR} $*${DEFAULT_COLOR}"
+}
+
+function __green_bg_color() {
+	echo -e "${GREEN_BG_COLOR} $*${DEFAULT_COLOR}"
+}
+
+function __yellow_bg_color() {
+	echo -e "${YELLOW_BG_COLOR} $*${DEFAULT_COLOR}"
+}
+
+function __blue_bg_color() {
+	echo -e "${BLUE_BG_COLOR} $*${DEFAULT_COLOR}"
+}
+
+function __magenta_bg_color() {
+	echo -e "${MAGENTA_BG_COLOR} $*${DEFAULT_COLOR}"
+}
+
+function __cyan_bg_color() {
+	echo -e "${CYAN_BG_COLOR} $*${DEFAULT_COLOR}"
+}
+
+function __white_bg_color() {
+	echo -e "${WHITE_BG_COLOR} $*${DEFAULT_COLOR}"
 }
 
 
