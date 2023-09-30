@@ -833,7 +833,7 @@ function update_repo() {
 		git push --force "https://${REPO_TOKEN}@github.com/${GITHUB_REPOSITORY}" HEAD:${branch_head}
 		__success_msg "Your branch is now up to the latest."
 	else
-		__info_msg "Your branch is already up to date with origin/${branch_head}. Nothing to commit, working tree clean"
+		__info_msg "Your branch is already up to date with origin/${branch_head}. Nothing to commit, working tree clean."
 	fi
 }
 
