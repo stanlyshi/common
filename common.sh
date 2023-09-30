@@ -76,6 +76,7 @@ function parse_settings() {
 		__info_msg "获取到actions设置，替换settings.ini设置"
 		SOURCE_BRANCH="${INPUTS_SOURCE_BRANCH}"
 		CONFIG_FILE="${INPUTS_CONFIG_FILE}"
+		FIRMWARE_TYPE="${INPUTS_FIRMWARE_TYPE}"
 		NOTICE_TYPE="${INPUTS_NOTICE_TYPE}"
 		ENABLE_SSH="${INPUTS_ENABLE_SSH}"
 		UPLOAD_RELEASE="${INPUTS_UPLOAD_RELEASE}"
@@ -794,7 +795,7 @@ function update_repo() {
 	fi
 
 	# 更新settings.ini文件
-	local settings_array=(SOURCE_BRANCH CONFIG_FILE NOTICE_TYPE UPLOAD_RELEASE UPLOAD_FIRMWARE UPLOAD_CONFIG ENABLE_CACHEWRTBUILD)
+	local settings_array=(SOURCE_BRANCH CONFIG_FILE FIRMWARE_TYPE NOTICE_TYPE UPLOAD_RELEASE UPLOAD_FIRMWARE UPLOAD_CONFIG ENABLE_CACHEWRTBUILD)
 	for x in ${settings_array[*]}; do
 		local settings_key="$(grep -E "${x}=" ${SETTINGS_FILE} |sed 's/^[ ]*//g' |grep -v '^#' | awk '{print $1}' | awk -F'=' '{print $1}')"
 		local settings_val="$(grep -E "${x}=" ${SETTINGS_FILE} |sed 's/^[ ]*//g' |grep -v '^#' | awk '{print $1}' | awk -F'=' '{print $2}' | sed 's#"##g')"
