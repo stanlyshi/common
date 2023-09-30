@@ -829,7 +829,7 @@ function update_repo() {
 	local branch_head="$(git rev-parse --abbrev-ref HEAD)"
 	if [[ "${ENABLE_UPDATE_REPO}" == "true" ]]; then
 		git add .
-		git commit -m "Update plugins and ${CONFIG_FILE}"
+		git commit -m "Update plugins, ${CONFIG_FILE} and settings.ini, etc."
 		git push --force "https://${REPO_TOKEN}@github.com/${GITHUB_REPOSITORY}" HEAD:${branch_head}
 		__success_msg "Your branch is now up to latest."
 	else
