@@ -648,12 +648,7 @@ function firmware_settings() {
 ################################################################################################################
 # 编译信息
 ################################################################################################################
-function compile_info() {
-	cd ${HOME_PATH}
-	plugin_1="$(grep -Eo "CONFIG_PACKAGE_luci-app-.*=y|CONFIG_PACKAGE_luci-theme-.*=y" .config |grep -v 'INCLUDE\|_Proxy\|_static\|_dynamic' |sed 's/=y//' |sed 's/CONFIG_PACKAGE_//g')"
-	plugin_2="$(echo "${plugin_1}" |sed 's/^/、/g' |sed 's/$/\"/g' |awk '$0=NR$0' |sed 's/^/__blue_color \"       /g')"
-	echo "${plugin_2}" >plugin_info
-		
+function compile_info() {	
 	echo
 	__red_color "OpenWrt固件信息"
 	__blue_color "编译源码: ${SOURCE}"
@@ -668,31 +663,7 @@ function compile_info() {
 	__blue_color "编译时间: ${COMPILE_DATE_CN}"
 	__blue_color "友情提示：您当前使用【${MATRIX_TARGET}】文件夹编译【${TARGET_PROFILE}】固件"
 	echo
-	
-	echo
-	__red_color "Github在线编译配置"
-	if [[ "${UPLOAD_RELEASE}" == "true" ]]; then
-		__blue_color "发布firmware+ipk至Github Relese: 开启"
-	else
-		__defualt_color "发布firmware+ipk至Github Relese: 关闭"
-	fi
-	if [[ "${UPLOAD_FIRMWARE}" == "true" ]]; then
-		__blue_color "上传firmware+ipk至Github Artifacts: 开启"
-	else
-		__defualt_color "上传firmware+ipk至Github Artifacts: 关闭"
-	fi
-	if [[ "${UPLOAD_CONFIG}" == "true" ]]; then
-		__blue_color "上传.config配置文件至Github Artifacts: 开启"
-	else
-		__defualt_color "上传.config配置文件至Github Artifacts: 关闭"
-	fi
-	if [[ "${NOTICE_TYPE}" == "true" ]]; then
-		__blue_color "pushplus/Telegram通知: 开启"
-	else
-		__defualt_color "pushplus/Telegram通知: 关闭"
-	fi
-	echo
-	
+
 	echo
 	__red_color "固件信息"
 	if [[ "${FIRMWARE_TYPE}" == "lxc" ]]; then
@@ -725,7 +696,32 @@ function compile_info() {
 		__white_color "编译成功后，会自动把固件发布到指定地址，生成云端路径"
 		__white_color "修改IP、DNS、网关或者在线更新，请输入命令：openwrt"
 	fi
-
+	echo
+	
+	echo
+	__red_color "Github在线编译配置"
+	if [[ "${UPLOAD_RELEASE}" == "true" ]]; then
+		__blue_color "发布firmware+ipk至Github Relese: 开启"
+	else
+		__defualt_color "发布firmware+ipk至Github Relese: 关闭"
+	fi
+	if [[ "${UPLOAD_FIRMWARE}" == "true" ]]; then
+		__blue_color "上传firmware+ipk至Github Artifacts: 开启"
+	else
+		__defualt_color "上传firmware+ipk至Github Artifacts: 关闭"
+	fi
+	if [[ "${UPLOAD_CONFIG}" == "true" ]]; then
+		__blue_color "上传.config配置文件至Github Artifacts: 开启"
+	else
+		__defualt_color "上传.config配置文件至Github Artifacts: 关闭"
+	fi
+	if [[ "${NOTICE_TYPE}" == "true" ]]; then
+		__blue_color "pushplus/Telegram通知: 开启"
+	else
+		__defualt_color "pushplus/Telegram通知: 关闭"
+	fi
+	echo
+	
 	echo
 	__red_color "Github在线编译CPU型号"
 	echo `cat /proc/cpuinfo | grep name | cut -f2 -d: | uniq -c`
@@ -747,6 +743,10 @@ function compile_info() {
 	echo
 	
 	echo
+	cd ${HOME_PATH}
+	plugin_1="$(grep -Eo "CONFIG_PACKAGE_luci-app-.*=y|CONFIG_PACKAGE_luci-theme-.*=y" .config |grep -v 'INCLUDE\|_Proxy\|_static\|_dynamic' |sed 's/=y//' |sed 's/CONFIG_PACKAGE_//g')"
+	plugin_2="$(echo "${plugin_1}" |sed 's/^/、/g' |sed 's/$/\"/g' |awk '$0=NR$0' |sed 's/^/__blue_color \"       /g')"
+	echo "${plugin_2}" >plugin_info
 	if [ -n "$(ls -A "${HOME_PATH}/plugin_info" 2>/dev/null)" ]; then
 		__red_color "插件列表"
 		chmod -Rf +x ${HOME_PATH}/plugin_info
