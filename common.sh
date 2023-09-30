@@ -154,8 +154,8 @@ function parse_settings() {
 	echo ENABLE_UPDATE_REPO="false" >> ${GITHUB_ENV}
 	echo DIFFCONFIG_FILE="${GITHUB_WORKSPACE}/config.txt" >> ${GITHUB_ENV}
 	echo CLEAR_FILE="${GITHUB_WORKSPACE}/openwrt/Clear" >> ${GITHUB_ENV}
-	echo RELEASEINFO_FILE="${GITHUB_WORKSPACE}/openwrt/${MATRIX_TARGET}/releaseinfo.md" >> ${GITHUB_ENV}
-	echo SETTINGS_FILE="${GITHUB_WORKSPACE}/openwrt/${MATRIX_TARGET}/settings.ini" >> ${GITHUB_ENV}
+	echo RELEASEINFO_FILE="${GITHUB_WORKSPACE}/openwrt/build/${MATRIX_TARGET}/releaseinfo.md" >> ${GITHUB_ENV}
+	echo SETTINGS_FILE="${GITHUB_WORKSPACE}/openwrt/build/${MATRIX_TARGET}/settings.ini" >> ${GITHUB_ENV}
 	
 	# 日期时间
 	echo COMPILE_DATE="$(date +%Y%m%d%H%M)" >> ${GITHUB_ENV}
