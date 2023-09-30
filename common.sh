@@ -721,7 +721,8 @@ function compile_info() {
 		echo
 		__red_color "自动更新信息"
 		__yellow_color "插件版本: ${AutoUpdate_Version}"
-		if [[ "${TARGET_PROFILE}" == "x86" ]]; then
+		
+		if [[ "${TARGET_BOARD}" == "x86" ]]; then
 			__yellow_color "传统固件: ${AutoBuild_Legacy}${Firmware_SFX}"
 			__yellow_color "UEFI固件: ${AutoBuild_Uefi}${Firmware_SFX}"
 			__yellow_color "固件后缀: ${Firmware_sfx}"
