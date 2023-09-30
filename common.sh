@@ -791,7 +791,7 @@ function update_repo() {
 
 	# 更新.config文件
 	# ${HOME_PATH}/scripts/diffconfig.sh > ${DIFFCONFIG_FILE}
-	if [[ "$(cat ${DIFFCONFIG_FILE})" != "$(cat ${${repo_path}}/build/${MATRIX_TARGET}/config/${CONFIG_FILE})" ]]; then
+	if [[ "$(cat ${DIFFCONFIG_FILE})" != "$(cat ${repo_path}/build/${MATRIX_TARGET}/config/${CONFIG_FILE})" ]]; then
 		ENABLE_UPDATE_REPO="true"
 		cp -rf ${DIFFCONFIG_FILE} ${repo_path}/build/${MATRIX_TARGET}/config/${CONFIG_FILE}
 	fi	
