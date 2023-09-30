@@ -522,17 +522,17 @@ function firmware_settings() {
 
 
 	# 固件相关
-	if [[ FIRMWARE_TYPE == "lxc" ]]; then
+	if [[ "${FIRMWARE_TYPE}" == "lxc" ]]; then
 		RELEASE_TAG="AutoUpdate-${TARGET_BOARD}-lxc"
 	else
 		RELEASE_TAG="AutoUpdate-${TARGET_BOARD}"
 	fi
 	
 	local firmware_info_file="${FILES_PATH}/etc/openwrt_update"
-	local github_api_origin="${GITHUB_REPO_URL}/releases/download/${RELEASE_TAG}/zzz_api"
-	local github_api_fastgit="https://download.fastgit.org/${GITHUB_REPOSITORY}/releases/download/${RELEASE_TAG}/zzz_api"
-	local github_api_ghproxy="https://ghproxy.com/${GITHUB_REPO_URL}/releases/download/${RELEASE_TAG}/zzz_api"
-	local api_path="/tmp/Downloads/zzz_api"
+	local github_api_origin="${GITHUB_REPO_URL}/releases/download/${RELEASE_TAG}/github_api"
+	local github_api_fastgit="https://download.fastgit.org/${GITHUB_REPOSITORY}/releases/download/${RELEASE_TAG}/github_api"
+	local github_api_ghproxy="https://ghproxy.com/${GITHUB_REPO_URL}/releases/download/${RELEASE_TAG}/github_api"
+	local api_path="/tmp/Downloads/github_api"
 	local release_download_origin="${GITHUB_REPO_URL}/releases/download/${RELEASE_TAG}"
 	local release_download_ghproxy="https://ghproxy.com/${GITHUB_REPO_URL}/releases/download/${RELEASE_TAG}"
 	GITHUB_RELEASE_URL="${GITHUB_REPO_URL}/releases/tag/${RELEASE_TAG}"
