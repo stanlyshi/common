@@ -804,7 +804,7 @@ function update_repo() {
 			sed -i "s#${x}=\"${settings_val}\"#${x}=\"${env_settings_val}\"#g" ${SETTINGS_FILE}
 		fi
 	done
-	if [[ "$(cat ${SETTINGS_FILE})" != "$(cat ${repo_path}/build/${MATRIX_TARGET}/config/settings.ini)" ]]; then
+	if [[ "$(cat ${SETTINGS_FILE})" != "$(cat ${repo_path}/build/${MATRIX_TARGET}/settings.ini)" ]]; then
 		ENABLE_UPDATE_REPO="true"
 		cp -rf ${SETTINGS_FILE} ${repo_path}/build/${MATRIX_TARGET}/settings.ini
 	fi
@@ -816,7 +816,7 @@ function update_repo() {
 		cp -rf ${DIFFCONFIG_FILE} ${repo_path}/build/${MATRIX_TARGET}/config/${CONFIG_FILE}
 	fi
 	
-	# 更新插件列表
+	# 更新plugins插件列表
 	update_plugin_list
 	if [[ "$(cat ${HOME_PATH}/plugin_list)" != "$(cat ${repo_path}/build/${MATRIX_TARGET}/plugins)" ]]; then
 		ENABLE_UPDATE_REPO="true"
