@@ -154,6 +154,8 @@ function parse_settings() {
 	echo ENABLE_UPDATE_REPO="false" >> ${GITHUB_ENV}
 	echo DIFFCONFIG_FILE="${GITHUB_WORKSPACE}/config.txt" >> ${GITHUB_ENV}
 	echo CLEAR_FILE="${GITHUB_WORKSPACE}/openwrt/Clear" >> ${GITHUB_ENV}
+	echo RELEASEINFO_FILE="${GITHUB_WORKSPACE}/openwrt/${MATRIX_TARGET}/releaseinfo.md" >> ${GITHUB_ENV}
+	echo SETTINGS_FILE="${GITHUB_WORKSPACE}/openwrt/${MATRIX_TARGET}/settings.ini" >> ${GITHUB_ENV}
 	
 	# 日期时间
 	echo COMPILE_DATE="$(date +%Y%m%d%H%M)" >> ${GITHUB_ENV}
@@ -179,6 +181,7 @@ function parse_settings() {
 	echo FILE_DEFAULT_SETTINGS="${GITHUB_WORKSPACE}/openwrt/package/base-files/files/etc/default_settings" >> ${GITHUB_ENV}
 	echo FILE_OPENWRT_RELEASE="${GITHUB_WORKSPACE}/openwrt/package/base-files/files/etc/openwrt_release" >> ${GITHUB_ENV}
 	echo FILE_CONFIG_GEN="${GITHUB_WORKSPACE}/openwrt/package/base-files/files/bin/config_generate" >> ${GITHUB_ENV}
+	
 }
 
 ################################################################################################################
@@ -782,15 +785,27 @@ function update_repo() {
 		sed -i "s/${compile_yml_target}/${build_yml_target}/g" ${repo_path}/.github/workflows/${COMPILE_YML} && echo "change compile target ${compile_yml_target} to ${build_yml_target}"
 	fi
 
-	# 更新settings文件
+	# 更新settings.ini文件
+	local settings_array=(SOURCE_BRANCH CONFIG_FILE NOTICE_TYPE UPLOAD_RELEASE UPLOAD_FIRMWARE UPLOAD_CONFIG ENABLE_CACHEWRTBUILD)
+	for x in ${settings_array[*]}; do
+		local settings_key="$(grep -E "${x}=" ${SETTINGS_FILE} |sed 's/^[ ]*//g' |grep -v '^#' | awk '{print $1}' | awk -F'=' '{print $1}')"
+		local settings_val="$(grep -E "${x}=" ${SETTINGS_FILE} |sed 's/^[ ]*//g' |grep -v '^#' | awk '{print $1}' | awk -F'=' '{print $2}' | sed 's#"##g')"
+		eval eval env_settings_val=\$$x
+		if [[ -n "${settings_key}" ]]; then
+			sed -i "s#${x}=\"${settings_val}\"#${x}=\"${env_settings_val}\"#g" ${SETTINGS_FILE}
+		fi
+	done
+	if [[ "$(cat ${SETTINGS_FILE})" != "$(cat ${repo_path}/build/${MATRIX_TARGET}/config/settings.ini)" ]]; then
+		ENABLE_UPDATE_REPO="true"
+		cp -rf ${SETTINGS_FILE} ${repo_path}/build/${MATRIX_TARGET}/config/settings.ini
+	fi
 	
-
 	# 更新.config文件
 	# ${HOME_PATH}/scripts/diffconfig.sh > ${DIFFCONFIG_FILE}
 	if [[ "$(cat ${DIFFCONFIG_FILE})" != "$(cat ${repo_path}/build/${MATRIX_TARGET}/config/${CONFIG_FILE})" ]]; then
 		ENABLE_UPDATE_REPO="true"
 		cp -rf ${DIFFCONFIG_FILE} ${repo_path}/build/${MATRIX_TARGET}/config/${CONFIG_FILE}
-	fi	
+	fi
 	
 	# 更新插件列表
 	update_plugin_list
@@ -1102,7 +1117,7 @@ function organize_firmware() {
 	fi
 	__info_msg "重命名固件名称"
 	if [[ `ls -1 | grep -c "armvirt"` -eq '0' ]]; then
-		rename -v "s/^openwrt/${Gujian_Date}-${SOURCE}-${LUCI_EDITION}-${LINUX_KERNEL}/" *
+		rename -v "s/^openwrt/${FIRMWARE_DATE}-${SOURCE}-${LUCI_EDITION}-${LINUX_KERNEL}/" *
 	fi
 	
 	release_info	
@@ -1114,7 +1129,7 @@ function organize_firmware() {
 release_info() {
 	cd ${MATRIX_TARGET_PATH}
 	__yellow_color "开始准备固件发布信息..."
-	local releaseinfo_md="${releaseinfo_md}"
+	local releaseinfo_md="${RELEASEINFO_FILE}"
 	local diy_part_ipaddr=`awk '{print $3}' ${MATRIX_TARGET_PATH}/$DIY_PART_SH | awk -F= '$1 == "network.lan.ipaddr" {print $2}' | sed "s/'//g" 2>/dev/null`
 	local release_ipaddr=${diy_part_ipaddr:-192.168.1.1}
 	
