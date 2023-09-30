@@ -566,7 +566,7 @@ function firmware_settings() {
 	case "${TARGET_BOARD}" in
 	x86)
 		Rootfs_sfx=".tar.gz"
-		Firmware_sfx=".img.gz"
+		Firmware_SFX=".img.gz"
 		# 18.06-lede-x86-64-1695553941-legacy
 		AutoBuild_Legacy="${LUCI_EDITION}-${SOURCE}-${TARGET_PROFILE}-${COMPILE_DATE}-legacy"
 		# 18.06-lede-x86-64-1695553941-uefi
@@ -618,7 +618,6 @@ function firmware_settings() {
 		echo Rootfs_sfx="${Rootfs_sfx}" >> ${GITHUB_ENV}
 	else
 		echo AutoBuild_Firmware="${AutoBuild_Firmware}" >> ${GITHUB_ENV}
-		echo Firmware_SFX="${Firmware_SFX}" >> ${GITHUB_ENV}
 	fi
 	
 	echo TARGET_BOARD="${TARGET_BOARD}" >> ${GITHUB_ENV}
