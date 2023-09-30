@@ -595,7 +595,7 @@ function firmware_settings() {
 
 	case "${TARGET_BOARD}" in
 	x86)
-		Rootfs_sfx=".tar.gz"
+		Rootfs_SFX=".tar.gz"
 		Firmware_SFX=".img.gz"
 		# 18.06-lede-x86-64-1695553941-legacy
 		AutoBuild_Legacy="${LUCI_EDITION}-${SOURCE}-${TARGET_PROFILE}-${COMPILE_DATE}-legacy"
@@ -645,7 +645,7 @@ function firmware_settings() {
 		echo AutoBuild_Legacy="${AutoBuild_Legacy}" >> ${GITHUB_ENV}
 		echo AutoBuild_Uefi="${AutoBuild_Uefi}" >> ${GITHUB_ENV}
 		echo AutoBuild_Rootfs="${AutoBuild_Rootfs}" >> ${GITHUB_ENV}
-		echo Rootfs_sfx="${Rootfs_sfx}" >> ${GITHUB_ENV}
+		echo Rootfs_SFX="${Rootfs_SFX}" >> ${GITHUB_ENV}
 	else
 		echo AutoBuild_Firmware="${AutoBuild_Firmware}" >> ${GITHUB_ENV}
 	fi
@@ -1110,8 +1110,8 @@ function organize_firmware() {
 			local firmware_rootfs_tar="$(ls -1 |grep -Eo ".*squashfs.*rootfs.*tar.gz")"
 			[[ -f ${firmware_rootfs_tar} ]] && {
 				local rootfs_tar_md5="$(md5sum ${firmware_rootfs_tar} |cut -c1-3)$(sha256sum ${firmware_rootfs_tar} |cut -c1-3)"
-				cp -rf ${firmware_rootfs_tar} ${AUTOUPDATE_PATH}/${AutoBuild_Rootfs}-${rootfs_tar_md5}${Rootfs_sfx}
-				__info_msg "copy ${firmware_rootfs_tar} to ${AUTOUPDATE_PATH}/${AutoBuild_Rootfs}-${rootfs_tar_md5}${Rootfs_sfx}"
+				cp -rf ${firmware_rootfs_tar} ${AUTOUPDATE_PATH}/${AutoBuild_Rootfs}-${rootfs_tar_md5}${Rootfs_SFX}
+				__info_msg "copy ${firmware_rootfs_tar} to ${AUTOUPDATE_PATH}/${AutoBuild_Rootfs}-${rootfs_tar_md5}${Rootfs_SFX}"
 			}
 		elif [[ `ls -1 | grep -c "efi"` -ge '1' ]]; then
 			local firmware_uefi="$(ls -1 |grep -Eo ".*squashfs.*efi.*img.gz")"
