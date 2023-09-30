@@ -35,37 +35,38 @@ function __warning_msg() {
 function __info_msg() {
 	echo -e "${CYAN_COLOR}[INFO]${DEFAULT_COLOR} $*"
 }
-function __defualt_color() {
+function __default_color() {
 	echo -e "${DEFAULT_COLOR} $*"
 }
 
 function __red_color() {
-	echo -e "${RED_COLOR} $*"
+	echo -e "${RED_COLOR} $*${DEFAULT_COLOR}"
 }
 
 function __green_color() {
-	echo -e "${GREEN_COLOR} $*"
+	echo -e "${GREEN_COLOR} $*${DEFAULT_COLOR}"
 }
 
 function __yellow_color() {
-	echo -e "${YELLOW_COLOR} $*"
+	echo -e "${YELLOW_COLOR} $*${DEFAULT_COLOR}"
 }
 
 function __blue_color() {
-	echo -e "${BLUE_COLOR} $*"
+	echo -e "${BLUE_COLOR} $*${DEFAULT_COLOR}"
 }
 
 function __magenta_color() {
-	echo -e "${MAGENTA_COLOR} $*"
+	echo -e "${MAGENTA_COLOR} $*${DEFAULT_COLOR}"
 }
 
 function __cyan_color() {
-	echo -e "${CYAN_COLOR} $*"
+	echo -e "${CYAN_COLOR} $*${DEFAULT_COLOR}"
 }
 
 function __white_color() {
-	echo -e "${WHITE_COLOR} $*"
+	echo -e "${WHITE_COLOR} $*${DEFAULT_COLOR}"
 }
+
 
 ################################################################################################################
 # 环境变量
@@ -681,14 +682,14 @@ function compile_info() {
 		__blue_color "LXC固件：开启"
 		echo
 		__red_color "LXC固件自动更新："
-		__defualt_color "1、PVE运行："
+		__default_color "1、PVE运行："
 		__cyan_color "pct pull xxx /sbin/openwrt.lxc /usr/sbin/openwrt && chmod -f +x /usr/sbin/openwrt"
 		__cyan_color "注意：将xxx改为个人OpenWrt容器的ID，如100"
-		__defualt_color "2、PVE运行："
+		__default_color "2、PVE运行："
 		__cyan_color "openwrt"
 		echo
 	else
-		__defualt_color "LXC固件：关闭"
+		__default_color "LXC固件：关闭"
 		echo
 		__red_color "自动更新信息"
 		__yellow_color "插件版本: ${AutoUpdate_Version}"
@@ -711,22 +712,22 @@ function compile_info() {
 	if [[ "${UPLOAD_RELEASE}" == "true" ]]; then
 		__blue_color "发布firmware+ipk至Github Relese: 开启"
 	else
-		__defualt_color "发布firmware+ipk至Github Relese: 关闭"
+		__default_color "发布firmware+ipk至Github Relese: 关闭"
 	fi
 	if [[ "${UPLOAD_FIRMWARE}" == "true" ]]; then
 		__blue_color "上传firmware+ipk至Github Artifacts: 开启"
 	else
-		__defualt_color "上传firmware+ipk至Github Artifacts: 关闭"
+		__default_color "上传firmware+ipk至Github Artifacts: 关闭"
 	fi
 	if [[ "${UPLOAD_CONFIG}" == "true" ]]; then
 		__blue_color "上传.config配置文件至Github Artifacts: 开启"
 	else
-		__defualt_color "上传.config配置文件至Github Artifacts: 关闭"
+		__default_color "上传.config配置文件至Github Artifacts: 关闭"
 	fi
 	if [[ "${NOTICE_TYPE}" == "true" ]]; then
 		__blue_color "pushplus/Telegram通知: 开启"
 	else
-		__defualt_color "pushplus/Telegram通知: 关闭"
+		__default_color "pushplus/Telegram通知: 关闭"
 	fi
 	echo
 	
