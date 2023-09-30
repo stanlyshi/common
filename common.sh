@@ -604,7 +604,6 @@ function firmware_settings() {
 		echo AutoBuild_Uefi="${AutoBuild_Uefi}" >> ${GITHUB_ENV}
 		echo AutoBuild_Rootfs="${AutoBuild_Rootfs}" >> ${GITHUB_ENV}
 		echo Rootfs_sfx="${Rootfs_sfx}" >> ${GITHUB_ENV}
-		echo Firmware_SFX="${Firmware_SFX}" >> ${GITHUB_ENV}
 	else
 		echo AutoBuild_Firmware="${AutoBuild_Firmware}" >> ${GITHUB_ENV}
 		echo Firmware_SFX="${Firmware_SFX}" >> ${GITHUB_ENV}
@@ -616,7 +615,7 @@ function firmware_settings() {
 	echo TARGET_PROFILE="${TARGET_PROFILE}" >> ${GITHUB_ENV}
 	echo KERNEL_PATCHVER="${KERNEL_PATCHVER}" >> ${GITHUB_ENV}
 	echo LINUX_KERNEL="${LINUX_KERNEL}" >> ${GITHUB_ENV}
-	
+	echo Firmware_SFX="${Firmware_SFX}" >> ${GITHUB_ENV}
 	echo RELEASE_TAG="${RELEASE_TAG}" >> ${GITHUB_ENV}
 	echo AutoUpdate_Version="${AutoUpdate_Version}" >> ${GITHUB_ENV}
 	echo OPENWRT_VERSION="${OPENWRT_VERSION}" >> ${GITHUB_ENV}
@@ -667,7 +666,6 @@ function compile_info() {
 	echo
 	__red_color "固件信息"
 	if [[ "${FIRMWARE_TYPE}" == "lxc" ]]; then
-		echo
 		__blue_color "LXC固件：开启"
 		echo
 		__red_color "LXC固件自动更新："
@@ -678,7 +676,6 @@ function compile_info() {
 		__cyan_color "openwrt"
 		echo
 	else
-		echo
 		__defualt_color "LXC固件：关闭"
 		echo
 		__red_color "自动更新信息"
@@ -696,7 +693,6 @@ function compile_info() {
 		__white_color "编译成功后，会自动把固件发布到指定地址，生成云端路径"
 		__white_color "修改IP、DNS、网关或者在线更新，请输入命令：openwrt"
 	fi
-	echo
 	
 	echo
 	__red_color "Github在线编译配置"
