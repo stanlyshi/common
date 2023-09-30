@@ -676,7 +676,7 @@ function compile_info() {
 	echo
 
 	echo
-	__red_color "固件信息"
+	__red_color "固件类型"
 	if [[ "${FIRMWARE_TYPE}" == "lxc" ]]; then
 		__blue_color "LXC固件：开启"
 		echo
