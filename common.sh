@@ -325,7 +325,7 @@ function diy_public() {
 	cat feeds.conf.default|awk '!/^#/'|awk '!/^$/'|awk '!a[$1" "$2]++{print}' >uniq.conf
 	mv -f uniq.conf feeds.conf.default
 	if [[ "${SOURCE}" =~ (lede|Lede|LEDE) ]]; then
-		__info_msg "添加lede源码对应packages"
+		__info_msg "添加lede源码对应插件源"
 		cat >> "feeds.conf.default" <<-EOF
 		src-git diypackages https://github.com/${PACKAGES_ADDR}.git;master
 		EOF
