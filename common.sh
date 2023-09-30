@@ -725,10 +725,10 @@ function compile_info() {
 		if [[ "${TARGET_BOARD}" == "x86" ]]; then
 			__yellow_color "传统固件: ${AutoBuild_Legacy}${Firmware_SFX}"
 			__yellow_color "UEFI固件: ${AutoBuild_Uefi}${Firmware_SFX}"
-			__yellow_color "固件后缀: ${Firmware_sfx}"
+			__yellow_color "固件后缀: ${Firmware_SFX}"
 		else
 			__yellow_color "固件名称: ${AutoBuild_Firmware}${Firmware_SFX}"
-			__yellow_color "固件后缀: ${Firmware_sfx}"
+			__yellow_color "固件后缀: ${Firmware_SFX}"
 		fi
 		__yellow_color "固件版本: ${OPENWRT_VERSION}"
 		__yellow_color "云端路径: ${GITHUB_RELEASE_URL}"
@@ -1104,8 +1104,8 @@ function organize_firmware() {
 			local firmware_rootfs_img="$(ls -1 |grep -Eo ".*squashfs.*rootfs.*img.gz")"
 			[[ -f ${firmware_rootfs_img} ]] && {
 				local rootfs_img_md5="$(md5sum ${firmware_rootfs_img} |cut -c1-3)$(sha256sum ${firmware_rootfs_img} |cut -c1-3)"
-				cp -rf ${firmware_rootfs_img} ${AUTOUPDATE_PATH}/${AutoBuild_Rootfs}-${rootfs_img_md5}${Firmware_sfx}
-				__info_msg "copy ${firmware_rootfs_img} to ${AUTOUPDATE_PATH}/${AutoBuild_Rootfs}-${rootfs_img_md5}${Firmware_sfx}"
+				cp -rf ${firmware_rootfs_img} ${AUTOUPDATE_PATH}/${AutoBuild_Rootfs}-${rootfs_img_md5}${Firmware_SFX}
+				__info_msg "copy ${firmware_rootfs_img} to ${AUTOUPDATE_PATH}/${AutoBuild_Rootfs}-${rootfs_img_md5}${Firmware_SFX}"
 			}
 			local firmware_rootfs_tar="$(ls -1 |grep -Eo ".*squashfs.*rootfs.*tar.gz")"
 			[[ -f ${firmware_rootfs_tar} ]] && {
@@ -1118,14 +1118,14 @@ function organize_firmware() {
 			[[ -f ${firmware_uefi} ]] && {
 				local uefimd5="$(md5sum ${firmware_uefi} |cut -c1-3)$(sha256sum ${firmware_uefi} |cut -c1-3)"
 				cp -rf "${firmware_uefi}" "${AUTOUPDATE_PATH}/${AutoBuild_Uefi}-${uefimd5}${Firmware_SFX}"
-				__info_msg "copy ${firmware_uefi} to ${AUTOUPDATE_PATH}/${AutoBuild_Uefi}-${uefimd5}${Firmware_sfx}"
+				__info_msg "copy ${firmware_uefi} to ${AUTOUPDATE_PATH}/${AutoBuild_Uefi}-${uefimd5}${Firmware_SFX}"
 			}
 		elif [[ `ls -1 | grep -c "squashfs"` -ge '1' ]]; then
 			local firmware_legacy="$(ls -1 |grep -Eo ".*squashfs.*img.gz" |grep -v ".vm\|.vb\|.vh\|.qco\|efi\|root")"
 			[[ -f ${firmware_legacy} ]] && {
 				local legacymd5="$(md5sum ${firmware_legacy} |cut -c1-3)$(sha256sum ${firmware_legacy} |cut -c1-3)"
 				cp -rf "${firmware_legacy}" "${AUTOUPDATE_PATH}/${AutoBuild_Legacy}-${legacymd5}${Firmware_SFX}"
-				__info_msg "copy ${firmware_legacy} to ${AUTOUPDATE_PATH}/${AutoBuild_Legacy}-${legacymd5}${Firmware_sfx}"
+				__info_msg "copy ${firmware_legacy} to ${AUTOUPDATE_PATH}/${AutoBuild_Legacy}-${legacymd5}${Firmware_SFX}"
 			}
 		else
 			__error_msg "没有找到squashfs格式的固件！"
@@ -1140,7 +1140,7 @@ function organize_firmware() {
 		if [[ -f "${firmware_sysupgrade}" ]]; then
 			local sysupgrademd5="$(md5sum ${firmware_sysupgrade} | cut -c1-3)$(sha256sum ${firmware_sysupgrade} | cut -c1-3)"
 			cp -rf "${firmware_sysupgrade}" "${AUTOUPDATE_PATH}/${AutoBuild_Firmware}-${sysupgrademd5}${Firmware_SFX}"
-			__info_msg "copy ${firmware_sysupgrade} to ${AUTOUPDATE_PATH}/${AutoBuild_Firmware}-${sysupgrademd5}${Firmware_sfx}"
+			__info_msg "copy ${firmware_sysupgrade} to ${AUTOUPDATE_PATH}/${AutoBuild_Firmware}-${sysupgrademd5}${Firmware_SFX}"
 		else
 			__error_msg "没有找到可用的sysupgrade格式${Firmware_SFX}固件！"
 		fi
