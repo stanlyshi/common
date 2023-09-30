@@ -797,7 +797,7 @@ function update_repo() {
 	done
 	if [[ "$(cat ${SETTINGS_FILE})" != "$(cat ${repo_path}/build/${MATRIX_TARGET}/config/settings.ini)" ]]; then
 		ENABLE_UPDATE_REPO="true"
-		cp -rf ${SETTINGS_FILE} ${repo_path}/build/${MATRIX_TARGET}/config/settings.ini
+		cp -rf ${SETTINGS_FILE} ${repo_path}/build/${MATRIX_TARGET}/settings.ini
 	fi
 	
 	# 更新.config文件
