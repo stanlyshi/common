@@ -671,22 +671,22 @@ function compile_info() {
 	
 	echo
 	__red_color "Github在线编译配置"
-	if [[ ${UPLOAD_RELEASE} == "true" ]]; then
+	if [[ "${UPLOAD_RELEASE}" == "true" ]]; then
 		__blue_color "发布firmware+ipk至Github Relese: 开启"
 	else
 		__defualt_color "发布firmware+ipk至Github Relese: 关闭"
 	fi
-	if [[ ${UPLOAD_FIRMWARE} == "true" ]]; then
+	if [[ "${UPLOAD_FIRMWARE}" == "true" ]]; then
 		__blue_color "上传firmware+ipk至Github Artifacts: 开启"
 	else
 		__defualt_color "上传firmware+ipk至Github Artifacts: 关闭"
 	fi
-	if [[ ${UPLOAD_CONFIG} == "true" ]]; then
+	if [[ "${UPLOAD_CONFIG}" == "true" ]]; then
 		__blue_color "上传.config配置文件至Github Artifacts: 开启"
 	else
 		__defualt_color "上传.config配置文件至Github Artifacts: 关闭"
 	fi
-	if [[ ${NOTICE_TYPE} == "true" ]]; then
+	if [[ "${NOTICE_TYPE}" == "true" ]]; then
 		__blue_color "pushplus/Telegram通知: 开启"
 	else
 		__defualt_color "pushplus/Telegram通知: 关闭"
@@ -770,15 +770,20 @@ function update_plugin_list() {
 # 更新仓库
 ################################################################################################################
 function update_repo() {
-	cd ${GITHUB_WORKSPACE}
+	local repo_path="${GITHUB_WORKSPACE}/repo"
+	[[ -d "${repo_path}" ]] && rm -rf ${repo_path}
+
+	cd ${GITHUB_WORKSPACE}	
 	git clone https://github.com/${GITHUB_REPOSITORY}.git repo
+	
+	cd ${repo_path}
 	
 	# 更新COMPILE_YML文件中的matrix.target设置
 	local compile_yml_target=$(grep 'target: \[' ${GITHUB_WORKSPACE}/.github/workflows/${COMPILE_YML} | sed 's/^[ ]*//g' |grep '^target' |cut -d '#' -f1 |sed 's/\[/\\&/' |sed 's/\]/\\&/') && echo "compile_yml_target=${compile_yml_target}"
 	local build_yml_target=$(grep 'target: \[' ${GITHUB_WORKSPACE}/.github/workflows/${BUILD_YML}  |sed 's/^[ ]*//g' |grep '^target' |cut -d '#' -f1 |sed 's/\[/\\&/' |sed 's/\]/\\&/') && echo "build_yml_target=${build_yml_target}"
 	if [[ -n "${compile_yml_target}" ]] && [[ -n "${build_yml_target}" ]] && [[ "${compile_yml_target}" != "${build_yml_target}" ]]; then
 		ENABLE_UPDATE_REPO="true"
-		sed -i "s/${compile_yml_target}/${build_yml_target}/g" repo/.github/workflows/${COMPILE_YML} && echo "change compile target ${compile_yml_target} to ${build_yml_target}"
+		sed -i "s/${compile_yml_target}/${build_yml_target}/g" ${repo_path}/.github/workflows/${COMPILE_YML} && echo "change compile target ${compile_yml_target} to ${build_yml_target}"
 	fi
 
 	# 更新settings文件
@@ -786,24 +791,23 @@ function update_repo() {
 
 	# 更新.config文件
 	# ${HOME_PATH}/scripts/diffconfig.sh > ${DIFFCONFIG_FILE}
-	if [[ "$(cat ${DIFFCONFIG_FILE})" != "$(cat ${GITHUB_WORKSPACE}/repo/build/${MATRIX_TARGET}/config/${CONFIG_FILE})" ]]; then
+	if [[ "$(cat ${DIFFCONFIG_FILE})" != "$(cat ${${repo_path}}/build/${MATRIX_TARGET}/config/${CONFIG_FILE})" ]]; then
 		ENABLE_UPDATE_REPO="true"
-		cp -rf ${DIFFCONFIG_FILE} ${GITHUB_WORKSPACE}/repo/build/${MATRIX_TARGET}/config/${CONFIG_FILE}
+		cp -rf ${DIFFCONFIG_FILE} ${repo_path}/build/${MATRIX_TARGET}/config/${CONFIG_FILE}
 	fi	
 	
 	# 更新插件列表
 	update_plugin_list
-	if [[ "$(cat ${HOME_PATH}/plugin_list)" != "$(cat ${GITHUB_WORKSPACE}/repo/build/${MATRIX_TARGET}/plugins)" ]]; then
+	if [[ "$(cat ${HOME_PATH}/plugin_list)" != "$(cat ${repo_path}/build/${MATRIX_TARGET}/plugins)" ]]; then
 		ENABLE_UPDATE_REPO="true"
 		# 覆盖原plugin文件
-		cp -f ${HOME_PATH}/plugin_list ${GITHUB_WORKSPACE}/repo/build/${MATRIX_TARGET}/plugins > /dev/null 2>&1
+		cp -f ${HOME_PATH}/plugin_list ${repo_path}/build/${MATRIX_TARGET}/plugins > /dev/null 2>&1
 	fi
 	
 	# 提交commit，更新repo
+	cd ${repo_path}
+	local branch_head="$(git rev-parse --abbrev-ref HEAD)"
 	if [[ "${ENABLE_UPDATE_REPO}" == "true" ]]; then
-		local branch_head="$(git rev-parse --abbrev-ref HEAD)"
-		
-		cd ${GITHUB_WORKSPACE}/repo
 		git add .
 		git commit -m "Update plugins and ${CONFIG_FILE}"
 		git push --force "https://${REPO_TOKEN}@github.com/${GITHUB_REPOSITORY}" HEAD:${branch_head}
