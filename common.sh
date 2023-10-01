@@ -377,7 +377,7 @@ function diy_public() {
 
 	# 更新插件源
 	./scripts/feeds clean
-	./scripts/feeds update -a
+	./scripts/feeds update -a > /dev/null 2>&1
 	
 	__yellow_color "开始添加openwrt.sh(或openwrt.lxc.sh)..."
 	# openwrt.sh
