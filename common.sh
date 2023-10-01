@@ -190,10 +190,10 @@ function parse_settings() {
 	echo DIY_PART_SH="${DIY_PART_SH}" >> ${GITHUB_ENV}
 	echo PACKAGES_ADDR="${PACKAGES_ADDR}" >> ${GITHUB_ENV}
 	echo ENABLE_PACKAGES_UPDATE="${ENABLE_PACKAGES_UPDATE}" >> ${GITHUB_ENV}
-	echo ENABLE_UPDATE_REPO="false" >> ${GITHUB_ENV}
+	echo ENABLE_REPO_UPDATE="false" >> ${GITHUB_ENV}
 	
 	# 日期时间
-	echo COMPILE_DATE="$(date +%Y%m%d%H%M)" >> ${GITHUB_ENV}
+	echo COMPILE_DATE_HM="$(date +%Y%m%d%H%M)" >> ${GITHUB_ENV}
 	echo COMPILE_DATE_HMS="$(date +%Y%m%d%H%M%S)" >> ${GITHUB_ENV}
 	echo COMPILE_DATE_CN="$(date +%Y年%m月%d号%H时%M分)" >> ${GITHUB_ENV}
 	echo UPGRADE_DATE="$(date -d "$(date +'%Y-%m-%d %H:%M:%S')" +%s)" >> ${GITHUB_ENV}
@@ -609,11 +609,11 @@ function firmware_settings() {
 		Rootfs_SFX=".tar.gz"
 		Firmware_SFX=".img.gz"
 		# 18.06-lede-x86-64-1695553941-legacy
-		AutoBuild_Legacy="${LUCI_EDITION}-${SOURCE}-${TARGET_PROFILE}-${COMPILE_DATE}-legacy"
+		AutoBuild_Legacy="${LUCI_EDITION}-${SOURCE}-${TARGET_PROFILE}-${COMPILE_DATE_HM}-legacy"
 		# 18.06-lede-x86-64-1695553941-uefi
-		AutoBuild_Uefi="${LUCI_EDITION}-${SOURCE}-${TARGET_PROFILE}-${COMPILE_DATE}-uefi"
+		AutoBuild_Uefi="${LUCI_EDITION}-${SOURCE}-${TARGET_PROFILE}-${COMPILE_DATE_HM}-uefi"
 		# 18.06-lede-x86-64-1695647548-rootfs
-		AutoBuild_Rootfs="${LUCI_EDITION}-${SOURCE}-${TARGET_PROFILE}-${COMPILE_DATE}-rootfs"
+		AutoBuild_Rootfs="${LUCI_EDITION}-${SOURCE}-${TARGET_PROFILE}-${COMPILE_DATE_HM}-rootfs"
 	;;
 	ramips | reltek | ath* | ipq* | bcm47xx | bmips | kirkwood | mediatek)
 		Firmware_SFX=".bin"
@@ -848,7 +848,7 @@ function update_repo() {
 	local compile_yml_target=$(grep 'target: \[' ${repo_path}/.github/workflows/${COMPILE_YML} | sed 's/^[ ]*//g' |grep '^target' |cut -d '#' -f1 |sed 's/\[/\\&/' |sed 's/\]/\\&/') && echo "compile_yml_target=${compile_yml_target}"
 	local build_yml_target=$(grep 'target: \[' ${repo_path}/.github/workflows/${BUILD_YML}  |sed 's/^[ ]*//g' |grep '^target' |cut -d '#' -f1 |sed 's/\[/\\&/' |sed 's/\]/\\&/') && echo "build_yml_target=${build_yml_target}"
 	if [[ -n "${compile_yml_target}" ]] && [[ -n "${build_yml_target}" ]] && [[ "${compile_yml_target}" != "${build_yml_target}" ]]; then
-		ENABLE_UPDATE_REPO="true"
+		ENABLE_REPO_UPDATE="true"
 		sed -i "s/${compile_yml_target}/${build_yml_target}/g" ${repo_path}/.github/workflows/${COMPILE_YML} && echo "change compile target ${compile_yml_target} to ${build_yml_target}"
 	fi
 
@@ -863,21 +863,21 @@ function update_repo() {
 		fi
 	done
 	if [[ "$(cat ${SETTINGS_INI})" != "$(cat ${repo_settings_ini})" ]]; then
-		ENABLE_UPDATE_REPO="true"
+		ENABLE_REPO_UPDATE="true"
 		cp -rf ${SETTINGS_INI} ${repo_settings_ini}
 	fi
 	
 	# 更新.config文件
 	# ${HOME_PATH}/scripts/diffconfig.sh > ${DIFFCONFIG_TXT}
 	if [[ "$(cat ${DIFFCONFIG_TXT})" != "$(cat ${repo_config_path}/${CONFIG_FILE})" ]]; then
-		ENABLE_UPDATE_REPO="true"
+		ENABLE_REPO_UPDATE="true"
 		cp -rf ${DIFFCONFIG_TXT} ${repo_config_path}/${CONFIG_FILE}
 	fi
 	
 	# 更新plugins插件列表
 	update_plugin_list
 	if [[ "$(cat ${HOME_PATH}/plugin_list)" != "$(cat ${repo_matrix_target_path}/plugins)" ]]; then
-		ENABLE_UPDATE_REPO="true"
+		ENABLE_REPO_UPDATE="true"
 		# 覆盖原plugin文件
 		cp -f ${HOME_PATH}/plugin_list ${repo_matrix_target_path}/plugins > /dev/null 2>&1
 	fi
@@ -885,7 +885,7 @@ function update_repo() {
 	# 提交commit，更新repo
 	cd ${repo_path}
 	local branch_head="$(git rev-parse --abbrev-ref HEAD)"
-	if [[ "${ENABLE_UPDATE_REPO}" == "true" ]]; then
+	if [[ "${ENABLE_REPO_UPDATE}" == "true" ]]; then
 		git add .
 		git commit -m "Update plugins, ${CONFIG_FILE} and settings.ini, etc."
 		git push --force "https://${REPO_TOKEN}@github.com/${GIT_REPOSITORY}" HEAD:${branch_head}
