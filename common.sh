@@ -1198,11 +1198,11 @@ release_info() {
 	
 	sed -i "s#release_device#${TARGET_PROFILE}#" ${RELEASEINFO_MD} > /dev/null 2>&1
 	sed -i "s#default_ip#${release_ipaddr}#" ${RELEASEINFO_MD} > /dev/null 2>&1
-	sed -i "s#default_password#-" ${RELEASEINFO_MD} > /dev/null 2>&1
+	sed -i "s#default_password#-#" ${RELEASEINFO_MD} > /dev/null 2>&1
 	sed -i "s#release_source#${LUCI_EDITION}-${SOURCE}#" ${RELEASEINFO_MD} > /dev/null 2>&1
-	sed -i "s#release_kernel#${KERNEL_PATCHVER}#" ${RELEASEINFO_MD} > /dev/null 2>&1
-	sed -i "s#repository#${GIT_REPOSITORY}" ${RELEASEINFO_MD} > /dev/null 2>&1
-	sed -i "s#matrixtarget#${MATRIX_TARGET}" ${RELEASEINFO_MD} > /dev/null 2>&1
+	sed -i "s#release_kernel#${LINUX_KERNEL}#" ${RELEASEINFO_MD} > /dev/null 2>&1
+	sed -i "s#repository#${GIT_REPOSITORY}#" ${RELEASEINFO_MD} > /dev/null 2>&1
+	sed -i "s#matrixtarget#${MATRIX_TARGET}#" ${RELEASEINFO_MD} > /dev/null 2>&1
 
 	cat ${RELEASEINFO_MD}
 }
