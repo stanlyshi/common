@@ -191,10 +191,6 @@ function parse_settings() {
 	echo PACKAGES_ADDR="${PACKAGES_ADDR}" >> ${GITHUB_ENV}
 	echo ENABLE_PACKAGES_UPDATE="${ENABLE_PACKAGES_UPDATE}" >> ${GITHUB_ENV}
 	echo ENABLE_UPDATE_REPO="false" >> ${GITHUB_ENV}
-	echo DIFFCONFIG_FILE="${GITHUB_WORKSPACE}/config.txt" >> ${GITHUB_ENV}
-	echo CLEAR_FILE="${GITHUB_WORKSPACE}/openwrt/Clear" >> ${GITHUB_ENV}
-	echo RELEASEINFO_FILE="${GITHUB_WORKSPACE}/openwrt/build/${MATRIX_TARGET}/releaseinfo.md" >> ${GITHUB_ENV}
-	echo SETTINGS_FILE="${GITHUB_WORKSPACE}/openwrt/build/${MATRIX_TARGET}/settings.ini" >> ${GITHUB_ENV}
 	
 	# 日期时间
 	echo COMPILE_DATE="$(date +%Y%m%d%H%M)" >> ${GITHUB_ENV}
@@ -213,10 +209,14 @@ function parse_settings() {
 	echo CONFIG_PATH="${GITHUB_WORKSPACE}/openwrt/build/${MATRIX_TARGET}/config" >> ${GITHUB_ENV}
 	
 	# 文件
+	echo DIFFCONFIG_TXT="${GITHUB_WORKSPACE}/diffconfig.txt" >> ${GITHUB_ENV}
+	echo RELEASEINFO_MD="${GITHUB_WORKSPACE}/openwrt/build/${MATRIX_TARGET}/releaseinfo.md" >> ${GITHUB_ENV}
+	echo SETTINGS_INI="${GITHUB_WORKSPACE}/openwrt/build/${MATRIX_TARGET}/settings.ini" >> ${GITHUB_ENV}
+	echo FILES_TO_CLEAR="${GITHUB_WORKSPACE}/openwrt/default_clear" >> ${GITHUB_ENV}
+	echo FILES_TO_DELETE="${GITHUB_WORKSPACE}/openwrt/package/base-files/files/etc/default_delete" >> ${GITHUB_ENV}
 	# https://github.com/coolsnowwolf/lede/tree/master/package/base-files/files
 	echo FILES_PATH="${GITHUB_WORKSPACE}/openwrt/package/base-files/files" >> ${GITHUB_ENV}
 	echo FILE_BASE_FILES="${GITHUB_WORKSPACE}/openwrt/package/base-files/files/lib/upgrade/keep.d/base-files-essential" >> ${GITHUB_ENV}
-	echo FILE_DELETE="${GITHUB_WORKSPACE}/openwrt/package/base-files/files/etc/deletefile" >> ${GITHUB_ENV}
 	echo FILE_DEFAULT_UCI="${GITHUB_WORKSPACE}/openwrt/package/base-files/files/etc/default_uci" >> ${GITHUB_ENV}
 	echo FILE_DEFAULT_SETTINGS="${GITHUB_WORKSPACE}/openwrt/package/base-files/files/etc/default_settings" >> ${GITHUB_ENV}
 	echo FILE_OPENWRT_RELEASE="${GITHUB_WORKSPACE}/openwrt/package/base-files/files/etc/openwrt_release" >> ${GITHUB_ENV}
@@ -447,23 +447,23 @@ function diy_public() {
 	fi
 	
 	__yellow_color "开始执行其它设置..."
-	# UCI基础设置
-	echo '#!/bin/bash' > "${FILE_DEFAULT_UCI}"
+	# default_uci文件，UCI基础设置
+	echo '#!/bin/sh' > "${FILE_DEFAULT_UCI}"
 	sudo chmod -f +x "${FILE_DEFAULT_UCI}"
 	
-	# Openwrt固件升级时需要删除的文件
-	echo '#!/bin/bash' > "${FILE_DELETE}"
-	sudo chmod -f +x "${FILE_DELETE}"
+	# default_delete文件，Openwrt固件升级时需要删除的文件
+	echo '#!/bin/sh' > "${FILES_TO_DELETE}"
+	sudo chmod -f +x "${FILES_TO_DELETE}"
 	
 	# Openwrt初次运行初始化设置
-	cp -rf ${COMMON_PATH}/custom/default_setting_runonce ${FILES_PATH}/etc/init.d/default_setting_runonce
+	cp -rf ${COMMON_PATH}/custom/default_settings_runonce ${FILES_PATH}/etc/init.d/default_settings_runonce
 	cp -rf ${COMMON_PATH}/custom/default_settings ${FILE_DEFAULT_SETTINGS}
 	sudo chmod -f +x ${FILE_DEFAULT_SETTINGS}	
 	echo '
-	rm -rf /etc/init.d/default_setting_runonce
+	rm -rf /etc/init.d/default_settings_runonce
 	rm -rf /etc/default_settings
 	rm -rf /etc/default_uci
-	rm -rf /etc/deletefile
+	rm -rf /etc/default_delete
 	exit 0
 	' >> ${FILE_DEFAULT_SETTINGS}
 	
@@ -513,7 +513,7 @@ function make_defconfig() {
 	# 生成.config文件
 	make defconfig > /dev/null 2>&1
 	# 生成diffconfig文件
-	bash ${HOME_PATH}/scripts/diffconfig.sh > ${DIFFCONFIG_FILE}
+	bash ${HOME_PATH}/scripts/diffconfig.sh > ${DIFFCONFIG_TXT}
 }
 
 ################################################################################################################
@@ -717,28 +717,28 @@ function compile_info() {
 		__blue_color "LXC固件：开启"
 		echo
 		__red_color "LXC固件自动更新："
-		__default_color "1、PVE运行："
+		__white_color "1、PVE运行："
 		__cyan_color "pct pull xxx /sbin/openwrt.lxc /usr/sbin/openwrt && chmod -f +x /usr/sbin/openwrt"
 		__cyan_color "注意：将xxx改为个人OpenWrt容器的ID，如100"
-		__default_color "2、PVE运行："
+		__white_color "2、PVE运行："
 		__cyan_color "openwrt"
 		echo
 	else
-		__default_color "LXC固件：关闭"
+		__blue_color "LXC固件：关闭"
 		echo
 		__red_color "自动更新信息"
-		__yellow_color "插件版本: ${AutoUpdate_Version}"
+		__blue_color "插件版本: ${AutoUpdate_Version}"
 		
 		if [[ "${TARGET_BOARD}" == "x86" ]]; then
-			__yellow_color "传统固件: ${AutoBuild_Legacy}${Firmware_SFX}"
-			__yellow_color "UEFI固件: ${AutoBuild_Uefi}${Firmware_SFX}"
-			__yellow_color "固件后缀: ${Firmware_SFX}"
+			__blue_color "传统固件: ${AutoBuild_Legacy}${Firmware_SFX}"
+			__blue_color "UEFI固件: ${AutoBuild_Uefi}${Firmware_SFX}"
+			__blue_color "固件后缀: ${Firmware_SFX}"
 		else
-			__yellow_color "固件名称: ${AutoBuild_Firmware}${Firmware_SFX}"
-			__yellow_color "固件后缀: ${Firmware_SFX}"
+			__blue_color "固件名称: ${AutoBuild_Firmware}${Firmware_SFX}"
+			__blue_color "固件后缀: ${Firmware_SFX}"
 		fi
-		__yellow_color "固件版本: ${OPENWRT_VERSION}"
-		__yellow_color "云端路径: ${GITHUB_RELEASE_URL}"
+		__blue_color "固件版本: ${OPENWRT_VERSION}"
+		__blue_color "云端路径: ${GITHUB_RELEASE_URL}"
 		__white_color "编译成功后，会自动把固件发布到指定地址，生成云端路径"
 		__white_color "修改IP、DNS、网关或者在线更新，请输入命令：openwrt"
 	fi
@@ -816,6 +816,10 @@ function update_plugin_list() {
 ################################################################################################################
 function update_repo() {
 	local repo_path="${GITHUB_WORKSPACE}/repo"
+	local repo_matrix_target_path="${repo_path}/build/${MATRIX_TARGET}"
+	local repo_config_path="${repo_path}/build/${MATRIX_TARGET}/config"
+	local repo_settings_ini="${repo_path}/build/${MATRIX_TARGET}/settings.ini"
+	
 	[[ -d "${repo_path}" ]] && rm -rf ${repo_path}
 
 	cd ${GITHUB_WORKSPACE}	
@@ -834,31 +838,31 @@ function update_repo() {
 	# 更新settings.ini文件
 	local settings_array=(SOURCE_BRANCH CONFIG_FILE FIRMWARE_TYPE NOTICE_TYPE UPLOAD_RELEASE UPLOAD_FIRMWARE UPLOAD_CONFIG ENABLE_CACHEWRTBUILD)
 	for x in ${settings_array[*]}; do
-		local settings_key="$(grep -E "${x}=" ${SETTINGS_FILE} |sed 's/^[ ]*//g' |grep -v '^#' | awk '{print $1}' | awk -F'=' '{print $1}')"
-		local settings_val="$(grep -E "${x}=" ${SETTINGS_FILE} |sed 's/^[ ]*//g' |grep -v '^#' | awk '{print $1}' | awk -F'=' '{print $2}' | sed 's#"##g')"
+		local settings_key="$(grep -E "${x}=" ${SETTINGS_INI} |sed 's/^[ ]*//g' |grep -v '^#' | awk '{print $1}' | awk -F'=' '{print $1}')"
+		local settings_val="$(grep -E "${x}=" ${SETTINGS_INI} |sed 's/^[ ]*//g' |grep -v '^#' | awk '{print $1}' | awk -F'=' '{print $2}' | sed 's#"##g')"
 		eval eval env_settings_val=\$$x
 		if [[ -n "${settings_key}" ]]; then
-			sed -i "s#${x}=\"${settings_val}\"#${x}=\"${env_settings_val}\"#g" ${SETTINGS_FILE}
+			sed -i "s#${x}=\"${settings_val}\"#${x}=\"${env_settings_val}\"#g" ${SETTINGS_INI}
 		fi
 	done
-	if [[ "$(cat ${SETTINGS_FILE})" != "$(cat ${repo_path}/build/${MATRIX_TARGET}/settings.ini)" ]]; then
+	if [[ "$(cat ${SETTINGS_INI})" != "$(cat ${repo_settings_ini})" ]]; then
 		ENABLE_UPDATE_REPO="true"
-		cp -rf ${SETTINGS_FILE} ${repo_path}/build/${MATRIX_TARGET}/settings.ini
+		cp -rf ${SETTINGS_INI} ${repo_settings_ini}
 	fi
 	
 	# 更新.config文件
-	# ${HOME_PATH}/scripts/diffconfig.sh > ${DIFFCONFIG_FILE}
-	if [[ "$(cat ${DIFFCONFIG_FILE})" != "$(cat ${repo_path}/build/${MATRIX_TARGET}/config/${CONFIG_FILE})" ]]; then
+	# ${HOME_PATH}/scripts/diffconfig.sh > ${DIFFCONFIG_TXT}
+	if [[ "$(cat ${DIFFCONFIG_TXT})" != "$(cat ${repo_config_path}/${CONFIG_FILE})" ]]; then
 		ENABLE_UPDATE_REPO="true"
-		cp -rf ${DIFFCONFIG_FILE} ${repo_path}/build/${MATRIX_TARGET}/config/${CONFIG_FILE}
+		cp -rf ${DIFFCONFIG_TXT} ${repo_config_path}/${CONFIG_FILE}
 	fi
 	
 	# 更新plugins插件列表
 	update_plugin_list
-	if [[ "$(cat ${HOME_PATH}/plugin_list)" != "$(cat ${repo_path}/build/${MATRIX_TARGET}/plugins)" ]]; then
+	if [[ "$(cat ${HOME_PATH}/plugin_list)" != "$(cat ${repo_matrix_target_path}/plugins)" ]]; then
 		ENABLE_UPDATE_REPO="true"
 		# 覆盖原plugin文件
-		cp -f ${HOME_PATH}/plugin_list ${repo_path}/build/${MATRIX_TARGET}/plugins > /dev/null 2>&1
+		cp -f ${HOME_PATH}/plugin_list ${repo_matrix_target_path}/plugins > /dev/null 2>&1
 	fi
 	
 	# 提交commit，更新repo
@@ -1096,12 +1100,12 @@ function organize_firmware() {
 
 	# 清理无关文件
 	__yellow_color "开始清理无关文件..."
-	for X in $(cat ${CLEAR_FILE} | sed '/^#.*/d'); do		
+	for X in $(cat ${FILES_TO_CLEAR} | sed '/^#.*/d'); do		
 		rm -rf *"${X}"* > /dev/null 2>&1
 		__info_msg "delete ${X}"
 	done
 	rm -rf packages > /dev/null 2>&1
-	rm -rf ${CLEAR_FILE}
+	rm -rf ${FILES_TO_CLEAR}
 
 	__yellow_color "开始准备固件自动更新相关固件..."
 	[[ ! -d ${AUTOUPDATE_PATH} ]] && mkdir -p ${AUTOUPDATE_PATH} || rm -rf ${AUTOUPDATE_PATH}/*
@@ -1175,19 +1179,18 @@ function organize_firmware() {
 release_info() {
 	cd ${MATRIX_TARGET_PATH}
 	__yellow_color "开始准备固件发布信息..."
-	local releaseinfo_md="${RELEASEINFO_FILE}"
 	local diy_part_ipaddr=`awk '{print $3}' ${MATRIX_TARGET_PATH}/$DIY_PART_SH | awk -F= '$1 == "network.lan.ipaddr" {print $2}' | sed "s/'//g" 2>/dev/null`
 	local release_ipaddr=${diy_part_ipaddr:-192.168.1.1}
 	
-	sed -i "s#release_device#${TARGET_PROFILE}#" ${MATRIX_TARGET_PATH}/${releaseinfo_md} > /dev/null 2>&1
-	sed -i "s#default_ip#${release_ipaddr}#" ${MATRIX_TARGET_PATH}/${releaseinfo_md} > /dev/null 2>&1
-	sed -i "s#default_password#-" ${MATRIX_TARGET_PATH}/${releaseinfo_md} > /dev/null 2>&1
-	sed -i "s#release_source#${LUCI_EDITION}-${SOURCE}#" ${MATRIX_TARGET_PATH}/${releaseinfo_md} > /dev/null 2>&1
-	sed -i "s#release_kernel#${KERNEL_PATCHVER}#" ${MATRIX_TARGET_PATH}/${releaseinfo_md} > /dev/null 2>&1
-	sed -i "s#repository#${GITHUB_REPOSITORY}" ${MATRIX_TARGET_PATH}/${releaseinfo_md} > /dev/null 2>&1
-	sed -i "s#matrixtarget#${MATRIX_TARGET}" ${MATRIX_TARGET_PATH}/${releaseinfo_md} > /dev/null 2>&1
+	sed -i "s#release_device#${TARGET_PROFILE}#" ${RELEASEINFO_MD} > /dev/null 2>&1
+	sed -i "s#default_ip#${release_ipaddr}#" ${RELEASEINFO_MD} > /dev/null 2>&1
+	sed -i "s#default_password#-" ${RELEASEINFO_MD} > /dev/null 2>&1
+	sed -i "s#release_source#${LUCI_EDITION}-${SOURCE}#" ${RELEASEINFO_MD} > /dev/null 2>&1
+	sed -i "s#release_kernel#${KERNEL_PATCHVER}#" ${RELEASEINFO_MD} > /dev/null 2>&1
+	sed -i "s#repository#${GITHUB_REPOSITORY}" ${RELEASEINFO_MD} > /dev/null 2>&1
+	sed -i "s#matrixtarget#${MATRIX_TARGET}" ${RELEASEINFO_MD} > /dev/null 2>&1
 
-	cat ${MATRIX_TARGET_PATH}/${releaseinfo_md} > /dev/null 2>&1
+	cat ${RELEASEINFO_MD} > /dev/null 2>&1
 }
 
 ################################################################################################################

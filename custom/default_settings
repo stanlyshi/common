@@ -2,7 +2,7 @@
 
 # diy_part.sh中的UCI设置
 [[ -f /etc/default_uci ]] && chmod +x /etc/default_uci && source /etc/default_uci
-[[ -f /etc/deletefile ]] && chmod +x /etc/deletefile && source /etc/deletefile
+[[ -f /etc/default_delete ]] && chmod +x /etc/default_delete && source /etc/default_delete
 
 #[[ ! -f /mnt/network ]] && cp -rf /etc/config/network /mnt/network
 
