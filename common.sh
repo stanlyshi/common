@@ -196,7 +196,7 @@ function parse_settings() {
 	echo COMPILE_DATE_HM="$(date +%Y%m%d%H%M)" >> ${GITHUB_ENV}
 	echo COMPILE_DATE_HMS="$(date +%Y%m%d%H%M%S)" >> ${GITHUB_ENV}
 	echo COMPILE_DATE_CN="$(date +%Y年%m月%d号%H时%M分)" >> ${GITHUB_ENV}
-	echo UPGRADE_DATE="$(date -d "$(date +'%Y-%m-%d %H:%M:%S')" +%s)" >> ${GITHUB_ENV}
+	echo COMPILE_DATE_STAMP="$(date -d "$(date +'%Y-%m-%d %H:%M:%S')" +%s)" >> ${GITHUB_ENV}
 	echo FIRMWARE_DATE="$(date +%m.%d)" >> ${GITHUB_ENV}
 	
 	# 路径
@@ -617,31 +617,31 @@ function firmware_settings() {
 	;;
 	ramips | reltek | ath* | ipq* | bcm47xx | bmips | kirkwood | mediatek)
 		Firmware_SFX=".bin"
-		AutoBuild_Firmware="${LUCI_EDITION}-${SOURCE}-${TARGET_PROFILE_ER}-${UPGRADE_DATE}-sysupgrade"
+		AutoBuild_Firmware="${LUCI_EDITION}-${SOURCE}-${TARGET_PROFILE_ER}-${COMPILE_DATE_STAMP}-sysupgrade"
 	;;
 	rockchip | bcm27xx | mxs | sunxi | zynq)
 		Firmware_SFX=".img.gz"
-		AutoBuild_Firmware="${LUCI_EDITION}-${SOURCE}-${TARGET_PROFILE_ER}-${UPGRADE_DATE}-sysupgrade"
+		AutoBuild_Firmware="${LUCI_EDITION}-${SOURCE}-${TARGET_PROFILE_ER}-${COMPILE_DATE_STAMP}-sysupgrade"
 	;;
 	mvebu)
 		case "${TARGET_SUBTARGET}" in
 		cortexa53 | cortexa72)
 			Firmware_SFX=".img.gz"
-			AutoBuild_Firmware="${LUCI_EDITION}-${SOURCE}-${TARGET_PROFILE_ER}-${UPGRADE_DATE}-sysupgrade"
+			AutoBuild_Firmware="${LUCI_EDITION}-${SOURCE}-${TARGET_PROFILE_ER}-${COMPILE_DATE_STAMP}-sysupgrade"
 		;;
 		esac
 	;;
 	bcm53xx)
 		Firmware_SFX=".trx"
-		AutoBuild_Firmware="${LUCI_EDITION}-${SOURCE}-${TARGET_PROFILE_ER}-${UPGRADE_DATE}-sysupgrade"
+		AutoBuild_Firmware="${LUCI_EDITION}-${SOURCE}-${TARGET_PROFILE_ER}-${COMPILE_DATE_STAMP}-sysupgrade"
 	;;
 	octeon | oxnas | pistachio)
 		Firmware_SFX=".tar"
-		AutoBuild_Firmware="${LUCI_EDITION}-${SOURCE}-${TARGET_PROFILE_ER}-${UPGRADE_DATE}-sysupgrade"
+		AutoBuild_Firmware="${LUCI_EDITION}-${SOURCE}-${TARGET_PROFILE_ER}-${COMPILE_DATE_STAMP}-sysupgrade"
 	;;
 	*)
 		Firmware_SFX=".bin"
-		AutoBuild_Firmware="${LUCI_EDITION}-${SOURCE}-${TARGET_PROFILE_ER}-${UPGRADE_DATE}-sysupgrade"
+		AutoBuild_Firmware="${LUCI_EDITION}-${SOURCE}-${TARGET_PROFILE_ER}-${COMPILE_DATE_STAMP}-sysupgrade"
 	;;
 	esac
 
@@ -649,7 +649,7 @@ function firmware_settings() {
 		AutoUpdate_Version=$(grep -Eo "Version=V[0-9.]+" "${HOME_PATH}/package/luci-app-autoupdate/root/usr/bin/AutoUpdate" |grep -Eo [0-9.]+)
 	fi
 	
-	OPENWRT_VERSION="${SOURCE}-${TARGET_PROFILE_ER}-${UPGRADE_DATE}"
+	OPENWRT_VERSION="${SOURCE}-${TARGET_PROFILE_ER}-${COMPILE_DATE_STAMP}"
 	local cloud_find="${LUCI_EDITION}-${SOURCE}-${TARGET_PROFILE_ER}"
 	
 	if [[ "${TARGET_BOARD}" == "x86" ]]; then
