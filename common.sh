@@ -405,18 +405,20 @@ function diy_public() {
 	__yellow_color "开始替换diy文件夹内文件..."
 	# 替换编译前源码中对应目录文件
 	if [ -n "$(ls -A "${MATRIX_TARGET_PATH}/diy" 2>/dev/null)" ]; then
+		rm -rf ${MATRIX_TARGET_PATH}/diy/{LICENSE,.*README,.*readme} > /dev/null 2>&1
 		cp -rf ${MATRIX_TARGET_PATH}/diy/* ${FILES_PATH} && chmod -Rf +x ${FILES_PATH}
 	fi
 	
 	__yellow_color "开始替换files文件夹内文件..."
 	# 替换编译后固件中对应目录文件（备用）
 	if [ -n "$(ls -A "${MATRIX_TARGET_PATH}/files" 2>/dev/null)" ]; then
-		rm -rf ${MATRIX_TARGET_PATH}/files/{LICENSE,.*README}
+		rm -rf ${MATRIX_TARGET_PATH}/files/{LICENSE,.*README,.*readme} > /dev/null 2>&1
 		cp -rf ${MATRIX_TARGET_PATH}/files ${HOME_PATH}
 	fi
 	
 	__yellow_color "开始执行补丁文件..."
 	# 打补丁
+	rm -rf ${MATRIX_TARGET_PATH}/patches/{LICENSE,.*README,.*readme} > /dev/null 2>&1
 	if [ -n "$(ls -A "${MATRIX_TARGET_PATH}/patches" 2>/dev/null)" ]; then
 		find "${MATRIX_TARGET_PATH}/patches" -type f -name '*.patch' -print0 | sort -z | xargs -I % -t -0 -n 1 sh -c "cat '%'  | patch -d './' -p1 --forward --no-backup-if-mismatch"
 	fi
