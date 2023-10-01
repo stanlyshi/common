@@ -777,7 +777,7 @@ function compile_info() {
 	else
 		__default_color "上传.config配置文件至Github Artifacts: 关闭"
 	fi
-	if [[ "${NOTICE_TYPE}" == "true" ]]; then
+	if [[ "${NOTICE_TYPE}" =~ (TG|telegram|PUSH|pushplus|WX|WeChat) ]]; then
 		__blue_color "pushplus/Telegram通知: 开启"
 	else
 		__default_color "pushplus/Telegram通知: 关闭"
