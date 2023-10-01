@@ -1,8 +1,10 @@
 #!/bin/sh
 
-[[ ! -f /mnt/network ]] && chmod +x /etc/networkip && source /etc/networkip
+# diy_part.sh中的UCI设置
+[[ -f /etc/default_uci ]] && chmod +x /etc/default_uci && source /etc/default_uci
+[[ -f /etc/deletefile ]] && chmod +x /etc/deletefile && source /etc/deletefile
 
-cp -Rf /etc/config/network /mnt/network
+#[[ ! -f /mnt/network ]] && cp -rf /etc/config/network /mnt/network
 
 chmod -R 0775 /etc/init.d /usr/share
 touch /etc/crontabs/root

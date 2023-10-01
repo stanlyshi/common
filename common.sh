@@ -456,11 +456,14 @@ function diy_public() {
 	sudo chmod -f +x "${FILE_DELETE}"
 	
 	# Openwrt初次运行初始化设置
+	cp -rf ${COMMON_PATH}/custom/default_setting_runonce ${FILES_PATH}/etc/init.d/default_setting_runonce
 	cp -rf ${COMMON_PATH}/custom/default_settings ${FILE_DEFAULT_SETTINGS}
 	sudo chmod -f +x ${FILE_DEFAULT_SETTINGS}	
 	echo '
 	rm -rf /etc/init.d/default_setting_runonce
 	rm -rf /etc/default_settings
+	rm -rf /etc/default_uci
+	rm -rf /etc/deletefile
 	exit 0
 	' >> ${FILE_DEFAULT_SETTINGS}
 	
