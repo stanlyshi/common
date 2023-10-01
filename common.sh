@@ -141,7 +141,7 @@ function parse_settings() {
 	fi
 	if [[ ${ENABLE_PACKAGES_UPDATE} == "true" ]]; then
 		local package_repo_owner=`echo "${PACKAGES_ADDR}" | awk -F/ '{print $1}'` 2>/dev/null
-		if [[ ${package_repo_owner} != ${GITHUB_ACTOR} ]]; then
+		if [[ ${package_repo_owner} != ${GIT_ACTOR} ]]; then
 			ENABLE_PACKAGES_UPDATE="false"
 			__warning_msg "插件库所有者：${package_repo_owner}"
 			__warning_msg "没有权限更新插件库，关闭\"插件库更新\"！"
@@ -186,7 +186,7 @@ function parse_settings() {
 	echo SOURCE_OWNER="${SOURCE_OWNER}" >> ${GITHUB_ENV}
 	echo LUCI_EDITION="${LUCI_EDITION}" >> ${GITHUB_ENV}
 	echo PACKAGE_BRANCH="${PACKAGE_BRANCH}" >> ${GITHUB_ENV}	
-	echo REPOSITORY="${GITHUB_REPOSITORY##*/}" >> ${GITHUB_ENV}
+	echo REPOSITORY="${GIT_REPOSITORY##*/}" >> ${GITHUB_ENV}
 	echo DIY_PART_SH="${DIY_PART_SH}" >> ${GITHUB_ENV}
 	echo PACKAGES_ADDR="${PACKAGES_ADDR}" >> ${GITHUB_ENV}
 	echo ENABLE_PACKAGES_UPDATE="${ENABLE_PACKAGES_UPDATE}" >> ${GITHUB_ENV}
@@ -229,9 +229,9 @@ function parse_settings() {
 ################################################################################################################
 function notice_begin() {
 	if [[ "${NOTICE_TYPE}" == "TG" ]]; then
-		curl -k --data chat_id="${TELEGRAM_CHAT_ID}" --data "text=🎉 主人：您正在使用【${GITHUB_REPOSITORY}】仓库【${MATRIX_TARGET}】文件夹编译${LUCI_EDITION}-${SOURCE}固件,请耐心等待...... 😋" "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"
+		curl -k --data chat_id="${TELEGRAM_CHAT_ID}" --data "text=🎉 主人：您正在使用【${GIT_REPOSITORY}】仓库【${MATRIX_TARGET}】文件夹编译${LUCI_EDITION}-${SOURCE}固件,请耐心等待...... 😋" "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"
 	elif [[ "${NOTICE_TYPE}" == "PUSH" ]]; then
-		curl -k --data token="${PUSH_PLUS_TOKEN}" --data title="开始编译【${MATRIX_TARGET}】" --data "content=🎉 主人：您正在使用【${GITHUB_REPOSITORY}】仓库【${MATRIX_TARGET}】文件夹编译${LUCI_EDITION}-${SOURCE}固件,请耐心等待...... 😋💐" "http://www.pushplus.plus/send"
+		curl -k --data token="${PUSH_PLUS_TOKEN}" --data title="开始编译【${MATRIX_TARGET}】" --data "content=🎉 主人：您正在使用【${GIT_REPOSITORY}】仓库【${MATRIX_TARGET}】文件夹编译${LUCI_EDITION}-${SOURCE}固件,请耐心等待...... 😋💐" "http://www.pushplus.plus/send"
 	fi
 }
 
@@ -240,9 +240,9 @@ function notice_begin() {
 ################################################################################################################
 function notice_end() {
 	if [[ "${NOTICE_TYPE}" == "TG" ]]; then
-		curl -k --data chat_id="${TELEGRAM_CHAT_ID}" --data "text=我亲爱的✨主人✨：您使用【${GITHUB_REPOSITORY}】仓库【${MATRIX_TARGET}】文件夹编译的[${SOURCE}-${TARGET_PROFILE }]固件顺利编译完成了！💐https://github.com/${GITHUB_REPOSITORY}/releases" "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"
+		curl -k --data chat_id="${TELEGRAM_CHAT_ID}" --data "text=我亲爱的✨主人✨：您使用【${GIT_REPOSITORY}】仓库【${MATRIX_TARGET}】文件夹编译的[${SOURCE}-${TARGET_PROFILE }]固件顺利编译完成了！💐https://github.com/${GIT_REPOSITORY}/releases" "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"
 	elif [[ "${NOTICE_TYPE}" == "PUSH" ]]; then
-		curl -k --data token="${PUSH_PLUS_TOKEN}" --data title="[${SOURCE}-${TARGET_PROFILE }]编译成功" --data "content=我亲爱的✨主人✨：您使用【${GITHUB_REPOSITORY}】仓库【${MATRIX_TARGET}】文件夹编译的[${SOURCE}-${TARGET_PROFILE }]固件顺利编译完成了！💐https://github.com/${GITHUB_REPOSITORY}/releases" "http://www.pushplus.plus/send"
+		curl -k --data token="${PUSH_PLUS_TOKEN}" --data title="[${SOURCE}-${TARGET_PROFILE }]编译成功" --data "content=我亲爱的✨主人✨：您使用【${GIT_REPOSITORY}】仓库【${MATRIX_TARGET}】文件夹编译的[${SOURCE}-${TARGET_PROFILE }]固件顺利编译完成了！💐https://github.com/${GIT_REPOSITORY}/releases" "http://www.pushplus.plus/send"
 	fi
 }
 
@@ -581,13 +581,13 @@ function firmware_settings() {
 	fi
 	
 	local firmware_info_file="${FILES_PATH}/etc/openwrt_update"
-	local github_api_origin="${GITHUB_REPO_URL}/releases/download/${RELEASE_TAG}/github_api"
-	local github_api_fastgit="https://download.fastgit.org/${GITHUB_REPOSITORY}/releases/download/${RELEASE_TAG}/github_api"
-	local github_api_ghproxy="https://ghproxy.com/${GITHUB_REPO_URL}/releases/download/${RELEASE_TAG}/github_api"
+	local github_api_origin="${GIT_REPO_URL}/releases/download/${RELEASE_TAG}/github_api"
+	local github_api_fastgit="https://download.fastgit.org/${GIT_REPOSITORY}/releases/download/${RELEASE_TAG}/github_api"
+	local github_api_ghproxy="https://ghproxy.com/${GIT_REPO_URL}/releases/download/${RELEASE_TAG}/github_api"
 	local api_path="/tmp/Downloads/github_api"
-	local release_download_origin="${GITHUB_REPO_URL}/releases/download/${RELEASE_TAG}"
-	local release_download_ghproxy="https://ghproxy.com/${GITHUB_REPO_URL}/releases/download/${RELEASE_TAG}"
-	GITHUB_RELEASE_URL="${GITHUB_REPO_URL}/releases/tag/${RELEASE_TAG}"
+	local release_download_origin="${GIT_REPO_URL}/releases/download/${RELEASE_TAG}"
+	local release_download_ghproxy="https://ghproxy.com/${GIT_REPO_URL}/releases/download/${RELEASE_TAG}"
+	GITHUB_RELEASE_URL="${GIT_REPO_URL}/releases/tag/${RELEASE_TAG}"
 
 	if [[ "${TARGET_PROFILE}" =~ (phicomm_k3|phicomm-k3) ]]; then
 		TARGET_PROFILE_ER="phicomm-k3"
@@ -673,7 +673,7 @@ function firmware_settings() {
 	echo GITHUB_RELEASE_URL="${GITHUB_RELEASE_URL}" >> ${GITHUB_ENV}
 	
 	cat > "${firmware_info_file}" <<-EOF
-	GITHUB_LINK="${GITHUB_REPO_URL}"
+	GITHUB_LINK="${GIT_REPO_URL}"
 	CURRENT_Version="${OPENWRT_VERSION}"
 	SOURCE="${SOURCE}"
 	LUCI_EDITION="${LUCI_EDITION}"
@@ -721,8 +721,8 @@ function compile_info() {
 	__blue_color "内核版本: ${LINUX_KERNEL}"
 	__blue_color "Luci版本: ${LUCI_EDITION}"
 	__blue_color "机型架构: ${TARGET_PROFILE}"
-	__blue_color "固件作者: ${GITHUB_ACTOR}"
-	__blue_color "仓库地址: ${GITHUB_REPO_URL}"
+	__blue_color "固件作者: ${GIT_ACTOR}"
+	__blue_color "仓库地址: ${GIT_REPO_URL}"
 	__blue_color "编译时间: ${COMPILE_DATE_CN}"
 	__blue_color "友情提示：您当前使用【${MATRIX_TARGET}】文件夹编译【${TARGET_PROFILE}】固件"
 	echo
@@ -839,7 +839,7 @@ function update_repo() {
 	[[ -d "${repo_path}" ]] && rm -rf ${repo_path}
 
 	cd ${GITHUB_WORKSPACE}	
-	git clone https://github.com/${GITHUB_REPOSITORY}.git repo
+	git clone https://github.com/${GIT_REPOSITORY}.git repo
 	
 	cd ${repo_path}
 	
@@ -887,7 +887,7 @@ function update_repo() {
 	if [[ "${ENABLE_UPDATE_REPO}" == "true" ]]; then
 		git add .
 		git commit -m "Update plugins, ${CONFIG_FILE} and settings.ini, etc."
-		git push --force "https://${REPO_TOKEN}@github.com/${GITHUB_REPOSITORY}" HEAD:${branch_head}
+		git push --force "https://${REPO_TOKEN}@github.com/${GIT_REPOSITORY}" HEAD:${branch_head}
 		__success_msg "Your branch is now up to the latest."
 	else
 		__info_msg "Your branch is already up to date with origin/${branch_head}. Nothing to commit, working tree clean."
@@ -1203,7 +1203,7 @@ release_info() {
 	sed -i "s#default_password#-" ${RELEASEINFO_MD} > /dev/null 2>&1
 	sed -i "s#release_source#${LUCI_EDITION}-${SOURCE}#" ${RELEASEINFO_MD} > /dev/null 2>&1
 	sed -i "s#release_kernel#${KERNEL_PATCHVER}#" ${RELEASEINFO_MD} > /dev/null 2>&1
-	sed -i "s#repository#${GITHUB_REPOSITORY}" ${RELEASEINFO_MD} > /dev/null 2>&1
+	sed -i "s#repository#${GIT_REPOSITORY}" ${RELEASEINFO_MD} > /dev/null 2>&1
 	sed -i "s#matrixtarget#${MATRIX_TARGET}" ${RELEASEINFO_MD} > /dev/null 2>&1
 
 	cat ${RELEASEINFO_MD}
