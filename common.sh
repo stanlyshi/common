@@ -194,6 +194,7 @@ function parse_settings() {
 	
 	# 日期时间
 	echo COMPILE_DATE="$(date +%Y%m%d%H%M)" >> ${GITHUB_ENV}
+	echo COMPILE_DATE_HMS="$(date +%Y%m%d%H%M%S)" >> ${GITHUB_ENV}
 	echo COMPILE_DATE_CN="$(date +%Y年%m月%d号%H时%M分)" >> ${GITHUB_ENV}
 	echo UPGRADE_DATE="$(date -d "$(date +'%Y-%m-%d %H:%M:%S')" +%s)" >> ${GITHUB_ENV}
 	echo FIRMWARE_DATE="$(date +%m.%d)" >> ${GITHUB_ENV}
@@ -732,7 +733,7 @@ function compile_info() {
 		echo
 		__red_color "LXC固件自动更新："
 		__white_color "1、PVE运行："
-		__cyan_color "pct pull xxx /sbin/openwrt.lxc /usr/sbin/openwrt && chmod -f +x /usr/sbin/openwrt"
+		__cyan_color "pct pull xxx /bin/openwrt.lxc /bin/openwrt && chmod -f +x /bin/openwrt"
 		__cyan_color "注意：将xxx改为个人OpenWrt容器的ID，如100"
 		__white_color "2、PVE运行："
 		__cyan_color "openwrt"
