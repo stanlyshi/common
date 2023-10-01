@@ -206,6 +206,7 @@ function parse_settings() {
 	echo HOME_PATH="${GITHUB_WORKSPACE}/openwrt" >> ${GITHUB_ENV}
 	echo BIN_PATH="${GITHUB_WORKSPACE}/openwrt/bin" >> ${GITHUB_ENV}
 	echo AUTOUPDATE_PATH="${GITHUB_WORKSPACE}/openwrt/bin/autoupdate" >> ${GITHUB_ENV}
+	echo FEEDS_PATH="${GITHUB_WORKSPACE}/openwrt/feeds" >> ${GITHUB_ENV}
 	echo BUILD_PATH="${GITHUB_WORKSPACE}/openwrt/build" >> ${GITHUB_ENV}
 	echo COMMON_PATH="${GITHUB_WORKSPACE}/openwrt/build/common" >> ${GITHUB_ENV}
 	echo MATRIX_TARGET_PATH="${GITHUB_WORKSPACE}/openwrt/build/${MATRIX_TARGET}" >> ${GITHUB_ENV}
@@ -385,8 +386,9 @@ function diy_public() {
 		cp -rf ${COMMON_PATH}/custom/openwrt.lxc.sh ${FILES_PATH}/usr/bin/openwrt.lxc && sudo chmod -f +x ${FILES_PATH}/usr/bin/openwrt.lxc
 	else
 		cp -rf ${COMMON_PATH}/custom/openwrt.sh ${FILES_PATH}/usr/bin/openwrt && sudo chmod -f +x ${FILES_PATH}/usr/bin/openwrt
+		cp -rf ${HOME_PATH}/build/common/custom/tools.sh "${FILES_PATH}/usr/bin/tools" && sudo chmod -f +x "${FILES_PATH}/usr/bin/tools"
 	fi
-	
+
 	__yellow_color "开始替换diy文件夹内文件..."
 	# 替换编译前源码中对应目录文件
 	if [ -n "$(ls -A "${MATRIX_TARGET_PATH}/diy" 2>/dev/null)" ]; then
@@ -480,7 +482,7 @@ function diy_lede() {
 	__info_msg "设置密码为空"
 	sed -i '/CYXluq4wUazHjmCDBCqXF/d' ${ZZZ_PATH}
 	
-	sed -i 's/376D627767D6C4F05105AB6D497B0D9ABA7111770DD9D995225478209C37EA63/376d627767d6c4f05105ab6d497b0d9aba7111770dd9d995225478209c37ea63/' ${HOME_PATH}/packages/net/curl/Makefile > /dev/null 2>&1
+	sed -i 's/376D627767D6C4F05105AB6D497B0D9ABA7111770DD9D995225478209C37EA63/376d627767d6c4f05105ab6d497b0d9aba7111770dd9d995225478209c37ea63/' ${FEEDS_PATH}/packages/net/curl/Makefile > /dev/null 2>&1
 
 	echo
 	echo "--------------common_diy_lede end--------------"
