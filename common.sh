@@ -498,8 +498,6 @@ function diy_lede() {
 
 	__info_msg "设置密码为空"
 	sed -i '/CYXluq4wUazHjmCDBCqXF/d' ${ZZZ_PATH}
-	
-	sed -i 's/376D627767D6C4F05105AB6D497B0D9ABA7111770DD9D995225478209C37EA63/376d627767d6c4f05105ab6d497b0d9aba7111770dd9d995225478209c37ea63/' ${FEEDS_PATH}/packages/net/curl/Makefile > /dev/null 2>&1
 
 	echo
 	echo "--------------common_diy_lede end--------------"
@@ -844,8 +842,8 @@ function update_repo() {
 	cd ${repo_path}
 	
 	# 更新COMPILE_YML文件中的matrix.target设置
-	local compile_yml_target=$(grep 'target: \[' ${GITHUB_WORKSPACE}/.github/workflows/${COMPILE_YML} | sed 's/^[ ]*//g' |grep '^target' |cut -d '#' -f1 |sed 's/\[/\\&/' |sed 's/\]/\\&/') && echo "compile_yml_target=${compile_yml_target}"
-	local build_yml_target=$(grep 'target: \[' ${GITHUB_WORKSPACE}/.github/workflows/${BUILD_YML}  |sed 's/^[ ]*//g' |grep '^target' |cut -d '#' -f1 |sed 's/\[/\\&/' |sed 's/\]/\\&/') && echo "build_yml_target=${build_yml_target}"
+	local compile_yml_target=$(grep 'target: \[' ${repo_path}/.github/workflows/${COMPILE_YML} | sed 's/^[ ]*//g' |grep '^target' |cut -d '#' -f1 |sed 's/\[/\\&/' |sed 's/\]/\\&/') && echo "compile_yml_target=${compile_yml_target}"
+	local build_yml_target=$(grep 'target: \[' ${repo_path}/.github/workflows/${BUILD_YML}  |sed 's/^[ ]*//g' |grep '^target' |cut -d '#' -f1 |sed 's/\[/\\&/' |sed 's/\]/\\&/') && echo "build_yml_target=${build_yml_target}"
 	if [[ -n "${compile_yml_target}" ]] && [[ -n "${build_yml_target}" ]] && [[ "${compile_yml_target}" != "${build_yml_target}" ]]; then
 		ENABLE_UPDATE_REPO="true"
 		sed -i "s/${compile_yml_target}/${build_yml_target}/g" ${repo_path}/.github/workflows/${COMPILE_YML} && echo "change compile target ${compile_yml_target} to ${build_yml_target}"
