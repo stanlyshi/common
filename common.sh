@@ -348,14 +348,16 @@ function update_feeds() {
 	cat feeds.conf.default|awk '!/^#/'|awk '!/^$/'|awk '!a[$1" "$2]++{print}' >uniq.conf
 	mv -f uniq.conf feeds.conf.default
 	if [[ "${SOURCE}" =~ (lede|Lede|LEDE) ]]; then
-		__info_msg "添加lede源码对应插件源"
+		local packages_url="src-git diypackages https://github.com/${PACKAGES_ADDR}.git;master"
+		__info_msg "添加${SOURCE}源码插件源：${packages_url}"
 		cat >> "feeds.conf.default" <<-EOF
-		src-git diypackages https://github.com/${PACKAGES_ADDR}.git;master
+		${packages_url}
 		EOF
 	else
-		__info_msg "添加${SOURCE}源码${PACKAGE_BRANCH}分支packages"
+		local packages_url="src-git diypackages https://github.com/281677160/openwrt-package.git;${PACKAGE_BRANCH}"
+		__info_msg "添加${SOURCE}源码插件源：${packages_url}"
 		cat >> "feeds.conf.default" <<-EOF
-		src-git diypackages https://github.com/281677160/openwrt-package.git;${PACKAGE_BRANCH}
+		${packages_url}
 		EOF
 	fi
 
@@ -741,7 +743,7 @@ function compile_info() {
 		__cyan_color "openwrt"
 		echo
 	else
-		__blue_color "LXC固件：关闭"
+		__default_color "LXC固件：关闭"
 		echo
 		__red_color "自动更新信息"
 		__blue_color "插件版本: ${AutoUpdate_Version}"
