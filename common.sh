@@ -481,6 +481,9 @@ function diy_lede() {
 	sed -i '/CYXluq4wUazHjmCDBCqXF/d' ${ZZZ_PATH}
 	
 	sed -i 's/376D627767D6C4F05105AB6D497B0D9ABA7111770DD9D995225478209C37EA63/376d627767d6c4f05105ab6d497b0d9aba7111770dd9d995225478209c37ea63/' ${HOME_PATH}/packages/net/curl/Makefile
+	
+	sed -i 's/PKG_VERSION:=3.0.11/PKG_VERSION:=3.0.10/' ${HOME_PATH}/package/libs/openssl/Makefile
+	sed -i 's/PKG_HASH:=b3425d3bb4a2218d0697eb41f7fc0cdede016ed19ca49d168b78e8d947887f55/PKG_HASH:=1761d4f5b13a1028b9b6f3d4b8e17feb0cedc9370f6afe61d7193d2cdce83323/' ${HOME_PATH}/package/libs/openssl/Makefile
 
 	echo
 	echo "--------------common_diy_lede end--------------"
