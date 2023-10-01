@@ -304,10 +304,9 @@ function update_packages() {
 ################################################################################################################
 function do_diy() {
 	cd ${HOME_PATH}
-		
+	
 	# 执行公共脚本
 	diy_public
-	
 	
 	# 执行源码库对应的私有脚本
 	if [[ "${SOURCE}" =~ (lede|Lede|LEDE) ]]; then
@@ -320,8 +319,6 @@ function do_diy() {
 	/bin/bash "${MATRIX_TARGET_PATH}/${DIY_PART_SH}"
 	
 	# 安装插件源
-	./scripts/feeds clean
-	./scripts/feeds update -a
 	./scripts/feeds install -a > /dev/null 2>&1
 	
 	# .config相关
@@ -332,7 +329,6 @@ function do_diy() {
 	# 编译机型CPU架构、内核版本等信息，替换内核等
 	firmware_settings
 }
-
 
 ################################################################################################################
 # 各源码库的公共脚本
@@ -378,6 +374,10 @@ function diy_public() {
 		EOF
 	fi
 
+	# 更新插件源
+	./scripts/feeds clean
+	./scripts/feeds update -a
+	
 	__yellow_color "开始添加openwrt.sh(或openwrt.lxc.sh)..."
 	# openwrt.sh
 	[[ ! -d "${FILES_PATH}/usr/bin" ]] && mkdir -p ${FILES_PATH}/usr/bin
