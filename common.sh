@@ -193,11 +193,11 @@ function parse_settings() {
 	echo ENABLE_REPO_UPDATE="false" >> ${GITHUB_ENV}
 	
 	# 日期时间
+	echo COMPILE_DATE_MD="$(date +%m.%d)" >> ${GITHUB_ENV}
 	echo COMPILE_DATE_HM="$(date +%Y%m%d%H%M)" >> ${GITHUB_ENV}
 	echo COMPILE_DATE_HMS="$(date +%Y%m%d%H%M%S)" >> ${GITHUB_ENV}
 	echo COMPILE_DATE_CN="$(date +%Y年%m月%d号%H时%M分)" >> ${GITHUB_ENV}
 	echo COMPILE_DATE_STAMP="$(date -d "$(date +'%Y-%m-%d %H:%M:%S')" +%s)" >> ${GITHUB_ENV}
-	echo FIRMWARE_DATE="$(date +%m.%d)" >> ${GITHUB_ENV}
 	
 	# 路径
 	echo HOME_PATH="${GITHUB_WORKSPACE}/openwrt" >> ${GITHUB_ENV}
@@ -1184,7 +1184,7 @@ function organize_firmware() {
 	fi
 	__info_msg "重命名固件名称"
 	if [[ `ls -1 | grep -c "armvirt"` -eq '0' ]]; then
-		rename -v "s/^openwrt/${FIRMWARE_DATE}-${SOURCE}-${LUCI_EDITION}-${LINUX_KERNEL}/" *
+		rename -v "s/^openwrt/${COMPILE_DATE_MD}-${SOURCE}-${LUCI_EDITION}-${LINUX_KERNEL}/" *
 	fi
 	
 	release_info	
