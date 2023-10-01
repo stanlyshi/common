@@ -1175,7 +1175,7 @@ function organize_firmware() {
 	esac
 
 	__yellow_color "开始准备固件发布文件..."
-	__info_msg " 准备ipk压缩包"
+	__info_msg "准备ipk压缩包"
 	if [[ "${UPLOAD_FIRMWARE}" == "true" || "${UPLOAD_RELEASE}" == "true" ]]; then
 		[[ ! -d ${FIRMWARE_PATH}/ipk ]] && mkdir -p ${FIRMWARE_PATH}/ipk || rm -rf ${FIRMWARE_PATH}/ipk/*
 		cp -rf $(find ${HOME_PATH}/bin/packages/ -type f -name "*.ipk") ipk/ && sync
@@ -1183,7 +1183,7 @@ function organize_firmware() {
 	fi
 	__info_msg "重命名固件名称"
 	if [[ `ls -1 | grep -c "armvirt"` -eq '0' ]]; then
-		rename -v "s/^openwrt/${FIRMWARE_DATE}-${SOURCE}-${LUCI_EDITION}-${LINUX_KERNEL}/" *
+		rename -v "s/^openwrt/${FIRMWARE_DATE}-${SOURCE}-${LUCI_EDITION}-${LINUX_KERNEL}/" *  > /dev/null 2>&1
 	fi
 	
 	release_info	
@@ -1206,7 +1206,7 @@ release_info() {
 	sed -i "s#repository#${GITHUB_REPOSITORY}" ${RELEASEINFO_MD} > /dev/null 2>&1
 	sed -i "s#matrixtarget#${MATRIX_TARGET}" ${RELEASEINFO_MD} > /dev/null 2>&1
 
-	cat ${RELEASEINFO_MD} > /dev/null 2>&1
+	cat ${RELEASEINFO_MD}
 }
 
 ################################################################################################################
