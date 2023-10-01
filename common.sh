@@ -1133,7 +1133,7 @@ function organize_firmware() {
 				cp -rf ${firmware_rootfs_img} ${AUTOUPDATE_PATH}/${AutoBuild_Rootfs}-${rootfs_img_md5}${Firmware_SFX}
 				__info_msg "copy ${firmware_rootfs_img} to ${AUTOUPDATE_PATH}/${AutoBuild_Rootfs}-${rootfs_img_md5}${Firmware_SFX}"
 			}
-			local firmware_rootfs_tar="$(ls -1 |grep -Eo ".*squashfs.*rootfs.*tar.gz")"
+			local firmware_rootfs_tar="$(ls -1 |grep -Eo ".*rootfs.*tar.gz")"
 			[[ -f ${firmware_rootfs_tar} ]] && {
 				local rootfs_tar_md5="$(md5sum ${firmware_rootfs_tar} |cut -c1-3)$(sha256sum ${firmware_rootfs_tar} |cut -c1-3)"
 				cp -rf ${firmware_rootfs_tar} ${AUTOUPDATE_PATH}/${AutoBuild_Rootfs}-${rootfs_tar_md5}${Rootfs_SFX}
