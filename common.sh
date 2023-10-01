@@ -1178,12 +1178,12 @@ function organize_firmware() {
 	__info_msg "准备ipk压缩包"
 	if [[ "${UPLOAD_FIRMWARE}" == "true" || "${UPLOAD_RELEASE}" == "true" ]]; then
 		[[ ! -d ${FIRMWARE_PATH}/ipk ]] && mkdir -p ${FIRMWARE_PATH}/ipk || rm -rf ${FIRMWARE_PATH}/ipk/*
-		cp -rf $(find ${HOME_PATH}/bin/packages/ -type f -name "*.ipk") ipk/ && sync
+		cp -rf $(find ${HOME_PATH}/bin/packages/ -type f -name "*.ipk") ${FIRMWARE_PATH}/ipk/ && sync
 		sudo tar -czf ipk.tar.gz ipk && sync && sudo rm -rf ipk
 	fi
 	__info_msg "重命名固件名称"
 	if [[ `ls -1 | grep -c "armvirt"` -eq '0' ]]; then
-		rename -v "s/^openwrt/${FIRMWARE_DATE}-${SOURCE}-${LUCI_EDITION}-${LINUX_KERNEL}/" *  > /dev/null 2>&1
+		rename -v "s/^openwrt/${FIRMWARE_DATE}-${SOURCE}-${LUCI_EDITION}-${LINUX_KERNEL}/" *
 	fi
 	
 	release_info	
