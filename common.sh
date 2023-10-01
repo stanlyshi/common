@@ -305,6 +305,9 @@ function update_packages() {
 ################################################################################################################
 function do_diy() {
 	cd ${HOME_PATH}
+
+	# 添加添加源
+	update_feeds
 	
 	# 执行公共脚本
 	diy_public
@@ -334,32 +337,10 @@ function do_diy() {
 }
 
 ################################################################################################################
-# 各源码库的公共脚本(文件检测、添加插件源、diy、files、patch等，以及Openwrt编译完成后的首次运行设置)
+# 插件源
 ################################################################################################################
-function diy_public() {
-	echo "--------------common_diy_public start--------------"
-	echo
-	cd ${HOME_PATH}
-
-	__yellow_color "开始检测文件是否存在..."
-	# 检查.config文件是否存在
-	if [ -z "$(ls -A "${CONFIG_PATH}/${CONFIG_FILE}" 2>/dev/null)" ]; then
-		__error_msg "编译脚本的[${MATRIX_TARGET}配置文件夹内缺少${CONFIG_FILE}文件],请在[${MATRIX_TARGET}/config/]文件夹内补齐"
-		echo
-		exit 1
-	else
-		__info_msg "[${MATRIX_TARGET}/config/${CONFIG_FILE}] OK."
-	fi
-	
-	# 检查diy_part.sh文件是否存在
-	if [ -z "$(ls -A "${MATRIX_TARGET_PATH}/${DIY_PART_SH}" 2>/dev/null)" ]; then
-		__error_msg "编译脚本的[${MATRIX_TARGET}文件夹内缺少${DIY_PART_SH}文件],请在[${MATRIX_TARGET}]文件夹内补齐"
-		echo
-		exit 1
-	else
-		__info_msg "[${MATRIX_TARGET}/${DIY_PART_SH}] OK."
-	fi
-	
+function update_feeds() {
+	echo "--------------update_feeds start--------------"
 	__yellow_color "开始添加插件源..."
 	# 添加插件源
 	sed -i '/roacn/d; /stanlyshi/d; /281677160/d; /helloworld/d; /passwall/d; /OpenClash/d' "feeds.conf.default"
@@ -391,6 +372,34 @@ function diy_public() {
 		cp -rf ${COMMON_PATH}/custom/openwrt.sh ${FILES_PATH}/usr/bin/openwrt && sudo chmod -f +x ${FILES_PATH}/usr/bin/openwrt
 		cp -rf ${HOME_PATH}/build/common/custom/tools.sh "${FILES_PATH}/usr/bin/tools" && sudo chmod -f +x "${FILES_PATH}/usr/bin/tools"
 	fi
+	echo "--------------update_feeds end--------------"
+}
+################################################################################################################
+# 各源码库的公共脚本(文件检测、添加插件源、diy、files、patch等，以及Openwrt编译完成后的首次运行设置)
+################################################################################################################
+function diy_public() {
+	echo "--------------common_diy_public start--------------"
+	echo
+	cd ${HOME_PATH}
+
+	__yellow_color "开始检测文件是否存在..."
+	# 检查.config文件是否存在
+	if [ -z "$(ls -A "${CONFIG_PATH}/${CONFIG_FILE}" 2>/dev/null)" ]; then
+		__error_msg "编译脚本的[${MATRIX_TARGET}配置文件夹内缺少${CONFIG_FILE}文件],请在[${MATRIX_TARGET}/config/]文件夹内补齐"
+		echo
+		exit 1
+	else
+		__info_msg "[${MATRIX_TARGET}/config/${CONFIG_FILE}] OK."
+	fi
+	
+	# 检查diy_part.sh文件是否存在
+	if [ -z "$(ls -A "${MATRIX_TARGET_PATH}/${DIY_PART_SH}" 2>/dev/null)" ]; then
+		__error_msg "编译脚本的[${MATRIX_TARGET}文件夹内缺少${DIY_PART_SH}文件],请在[${MATRIX_TARGET}]文件夹内补齐"
+		echo
+		exit 1
+	else
+		__info_msg "[${MATRIX_TARGET}/${DIY_PART_SH}] OK."
+	fi
 
 	__yellow_color "开始替换diy文件夹内文件..."
 	# 替换编译前源码中对应目录文件
@@ -418,6 +427,7 @@ function diy_public() {
 		if [[ -n "$(grep "luci-app-autoupdate" ${HOME_PATH}/include/target.mk)" ]]; then
 			sed -i 's?luci-app-autoupdate??g' ${HOME_PATH}/include/target.mk
 		fi
+		__info_msg "lxc固件，删除自动更新插件"
 	else
 		find . -type d -name 'luci-app-autoupdate' | xargs -i rm -rf {}
 		git clone -b main https://github.com/stanlyshi/luci-app-autoupdate ${HOME_PATH}/package/luci-app-autoupdate 2>/dev/null
@@ -470,7 +480,7 @@ function diy_public() {
 	exit 0
 	' >> ${FILE_DEFAULT_SETTINGS}
 	
-	echo
+	__info_msg "OK."
 	echo "--------------common_diy_public end--------------"
 }
 
@@ -512,6 +522,7 @@ function diy_openwrt() {
 # 编译机型CPU架构、内核版本、固件信息等（依赖于make defconfig，须在生成.config之后）
 ################################################################################################################
 function firmware_settings() {
+	echo "--------------firmware_settings start--------------"
 	# 如未运行过 make menuconfig，需要运行下一行命令
 	# make defconfig > /dev/null 2>&1
 	
@@ -682,6 +693,7 @@ function firmware_settings() {
 
 	cat ${HOME_PATH}/build/common/autoupdate/replace >> ${firmware_info_file}
 	sudo chmod +x ${firmware_info_file}
+	echo "--------------firmware_settings end--------------"
 }
 
 ################################################################################################################
