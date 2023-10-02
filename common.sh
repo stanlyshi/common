@@ -169,10 +169,6 @@ function parse_settings() {
 	;;
 	esac
 	
-	local clear_file="default_clear"
-	local delete_file="default_delete"
-	local releaseinfo_file="releaseinfo.md"
-	
 	# 下拉列表选项
 	echo SOURCE_BRANCH="${SOURCE_BRANCH}" >> ${GITHUB_ENV}
 	echo CONFIG_FILE="${CONFIG_FILE}" >> ${GITHUB_ENV}
@@ -216,18 +212,17 @@ function parse_settings() {
 	
 	# 文件
 	echo DIFFCONFIG_TXT="${GITHUB_WORKSPACE}/diffconfig.txt" >> ${GITHUB_ENV}
-	echo RELEASEINFO_MD="${GITHUB_WORKSPACE}/openwrt/build/${MATRIX_TARGET}/${releaseinfo_file}" >> ${GITHUB_ENV}
+	echo RELEASEINFO_MD="${GITHUB_WORKSPACE}/openwrt/build/${MATRIX_TARGET}/releaseinfo.md" >> ${GITHUB_ENV}
 	echo SETTINGS_INI="${GITHUB_WORKSPACE}/openwrt/build/${MATRIX_TARGET}/settings.ini" >> ${GITHUB_ENV}
-	echo FILES_TO_CLEAR="${GITHUB_WORKSPACE}/openwrt/${clear_file}" >> ${GITHUB_ENV}
-	echo FILES_TO_DELETE="${GITHUB_WORKSPACE}/openwrt/package/base-files/files/etc/${delete_file}" >> ${GITHUB_ENV}
-	echo FILES_TO_DELETE_FIRMWARE="/etc/${delete_file}" >> ${GITHUB_ENV}
+	echo FILES_TO_CLEAR="${GITHUB_WORKSPACE}/openwrt/default_clear" >> ${GITHUB_ENV}
+
 	# https://github.com/coolsnowwolf/lede/tree/master/package/base-files/files
 	echo FILES_PATH="${GITHUB_WORKSPACE}/openwrt/package/base-files/files" >> ${GITHUB_ENV}
-	echo FILE_BASE_FILES="${GITHUB_WORKSPACE}/openwrt/package/base-files/files/lib/upgrade/keep.d/base-files-essential" >> ${GITHUB_ENV}
-	echo FILE_DEFAULT_UCI="${GITHUB_WORKSPACE}/openwrt/package/base-files/files/etc/default_uci" >> ${GITHUB_ENV}
-	echo FILE_DEFAULT_SETTINGS="${GITHUB_WORKSPACE}/openwrt/package/base-files/files/etc/default_settings" >> ${GITHUB_ENV}
-	echo FILE_OPENWRT_RELEASE="${GITHUB_WORKSPACE}/openwrt/package/base-files/files/etc/openwrt_release" >> ${GITHUB_ENV}
-	echo FILE_CONFIG_GEN="${GITHUB_WORKSPACE}/openwrt/package/base-files/files/bin/config_generate" >> ${GITHUB_ENV}
+	echo FILENAME_DEFAULT_UCI="default_uci" >> ${GITHUB_ENV}
+	echo FILENAME_DEFAULT_SETTINGS="default_settings" >> ${GITHUB_ENV}
+	echo FILENAME_DEFAULT_RUNONCE="default_settings_runonce" >> ${GITHUB_ENV}
+	echo FILENAME_CONFIG_GEN="config_generate" >> ${GITHUB_ENV}
+	echo FILENAME_TO_DELETE="default_delete" >> ${GITHUB_ENV}
 	
 }
 
@@ -374,15 +369,6 @@ function update_feeds() {
 	./scripts/feeds update -a > /dev/null 2>&1 && __info_msg "OK."	
 	rm -rf ${FEEDS_PATH}/${packages}/{LICENSE,.*README*,.*readme*,.diy,.github,.gitignore} > /dev/null 2>&1
 	
-	__yellow_color "开始添加openwrt.sh(或openwrt.lxc.sh)..."
-	# openwrt.sh
-	[[ ! -d "${FILES_PATH}/usr/bin" ]] && mkdir -p ${FILES_PATH}/usr/bin
-	if [[ "${FIRMWARE_TYPE}" == "lxc" ]]; then
-		cp -rf ${COMMON_PATH}/custom/openwrt.lxc.sh ${FILES_PATH}/usr/bin/openwrt.lxc && sudo chmod -f +x ${FILES_PATH}/usr/bin/openwrt.lxc
-	else
-		cp -rf ${COMMON_PATH}/custom/openwrt.sh ${FILES_PATH}/usr/bin/openwrt && sudo chmod -f +x ${FILES_PATH}/usr/bin/openwrt
-		cp -rf ${COMMON_PATH}/custom/tools.sh "${FILES_PATH}/usr/bin/tools" && sudo chmod -f +x "${FILES_PATH}/usr/bin/tools"
-	fi
 	echo "--------------update_feeds end--------------"
 }
 ################################################################################################################
@@ -433,6 +419,16 @@ function diy_public() {
 		find "${MATRIX_TARGET_PATH}/patches" -type f -name '*.patch' -print0 | sort -z | xargs -I % -t -0 -n 1 sh -c "cat '%'  | patch -d './' -p1 --forward --no-backup-if-mismatch"
 	fi
 	
+	__yellow_color "开始添加openwrt.sh(或openwrt.lxc.sh)..."
+	# openwrt.sh
+	[[ ! -d "${FILES_PATH}/usr/bin" ]] && mkdir -p ${FILES_PATH}/usr/bin
+	if [[ "${FIRMWARE_TYPE}" == "lxc" ]]; then
+		cp -rf ${COMMON_PATH}/custom/openwrt.lxc.sh ${FILES_PATH}/usr/bin/openwrt.lxc && sudo chmod -f +x ${FILES_PATH}/usr/bin/openwrt.lxc
+	else
+		cp -rf ${COMMON_PATH}/custom/openwrt.sh ${FILES_PATH}/usr/bin/openwrt && sudo chmod -f +x ${FILES_PATH}/usr/bin/openwrt
+		cp -rf ${COMMON_PATH}/custom/tools.sh "${FILES_PATH}/usr/bin/tools" && sudo chmod -f +x "${FILES_PATH}/usr/bin/tools"
+	fi
+	
 	__yellow_color "开始设置自动更新插件..."
 	# 自动更新插件（luci-app-autoupdate）
 	if [[ "${FIRMWARE_TYPE}" == "lxc" ]]; then
@@ -460,7 +456,7 @@ function diy_public() {
 		fi
 	fi
 
-	# "开始设置自动更新插件..."
+	# "默认设置文件..."
 	# https://github.com/coolsnowwolf/lede/blob/master/package/lean/default-settings/files/zzz-default-settings
 	export ZZZ_PATH="$(find "${HOME_PATH}/package" -type f -name "*-default-settings" |grep files)"
 	if [[ -n "${ZZZ_PATH}" ]]; then  
@@ -469,10 +465,10 @@ function diy_public() {
 	
 	__yellow_color "开始修改IP设置..."
 	# 修改源码中IP设置
-	local def_ipaddress="$(grep "ipaddr:-" "${FILE_CONFIG_GEN}" | grep -v 'addr_offset' | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+")"
+	local def_ipaddress="$(grep "ipaddr:-" "${FILES_PATH}/bin/${FILENAME_CONFIG_GEN}" | grep -v 'addr_offset' | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+")"
 	local new_ipaddress="$(grep "network.lan.ipaddr" ${MATRIX_TARGET_PATH}/${DIY_PART_SH} | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+")"
 	if [[ -n "${new_ipaddress}" ]]; then
-		sed -i "s/${def_ipaddress}/${new_ipaddress}/g" ${FILE_CONFIG_GEN}
+		sed -i "s/${def_ipaddress}/${new_ipaddress}/g" ${FILES_PATH}/bin/${FILENAME_CONFIG_GEN}
 		__info_msg "IP地址从[${def_ipaddress}]替换为[${new_ipaddress}]"
 	else
 		__info_msg "使用默认IP地址：${def_ipaddress}"
@@ -480,24 +476,24 @@ function diy_public() {
 	
 	__yellow_color "开始执行其它设置..."
 	# default_uci文件，UCI基础设置
-	echo '#!/bin/sh' > "${FILE_DEFAULT_UCI}"
-	sudo chmod -f +x "${FILE_DEFAULT_UCI}"
+	echo '#!/bin/sh' > "${FILES_PATH}/etc/${FILENAME_DEFAULT_UCI}"
+	sudo chmod -f +x "${FILES_PATH}/etc/${FILENAME_DEFAULT_UCI}"
 	
 	# default_delete文件，Openwrt固件升级时需要删除的文件
-	echo '#!/bin/sh' > "${FILES_TO_DELETE}"
-	sudo chmod -f +x "${FILES_TO_DELETE}"
+	echo '#!/bin/sh' > "${FILES_PATH}/etc/${FILENAME_TO_DELETE}"
+	sudo chmod -f +x "${FILES_PATH}/etc/${FILENAME_TO_DELETE}"
 	
 	# Openwrt初次运行初始化设置
-	cp -rf ${COMMON_PATH}/custom/default_settings_runonce ${FILES_PATH}/etc/init.d/default_settings_runonce
-	cp -rf ${COMMON_PATH}/custom/default_settings ${FILE_DEFAULT_SETTINGS}
-	sudo chmod -f +x ${FILE_DEFAULT_SETTINGS}	
-	echo '
-	rm -rf /etc/init.d/default_settings_runonce
-	rm -rf /etc/default_settings
-	rm -rf /etc/default_uci
-	rm -rf /etc/default_delete
+	cp -rf ${COMMON_PATH}/custom/${FILENAME_DEFAULT_RUNONCE} ${FILES_PATH}/etc/init.d/${FILENAME_DEFAULT_RUNONCE}
+	cp -rf ${COMMON_PATH}/custom/default_settings ${FILES_PATH}/etc/${FILENAME_DEFAULT_SETTINGS}
+	sudo chmod -f +x ${FILES_PATH}/etc/${FILENAME_DEFAULT_SETTINGS}	
+	echo "
+	rm -rf /etc/init.d/${FILENAME_DEFAULT_RUNONCE}
+	rm -rf /etc/${FILENAME_DEFAULT_UCI}
+	rm -rf /etc/${FILENAME_TO_DELETE}
+	rm -rf /etc/${FILENAME_DEFAULT_SETTINGS}
 	exit 0
-	' >> ${FILE_DEFAULT_SETTINGS}
+	" >> ${FILES_PATH}/etc/${FILENAME_DEFAULT_SETTINGS}
 	
 	__info_msg "OK."
 	echo "--------------common_diy_public end--------------"
@@ -652,6 +648,15 @@ function firmware_settings() {
 	;;
 	esac
 
+
+
+CONFIG_TARGET_ROOTFS_TARGZ=y
+
+
+
+
+
+
 	# release标签
 	if [[ "${FIRMWARE_TYPE}" == "lxc" ]]; then
 		RELEASE_TAG="AutoUpdate-${TARGET_BOARD}-lxc"
@@ -661,6 +666,10 @@ function firmware_settings() {
 	# release地址
 	GITHUB_RELEASE_URL="${GITHUB_REPOSITORY_URL}/releases/tag/${RELEASE_TAG}"
 	GITHUB_RELEASE_DOWNLOAD_URL="${GITHUB_REPOSITORY_URL}/releases/download/${RELEASE_TAG}"
+
+
+
+
 
 	echo FIRMWARE_NAME="${FIRMWARE_NAME}" >> ${GITHUB_ENV}
 	echo TARGET_BOARD="${TARGET_BOARD}" >> ${GITHUB_ENV}
@@ -714,7 +723,7 @@ function firmware_settings() {
 	FIRMWARE_NAME_PREFIX="${FIRMWARE_NAME_PREFIX}"
 	# luci-app-autoupdate version
 	AUTOUPDATE_VERSION="${AUTOUPDATE_VERSION}"
-	FILES_TO_DELETE="${FILES_TO_DELETE_FIRMWARE}"
+	FILES_TO_DELETE="/etc/${FILENAME_TO_DELETE}"
 	EOF
 
 	cat ${COMMON_PATH}/autoupdate/replace >> ${file_openwrt_autoupdate}
