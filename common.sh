@@ -677,18 +677,20 @@ function firmware_settings() {
 	__yellow_color "开始设置自动更新固件相关信息..."
 	local file_openwrt_autoupdate="${FILES_PATH}/etc/openwrt_autoupdate"
 	local github_api_origin="${GITHUB_REPOSITORY_URL}/releases/download/${RELEASE_TAG}/${GITHUB_API}"
-	local github_api_fastgit="https://download.fastgit.org/${GITHUB_REPOSITORY}/releases/download/${RELEASE_TAG}/${GITHUB_API}"
 	local github_api_ghproxy="https://ghproxy.com/${GITHUB_REPOSITORY_URL}/releases/download/${RELEASE_TAG}/${GITHUB_API}"
+	local github_api_fastgit="https://download.fastgit.org/${GITHUB_REPOSITORY}/releases/download/${RELEASE_TAG}/${GITHUB_API}"
 	local release_download_origin="${GITHUB_REPOSITORY_URL}/releases/download/${RELEASE_TAG}"
 	local release_download_ghproxy="https://ghproxy.com/${GITHUB_REPOSITORY_URL}/releases/download/${RELEASE_TAG}"
 	cat > "${file_openwrt_autoupdate}" <<-EOF
 	GITHUB_REPOSITORY="${GITHUB_REPOSITORY}"
 	GITHUB_REPOSITORY_URL="https://github.com/${GITHUB_REPOSITORY}"
 	GITHUB_RELEASE_URL="${GITHUB_RELEASE_URL}"
+	GITHUB_RELEASE_DOWNLOAD_URL="${GITHUB_RELEASE_DOWNLOAD_URL}"
 	GITHUB_TAG="${RELEASE_TAG}"
 	GITHUB_API=${GITHUB_API}
-	GITHUB_API_URL1="${github_api_fastgit}"
-	GITHUB_API_URL2="${github_api_ghproxy}"
+	GITHUB_API_URL_ORIGIN="${github_api_origin}"
+	GITHUB_API_URL_FASTGIT="${github_api_fastgit}"
+	GITHUB_API_URL_GHPROXY="${github_api_ghproxy}"
 	FRIMWARE_URL_ORIGIN="${release_download_origin}"
 	FRIMWARE_URL_GHPROXY="${release_download_ghproxy}"
 	# lede
