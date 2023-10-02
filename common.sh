@@ -755,7 +755,7 @@ function compile_info() {
 	if [[ "${FIRMWARE_TYPE}" == "lxc" ]]; then
 		__blue_color "LXC固件：开启"
 		echo
-		__red_color "LXC固件自动更新："
+		__red_color "LXC固件自动更新"
 		__white_color "1、PVE运行："
 		__cyan_color "pct pull xxx /bin/openwrt.lxc /bin/openwrt && chmod -f +x /bin/openwrt"
 		__cyan_color "注意：将xxx改为个人OpenWrt容器的ID，如100"
