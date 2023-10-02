@@ -452,6 +452,12 @@ function diy_public() {
 		else
 			__error_msg "插件源码下载失败"
 		fi
+		# autoupdate插件版本
+		if [[ -f "${HOME_PATH}/package/luci-app-autoupdate/root/usr/bin/autoupdate" ]]; then
+			AUTOUPDATE_VERSION=$(grep -Eo "Version=V[0-9.]+" "${HOME_PATH}/package/luci-app-autoupdate/root/usr/bin/autoupdate" |grep -Eo [0-9.]+)
+			echo AUTOUPDATE_VERSION="${AUTOUPDATE_VERSION}" >> ${GITHUB_ENV}
+			__info_msg "luci-app-autoupdate版本：${AUTOUPDATE_VERSION}"
+		fi
 	fi
 
 	# "开始设置自动更新插件..."
@@ -604,7 +610,7 @@ function firmware_settings() {
 	__info_msg "固件保存路径：${FIRMWARE_PATH}"
 	# 固件版本 如：lede-x86-64-202310011001
 	FIRMWARE_VERSION="${SOURCE}-${TARGET_PROFILE}-${COMPILE_DATE_HM}"
-	# 固件名称前缀 如：18.06-lede-x86-64
+	# 固件名称前缀 如：18.06-lede-x86-64，方便自动更新固件搜寻可更新固件
 	FIRMWARE_NAME_PREFIX="${LUCI_EDITION}-${SOURCE}-${TARGET_PROFILE}"
 	# 固件名称（简写，x86区分legacy、uefi）如：18.06-lede-x86-64-202310101010	
 	FIRMWARE_NAME="${FIRMWARE_NAME_PREFIX}-${COMPILE_DATE_HM}"
@@ -614,11 +620,11 @@ function firmware_settings() {
 		ROOTFS_EXT=".tar.gz"
 		FIRMWARE_EXT=".img.gz"		
 		# 18.06-lede-x86-64-1695553941-legacy
-		FIRMWARE_NAME_LEGACY="${FIRMWARE_NAME}-legacy"
+		# FIRMWARE_NAME_LEGACY="${FIRMWARE_NAME}-legacy"
 		# 18.06-lede-x86-64-1695553941-uefi
-		FIRMWARE_NAME_UEFI="${FIRMWARE_NAME}-uefi"
+		# FIRMWARE_NAME_UEFI="${FIRMWARE_NAME}-uefi"
 		# 18.06-lede-x86-64-1695647548-rootfs
-		FIRMWARE_NAME_ROOTFS="${FIRMWARE_NAME}-rootfs"
+		# FIRMWARE_NAME_ROOTFS="${FIRMWARE_NAME}-rootfs"
 		echo ROOTFS_EXT="${ROOTFS_EXT}" >> ${GITHUB_ENV}
 	;;
 	ramips | reltek | ath* | ipq* | bcm47xx | bmips | kirkwood | mediatek)
@@ -646,10 +652,6 @@ function firmware_settings() {
 	;;
 	esac
 
-	# autoupdate插件版本
-	if [[ -f "${HOME_PATH}/package/luci-app-autoupdate/root/usr/bin/autoupdate" ]]; then
-		AUTOUPDATE_VERSION=$(grep -Eo "Version=V[0-9.]+" "${HOME_PATH}/package/luci-app-autoupdate/root/usr/bin/autoupdate" |grep -Eo [0-9.]+)
-	fi
 	# release标签
 	if [[ "${FIRMWARE_TYPE}" == "lxc" ]]; then
 		RELEASE_TAG="AutoUpdate-${TARGET_BOARD}-lxc"
@@ -669,7 +671,6 @@ function firmware_settings() {
 	echo LINUX_KERNEL="${LINUX_KERNEL}" >> ${GITHUB_ENV}
 	echo FIRMWARE_EXT="${FIRMWARE_EXT}" >> ${GITHUB_ENV}
 	echo RELEASE_TAG="${RELEASE_TAG}" >> ${GITHUB_ENV}
-	echo AUTOUPDATE_VERSION="${AUTOUPDATE_VERSION}" >> ${GITHUB_ENV}
 	echo GITHUB_RELEASE_URL="${GITHUB_RELEASE_URL}" >> ${GITHUB_ENV}
 	echo FIRMWARE_VERSION="${FIRMWARE_VERSION}" >> ${GITHUB_ENV}
 	
@@ -696,7 +697,7 @@ function firmware_settings() {
 	# lede
 	SOURCE="${SOURCE}"
 	# x86-64
-	TARGET_PROFILE="TARGET_PROFILE"
+	TARGET_PROFILE="${TARGET_PROFILE}"
 	# x86
 	TARGET_BOARD="${TARGET_BOARD}"
 	# 64
