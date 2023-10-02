@@ -839,7 +839,8 @@ function compile_info() {
 		echo
 	fi
 	
-	if [[ -f ${CONFLICTIONS} ]]; then
+	if [[ -s ${CONFLICTIONS} ]]; then
+		__red_color "插件冲突信息"
 		cat ${CONFLICTIONS}
 		rm -rf ${CONFLICTIONS} > /dev/null 2>&1
 	fi
@@ -932,7 +933,6 @@ function resolve_conflictions() {
 	
 	make defconfig > /dev/null 2>&1
 	rm -rf ${CONFLICTIONS} && touch ${CONFLICTIONS}
-	echo "__red_color \"插件冲突信息\"" > ${CONFLICTIONS}
 	
 	# lxc模式下编译.tar.gz固件
 	if [[ "${FIRMWARE_TYPE}" == "lxc" ]]; then
