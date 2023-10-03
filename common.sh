@@ -452,7 +452,7 @@ function diy_public() {
 			sed -i 's?DEFAULT_PACKAGES:=?DEFAULT_PACKAGES:=luci-app-autoupdate luci-app-ttyd ?g' ${HOME_PATH}/include/target.mk
 		fi
 		if [[ -d "${HOME_PATH}/package/luci-app-autoupdate" ]]; then
-			__success_msg "增加定时更新固件的插件成功"
+			__info_msg "增加定时更新固件的插件成功"
 		else
 			__error_msg "插件源码下载失败"
 		fi
