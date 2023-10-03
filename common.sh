@@ -343,8 +343,10 @@ function do_diy() {
 ################################################################################################################
 function update_feeds() {
 	echo "--------------update_feeds start--------------"
-	__yellow_color "开始添加插件源..."
+	cd ${HOME_PATH}
+	
 	# 添加插件源
+	__yellow_color "开始添加插件源..."
 	sed -i '/roacn/d; /stanlyshi/d; /281677160/d; /helloworld/d; /passwall/d; /OpenClash/d' "feeds.conf.default"
 	cat feeds.conf.default|awk '!/^#/'|awk '!/^$/'|awk '!a[$1" "$2]++{print}' >uniq.conf
 	mv -f uniq.conf feeds.conf.default
@@ -376,7 +378,6 @@ function update_feeds() {
 ################################################################################################################
 function diy_public() {
 	echo "--------------common_diy_public start--------------"
-	echo
 	cd ${HOME_PATH}
 
 	__yellow_color "开始检测文件是否存在..."
@@ -504,7 +505,6 @@ function diy_public() {
 ################################################################################################################
 function diy_lede() {
 	echo "--------------common_diy_lede start--------------"
-	echo
 	cd ${HOME_PATH}
 	
 
@@ -536,6 +536,8 @@ function diy_openwrt() {
 ################################################################################################################
 function firmware_settings() {
 	echo "--------------firmware_settings start--------------"
+	cd ${HOME_PATH}
+	
 	# 如未运行过 make menuconfig，需要运行下一行命令
 	# make defconfig > /dev/null 2>&1
 	
