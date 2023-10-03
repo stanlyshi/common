@@ -346,6 +346,8 @@ function do_diy() {
 ################################################################################################################
 function update_feeds() {
 	echo "--------------update_feeds start--------------"
+	echo
+	
 	cd ${HOME_PATH}
 	
 	# 添加插件源
@@ -381,6 +383,7 @@ function update_feeds() {
 	./scripts/feeds update -a > /dev/null 2>&1 && __info_msg "OK."	
 	rm -rf ${FEEDS_PATH}/${packages}/{LICENSE,*README*,*readme*,.diy,.github,.gitignore} > /dev/null 2>&1
 	
+	echo
 	echo "--------------update_feeds end--------------"
 }
 ################################################################################################################
@@ -388,6 +391,8 @@ function update_feeds() {
 ################################################################################################################
 function diy_public() {
 	echo "--------------common_diy_public start--------------"
+	echo
+	
 	cd ${HOME_PATH}
 
 	__yellow_color "开始检测文件是否存在..."
@@ -507,6 +512,8 @@ function diy_public() {
 	" >> ${FILES_PATH}/etc/${FILENAME_DEFAULT_SETTINGS}
 	
 	__info_msg "OK."
+	
+	echo
 	echo "--------------common_diy_public end--------------"
 }
 
@@ -515,6 +522,8 @@ function diy_public() {
 ################################################################################################################
 function diy_lede() {
 	echo "--------------common_diy_lede start--------------"
+	echo
+	
 	cd ${HOME_PATH}
 	
 
@@ -534,9 +543,11 @@ function diy_lede() {
 function diy_openwrt() {
 	echo "--------------common_diy_openwrt start--------------"
 	echo
+	
 	cd ${HOME_PATH}
 
 	echo "reserved for test."
+	
 	echo
 	echo "--------------common_diy_openwrt end--------------"
 }
@@ -546,6 +557,8 @@ function diy_openwrt() {
 ################################################################################################################
 function firmware_settings() {
 	echo "--------------firmware_settings start--------------"
+	echo
+	
 	cd ${HOME_PATH}
 	
 	# 如未运行过 make menuconfig，需要运行下一行命令
@@ -728,6 +741,8 @@ function firmware_settings() {
 	cat ${COMMON_PATH}/autoupdate/replace >> ${file_openwrt_autoupdate}
 	sudo chmod +x ${file_openwrt_autoupdate}
 	cat ${file_openwrt_autoupdate}
+	
+	echo
 	echo "--------------firmware_settings end--------------"
 }
 
@@ -1241,7 +1256,7 @@ function organize_firmware() {
 ################################################################################################################
 # 准备发布固件页面信息显示
 ################################################################################################################
-release_info() {
+function release_info() {
 	cd ${MATRIX_TARGET_PATH}
 	__yellow_color "开始准备固件发布信息..."
 	local diy_part_ipaddr=`awk '{print $3}' ${MATRIX_TARGET_PATH}/$DIY_PART_SH | awk -F= '$1 == "network.lan.ipaddr" {print $2}' | sed "s/'//g" 2>/dev/null`
@@ -1268,7 +1283,7 @@ release_info() {
 # 解锁固件分区：Bootloader、Bdata、factory、reserved0，ramips系列路由器专用
 ################################################################################################################
 function unlock_bootloader() {
-echo " target/linux/${TARGET_BOARD}/dts/${TARGET_SUBTARGET}_${TARGET_PROFILE}.dts"
+echo "target/linux/${TARGET_BOARD}/dts/${TARGET_SUBTARGET}_${TARGET_PROFILE}.dts"
 if [[ ${TARGET_BOARD} == "ramips" ]]; then
 	sed -i "/read-only;/d" target/linux/${TARGET_BOARD}/dts/${TARGET_SUBTARGET}_${TARGET_PROFILE}.dts
 	if [[ `grep -c "read-only;" target/linux/${TARGET_BOARD}/dts/${TARGET_SUBTARGET}_${TARGET_PROFILE}.dts` -eq '0' ]]; then
