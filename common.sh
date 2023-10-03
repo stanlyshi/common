@@ -1251,6 +1251,12 @@ release_info() {
 	sed -i "s#release_kernel#${LINUX_KERNEL}#" ${RELEASEINFO_MD} > /dev/null 2>&1
 	sed -i "s#repository#${GITHUB_REPOSITORY}#" ${RELEASEINFO_MD} > /dev/null 2>&1
 	sed -i "s#matrixtarget#${MATRIX_TARGET}#" ${RELEASEINFO_MD} > /dev/null 2>&1
+	
+	if [[ "${FIRMWARE_TYPE}" == "lxc" ]]; then
+		cat >> ${RELEASEINFO_MD} <<-EOF		
+		注：「pve lxc容器专用」
+		EOF
+	fi
 
 	cat ${RELEASEINFO_MD}
 }
