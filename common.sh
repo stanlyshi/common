@@ -35,6 +35,7 @@ function __warning_msg() {
 function __info_msg() {
 	echo -e "${CYAN_COLOR}[INFO]${DEFAULT_COLOR} $*"
 }
+
 function __default_color() {
 	echo -e "${DEFAULT_COLOR} $*"
 }
