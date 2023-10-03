@@ -356,6 +356,10 @@ function update_feeds() {
 	cat >> "feeds.conf.default" <<-EOF
 	${packages_url}
 	EOF
+	cat >> "feeds.conf.default" <<-EOF
+	src-git ${packages} https://github.com/281677160/openwrt-package.git;helloworld
+	src-git ${packages} https://github.com/281677160/openwrt-package.git;passwall	
+	EOF
 	#if [[ "${SOURCE}" =~ (lede|Lede|LEDE) ]]; then
 	#	local packages_url="src-git ${packages} https://github.com/${PACKAGES_ADDR}.git;master"
 	#	__info_msg "添加${SOURCE}源码插件源：${packages_url}"
