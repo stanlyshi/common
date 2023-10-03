@@ -350,30 +350,28 @@ function update_feeds() {
 	sed -i '/roacn/d; /stanlyshi/d; /281677160/d; /helloworld/d; /passwall/d; /OpenClash/d' "feeds.conf.default"
 	cat feeds.conf.default|awk '!/^#/'|awk '!/^$/'|awk '!a[$1" "$2]++{print}' >uniq.conf
 	mv -f uniq.conf feeds.conf.default
-	local packages="diypackages"
-	local packages_url="src-git ${packages} https://github.com/281677160/openwrt-package.git;${PACKAGE_BRANCH}"
-	__info_msg "添加${SOURCE}源码插件源：${packages_url}"
+	
+	local packages="mypackages"
+	local packages_url="https://github.com/281677160/openwrt-package.git"
+	__info_msg "添加${SOURCE}源码插件源：src-git ${packages} ${packages_url};${PACKAGE_BRANCH}"
 	cat >> "feeds.conf.default" <<-EOF
-	${packages_url}
+	src-git ${packages} ${packages_url};${PACKAGE_BRANCH}
+	src-git ssrplus ${packages_url};helloworld
+	src-git passwall ${packages_url};passwall
 	EOF
-	cat >> "feeds.conf.default" <<-EOF
-	src-git ssrplus https://github.com/281677160/openwrt-package.git;helloworld
-	src-git passwall https://github.com/281677160/openwrt-package.git;passwall	
-	EOF
+	
 	#if [[ "${SOURCE}" =~ (lede|Lede|LEDE) ]]; then
-	#	local packages_url="src-git ${packages} https://github.com/${PACKAGES_ADDR}.git;master"
-	#	__info_msg "添加${SOURCE}源码插件源：${packages_url}"
-	#	cat >> "feeds.conf.default" <<-EOF
-	#	${packages_url}
-	#	EOF
+	#	local packages_url="https://github.com/${PACKAGES_ADDR}.git"
+	#	local packages_branch="master"
 	#else
-	#	local packages_url="src-git ${packages} https://github.com/281677160/openwrt-package.git;${PACKAGE_BRANCH}"
-	#	__info_msg "添加${SOURCE}源码插件源：${packages_url}"
-	#	cat >> "feeds.conf.default" <<-EOF
-	#	${packages_url}
-	#	EOF
+	#	local packages_url="https://github.com/281677160/openwrt-package.git"
+	#	local packages_branch="${PACKAGE_BRANCH}"
 	#fi
-
+	#	__info_msg "添加${SOURCE}源码插件源：src-git ${packages} ${packages_url};${packages_branch}"
+	#	cat >> "feeds.conf.default" <<-EOF
+	#	src-git ${packages} ${packages_url};${packages_branch}
+	#	EOF
+	
 	# 更新插件源
 	__yellow_color "开始更新插件源..."
 	./scripts/feeds clean
