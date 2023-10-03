@@ -1254,7 +1254,7 @@ release_info() {
 	
 	if [[ "${FIRMWARE_TYPE}" == "lxc" ]]; then
 		cat >> ${RELEASEINFO_MD} <<-EOF		
-		注：「pve lxc容器专用」
+		注：「lxc容器专用」
 		EOF
 	fi
 
