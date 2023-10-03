@@ -351,19 +351,24 @@ function update_feeds() {
 	cat feeds.conf.default|awk '!/^#/'|awk '!/^$/'|awk '!a[$1" "$2]++{print}' >uniq.conf
 	mv -f uniq.conf feeds.conf.default
 	local packages="diypackages"
-	if [[ "${SOURCE}" =~ (lede|Lede|LEDE) ]]; then
-		local packages_url="src-git ${packages} https://github.com/${PACKAGES_ADDR}.git;master"
-		__info_msg "添加${SOURCE}源码插件源：${packages_url}"
-		cat >> "feeds.conf.default" <<-EOF
-		${packages_url}
-		EOF
-	else
-		local packages_url="src-git ${packages} https://github.com/281677160/openwrt-package.git;${PACKAGE_BRANCH}"
-		__info_msg "添加${SOURCE}源码插件源：${packages_url}"
-		cat >> "feeds.conf.default" <<-EOF
-		${packages_url}
-		EOF
-	fi
+	local packages_url="src-git ${packages} https://github.com/281677160/openwrt-package.git;${PACKAGE_BRANCH}"
+	__info_msg "添加${SOURCE}源码插件源：${packages_url}"
+	cat >> "feeds.conf.default" <<-EOF
+	${packages_url}
+	EOF
+	#if [[ "${SOURCE}" =~ (lede|Lede|LEDE) ]]; then
+	#	local packages_url="src-git ${packages} https://github.com/${PACKAGES_ADDR}.git;master"
+	#	__info_msg "添加${SOURCE}源码插件源：${packages_url}"
+	#	cat >> "feeds.conf.default" <<-EOF
+	#	${packages_url}
+	#	EOF
+	#else
+	#	local packages_url="src-git ${packages} https://github.com/281677160/openwrt-package.git;${PACKAGE_BRANCH}"
+	#	__info_msg "添加${SOURCE}源码插件源：${packages_url}"
+	#	cat >> "feeds.conf.default" <<-EOF
+	#	${packages_url}
+	#	EOF
+	#fi
 
 	# 更新插件源
 	__yellow_color "开始更新插件源..."
