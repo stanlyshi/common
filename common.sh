@@ -785,10 +785,10 @@ function compile_info() {
 		echo
 		__red_color "LXC固件自动更新"
 		__white_color "1、PVE运行："
-		__cyan_color "pct pull xxx /bin/openwrt.lxc /bin/openwrt && chmod -f +x /bin/openwrt"
-		__cyan_color "注意：将xxx改为个人OpenWrt容器的ID，如100"
+		__green_color "pct pull xxx /bin/openwrt.lxc /bin/openwrt && chmod -f +x /bin/openwrt"
+		__white_color "注意：将xxx改为个人OpenWrt容器的ID，如100"
 		__white_color "2、PVE运行："
-		__cyan_color "openwrt"
+		__green_color "openwrt"
 		echo
 	else
 		__default_color "LXC固件：关闭"
@@ -836,7 +836,7 @@ function compile_info() {
 	
 	echo
 	__red_color "Github在线编译CPU型号"
-	echo `cat /proc/cpuinfo | grep name | cut -f2 -d: | uniq -c`
+	__blue_color `cat /proc/cpuinfo | grep name | cut -f2 -d: | uniq -c`
 	echo
 	echo -e "常见CPU类型及性能排行:
 	Intel(R) Xeon(R) Platinum 8370C CPU @ 2.80GHz
