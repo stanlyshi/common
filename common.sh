@@ -357,8 +357,8 @@ function update_feeds() {
 	${packages_url}
 	EOF
 	cat >> "feeds.conf.default" <<-EOF
-	src-git ${packages} https://github.com/281677160/openwrt-package.git;helloworld
-	src-git ${packages} https://github.com/281677160/openwrt-package.git;passwall	
+	src-git ssrplus https://github.com/281677160/openwrt-package.git;helloworld
+	src-git passwall https://github.com/281677160/openwrt-package.git;passwall	
 	EOF
 	#if [[ "${SOURCE}" =~ (lede|Lede|LEDE) ]]; then
 	#	local packages_url="src-git ${packages} https://github.com/${PACKAGES_ADDR}.git;master"
