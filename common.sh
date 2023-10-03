@@ -219,11 +219,14 @@ function parse_settings() {
 	
 	# https://github.com/coolsnowwolf/lede/tree/master/package/base-files/files
 	echo FILES_PATH="${GITHUB_WORKSPACE}/openwrt/package/base-files/files" >> ${GITHUB_ENV}
+	echo FILE_DEFAULT_UCI="${GITHUB_WORKSPACE}/openwrt/package/base-files/files/etc/default_uci" >> ${GITHUB_ENV}
+	echo FILES_TO_DELETE="${GITHUB_WORKSPACE}/openwrt/package/base-files/files/etc/default_delete" >> ${GITHUB_ENV}
 	echo FILENAME_DEFAULT_UCI="default_uci" >> ${GITHUB_ENV}
 	echo FILENAME_DEFAULT_SETTINGS="default_settings" >> ${GITHUB_ENV}
 	echo FILENAME_DEFAULT_RUNONCE="default_settings_runonce" >> ${GITHUB_ENV}
 	echo FILENAME_CONFIG_GEN="config_generate" >> ${GITHUB_ENV}
-	echo FILENAME_TO_DELETE="default_delete" >> ${GITHUB_ENV}	
+	echo FILENAME_TO_DELETE="default_delete" >> ${GITHUB_ENV}
+
 }
 
 ################################################################################################################
@@ -493,7 +496,7 @@ function diy_public() {
 	
 	# Openwrt初次运行初始化设置
 	cp -rf ${COMMON_PATH}/custom/${FILENAME_DEFAULT_RUNONCE} ${FILES_PATH}/etc/init.d/${FILENAME_DEFAULT_RUNONCE}
-	cp -rf ${COMMON_PATH}/custom/default_settings ${FILES_PATH}/etc/${FILENAME_DEFAULT_SETTINGS}
+	cp -rf ${COMMON_PATH}/custom/${FILENAME_DEFAULT_SETTINGS} ${FILES_PATH}/etc/${FILENAME_DEFAULT_SETTINGS}
 	sudo chmod -f +x ${FILES_PATH}/etc/${FILENAME_DEFAULT_SETTINGS}	
 	echo "
 	rm -rf /etc/init.d/${FILENAME_DEFAULT_RUNONCE}
