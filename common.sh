@@ -565,8 +565,12 @@ function firmware_settings() {
 	# 如未运行过 make menuconfig，需要运行下一行命令
 	# make defconfig > /dev/null 2>&1
 	
-	TARGET_BOARD="$(awk -F '[="]+' '/TARGET_BOARD/{print $2}' ${HOME_PATH}/.config)"
-	TARGET_SUBTARGET="$(awk -F '[="]+' '/TARGET_SUBTARGET/{print $2}' ${HOME_PATH}/.config)"
+	# x86、ramips...
+	TARGET_BOARD="$(awk -F '[="]+' '/CONFIG_TARGET_BOARD/{print $2}' ${HOME_PATH}/.config)"
+	# 64、mt7621...
+	TARGET_SUBTARGET="$(awk -F '[="]+' '/CONFIG_TARGET_SUBTARGET/{print $2}' ${HOME_PATH}/.config)"
+	# x86_64、mipsel_24kc...
+	ARCHITECTURE="$(awk -F '[="]+' '/CONFIG_TARGET_ARCH_PACKAGES/{print $2}' ${HOME_PATH}/.config)"
 	
 	# 机型架构
 	__yellow_color "开始获取固件机型架构信息..."
@@ -583,24 +587,21 @@ function firmware_settings() {
 	else
 		TARGET_PROFILE="$(awk -F '[="]+' '/TARGET_PROFILE/{print $2}' ${HOME_PATH}/.config | sed 's/DEVICE_//')"
 	fi
+	TARGET_DEVICE="${TARGET_PROFILE}"
 	# 修改TARGET_PROFILE
-	if [[ "${TARGET_PROFILE}" =~ (phicomm_k3|phicomm-k3) ]]; then
-		echo TARGET_DEVICE="${TARGET_PROFILE}" >> ${GITHUB_ENV}
+	if [[ "${TARGET_PROFILE}" =~ (phicomm_k3|phicomm-k3) ]]; then		
 		TARGET_PROFILE="phicomm-k3"
 	elif [[ "${TARGET_PROFILE}" =~ (k2p|phicomm_k2p|phicomm-k2p) ]]; then
-		echo TARGET_DEVICE="${TARGET_PROFILE}" >> ${GITHUB_ENV}
 		TARGET_PROFILE="phicomm-k2p"
 	elif [[ "${TARGET_PROFILE}" =~ (xiaomi_mi-router-3g-v2|xiaomi_mir3g_v2) ]]; then
-		echo TARGET_DEVICE="${TARGET_PROFILE}" >> ${GITHUB_ENV}
 		TARGET_PROFILE="xiaomi_mir3g-v2"
 	elif [[ "${TARGET_PROFILE}" == "xiaomi_mi-router-3g" ]]; then
-		echo TARGET_DEVICE="${TARGET_PROFILE}" >> ${GITHUB_ENV}
 		TARGET_PROFILE="xiaomi_mir3g"
 	elif [[ "${TARGET_PROFILE}" == "xiaomi_mi-router-3-pro" ]]; then
-		echo TARGET_DEVICE="${TARGET_PROFILE}" >> ${GITHUB_ENV}
 		TARGET_PROFILE="xiaomi_mir3p"
 	fi
-	__info_msg "机型架构：${TARGET_PROFILE}"
+	__info_msg "机型信息：${TARGET_PROFILE}"
+	__info_msg "CPU架构：${ARCHITECTURE}"
 	
 	# 内核版本
 	__yellow_color "开始获取内核版本信息、替换内核等..."
@@ -692,8 +693,10 @@ function firmware_settings() {
 	echo FIRMWARE_NAME="${FIRMWARE_NAME}" >> ${GITHUB_ENV}
 	echo TARGET_BOARD="${TARGET_BOARD}" >> ${GITHUB_ENV}
 	echo TARGET_SUBTARGET="${TARGET_SUBTARGET}" >> ${GITHUB_ENV}
+	echo ARCHITECTURE="${ARCHITECTURE}" >> ${GITHUB_ENV}	
 	echo FIRMWARE_PATH="${FIRMWARE_PATH}" >> ${GITHUB_ENV}
 	echo TARGET_PROFILE="${TARGET_PROFILE}" >> ${GITHUB_ENV}
+	echo TARGET_DEVICE="${TARGET_DEVICE}" >> ${GITHUB_ENV}
 	echo KERNEL_PATCHVER="${KERNEL_PATCHVER}" >> ${GITHUB_ENV}
 	echo LINUX_KERNEL="${LINUX_KERNEL}" >> ${GITHUB_ENV}
 	echo FIRMWARE_EXT="${FIRMWARE_EXT}" >> ${GITHUB_ENV}
