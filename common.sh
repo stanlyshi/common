@@ -569,7 +569,7 @@ function firmware_settings() {
 	TARGET_SUBTARGET="$(awk -F '[="]+' '/TARGET_SUBTARGET/{print $2}' ${HOME_PATH}/.config)"
 	
 	# 机型架构
-	__yellow_color "开始获取CPU架构信息..."
+	__yellow_color "开始获取固件机型架构信息..."
 	if [ `grep -c "CONFIG_TARGET_x86_64=y" .config` -eq '1' ]; then
 		TARGET_PROFILE="x86-64"
 	elif [[ `grep -c "CONFIG_TARGET_x86=y" .config` == '1' ]] && [[ `grep -c "CONFIG_TARGET_x86_64=y" .config` == '0' ]]; then
@@ -581,18 +581,23 @@ function firmware_settings() {
 	elif [[ -n "$(grep -Eo 'CONFIG_TARGET.*DEVICE.*=y' ${HOME_PATH}/.config)" ]]; then
 		TARGET_PROFILE="$(grep -Eo "CONFIG_TARGET.*DEVICE.*=y" ${HOME_PATH}/.config | sed -r 's/.*DEVICE_(.*)=y/\1/')"
 	else
-		TARGET_PROFILE="$(awk -F '[="]+' '/TARGET_PROFILE/{print $2}' ${HOME_PATH}/.config)"
+		TARGET_PROFILE="$(awk -F '[="]+' '/TARGET_PROFILE/{print $2}' ${HOME_PATH}/.config | sed 's/DEVICE_//')"
 	fi
 	# 修改TARGET_PROFILE
 	if [[ "${TARGET_PROFILE}" =~ (phicomm_k3|phicomm-k3) ]]; then
+		echo TARGET_DEVICE="${TARGET_PROFILE}" >> ${GITHUB_ENV}
 		TARGET_PROFILE="phicomm-k3"
 	elif [[ "${TARGET_PROFILE}" =~ (k2p|phicomm_k2p|phicomm-k2p) ]]; then
+		echo TARGET_DEVICE="${TARGET_PROFILE}" >> ${GITHUB_ENV}
 		TARGET_PROFILE="phicomm-k2p"
 	elif [[ "${TARGET_PROFILE}" =~ (xiaomi_mi-router-3g-v2|xiaomi_mir3g_v2) ]]; then
+		echo TARGET_DEVICE="${TARGET_PROFILE}" >> ${GITHUB_ENV}
 		TARGET_PROFILE="xiaomi_mir3g-v2"
 	elif [[ "${TARGET_PROFILE}" == "xiaomi_mi-router-3g" ]]; then
+		echo TARGET_DEVICE="${TARGET_PROFILE}" >> ${GITHUB_ENV}
 		TARGET_PROFILE="xiaomi_mir3g"
 	elif [[ "${TARGET_PROFILE}" == "xiaomi_mi-router-3-pro" ]]; then
+		echo TARGET_DEVICE="${TARGET_PROFILE}" >> ${GITHUB_ENV}
 		TARGET_PROFILE="xiaomi_mir3p"
 	fi
 	__info_msg "机型架构：${TARGET_PROFILE}"
@@ -1281,19 +1286,26 @@ function release_info() {
 }
 
 ################################################################################################################
-# 解锁固件分区：Bootloader、Bdata、factory、reserved0，ramips系列路由器专用
+# 解锁固件分区：Bootloader、Bdata、factory、reserved0，ramips系列路由器专用(固件编译前)
 ################################################################################################################
 function unlock_bootloader() {
-echo "target/linux/${TARGET_BOARD}/dts/${TARGET_SUBTARGET}_${TARGET_PROFILE}.dts"
-if [[ ${TARGET_BOARD} == "ramips" ]]; then
-	sed -i "/read-only;/d" target/linux/${TARGET_BOARD}/dts/${TARGET_SUBTARGET}_${TARGET_PROFILE}.dts
-	if [[ `grep -c "read-only;" target/linux/${TARGET_BOARD}/dts/${TARGET_SUBTARGET}_${TARGET_PROFILE}.dts` -eq '0' ]]; then
-		__success_msg "固件分区已经解锁！"
-		echo "UNLOCK=true" >> ${GITHUB_ENV}
+	if [[ ${TARGET_BOARD} == "ramips" ]]; then		
+		if [[ -f "target/linux/${TARGET_BOARD}/dts/${TARGET_SUBTARGET}_${TARGET_DEVICE}.dts" ]]; then
+			local dts_file="target/linux/${TARGET_BOARD}/dts/${TARGET_SUBTARGET}_${TARGET_DEVICE}.dts"
+		elif [[ -f "target/linux/${TARGET_BOARD}/dts/${TARGET_SUBTARGET}_${TARGET_PROFILE}.dts" ]]; then
+			local dts_file="target/linux/${TARGET_BOARD}/dts/${TARGET_SUBTARGET}_${TARGET_PROFILE}.dts"	
+		else
+			return
+		fi
+		__info_msg "dts文件：${dts_file}"
+		sed -i "/read-only;/d" ${dts_file}
+		if [[ `grep -c "read-only;" ${dts_file}` -eq '0' ]]; then
+			__success_msg "固件分区已经解锁！"
+			echo UNLOCK="true" >> ${GITHUB_ENV}
+		else
+			__error_msg "固件分区解锁失败！"
+		fi
 	else
-		__error_msg "固件分区解锁失败！"
+		__warning_msg "非ramips系列，暂不支持！"
 	fi
-else
-	__warning_msg "非ramips系列，暂不支持！"
-fi
 }
