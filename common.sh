@@ -358,25 +358,30 @@ function update_feeds() {
 	mv -f uniq.conf feeds.conf.default
 	
 	local packages="mypackages"
-	local packages_url="https://github.com/281677160/openwrt-package.git"
-	__info_msg "添加${SOURCE}源码插件源：src-git ${packages} ${packages_url};${PACKAGE_BRANCH}"
-	cat >> "feeds.conf.default" <<-EOF
-	src-git ${packages} ${packages_url};${PACKAGE_BRANCH}
-	src-git ssrplus ${packages_url};helloworld
-	src-git passwall ${packages_url};passwall
-	EOF
+	#local packages_url="https://github.com/281677160/openwrt-package.git"
+	#__info_msg "添加${SOURCE}源码插件源：src-git ${packages} ${packages_url};${PACKAGE_BRANCH}"
+	#cat >> "feeds.conf.default" <<-EOF
+	#src-git ${packages} ${packages_url};${PACKAGE_BRANCH}
+	#src-git ssrplus ${packages_url};helloworld
+	#src-git passwall ${packages_url};passwall
+	#EOF
 	
-	#if [[ "${SOURCE}" =~ (lede|Lede|LEDE) ]]; then
-	#	local packages_url="https://github.com/${PACKAGES_ADDR}.git"
-	#	local packages_branch="master"
-	#else
-	#	local packages_url="https://github.com/281677160/openwrt-package.git"
-	#	local packages_branch="${PACKAGE_BRANCH}"
-	#fi
-	#	__info_msg "添加${SOURCE}源码插件源：src-git ${packages} ${packages_url};${packages_branch}"
-	#	cat >> "feeds.conf.default" <<-EOF
-	#	src-git ${packages} ${packages_url};${packages_branch}
-	#	EOF
+	if [[ "${SOURCE}" =~ (lede|Lede|LEDE) ]]; then
+		local packages_url="https://github.com/${PACKAGES_ADDR}.git"
+		local packages_branch="master"
+	else
+		local packages_url="https://github.com/281677160/openwrt-package.git"
+		local packages_branch="${PACKAGE_BRANCH}"
+		echo "src-git passwall_packages https://github.com/xiaorouji/openwrt-passwall-packages.git;main" >> "feeds.conf.default"
+		echo "src-git passwall https://github.com/xiaorouji/openwrt-passwall.git;main" >> "feeds.conf.default"
+		echo "src-git ssrplus https://github.com/fw876/helloworld.git;master" >> "feeds.conf.default"	
+		echo "src-git argon_config https://github.com/jerrykuku/luci-app-argon-config.git;master" >> "feeds.conf.default"
+		echo "src-git argon_theme https://github.com/jerrykuku/luci-theme-argon.git;master" >> "feeds.conf.default"		
+	fi
+	__info_msg "添加${SOURCE}源码插件源：src-git ${packages} ${packages_url};${packages_branch}"
+	cat >> "feeds.conf.default" <<-EOF
+	src-git ${packages} ${packages_url};${packages_branch}
+	EOF
 	
 	# 更新插件源
 	__yellow_color "开始更新插件源..."
