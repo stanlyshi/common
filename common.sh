@@ -41,59 +41,59 @@ function __default_color() {
 }
 
 function __red_color() {
-	echo -e "${RED_COLOR} $*${DEFAULT_COLOR}"
+	echo -e "${RED_COLOR}$*${DEFAULT_COLOR}"
 }
 
 function __green_color() {
-	echo -e "${GREEN_COLOR} $*${DEFAULT_COLOR}"
+	echo -e "${GREEN_COLOR}$*${DEFAULT_COLOR}"
 }
 
 function __yellow_color() {
-	echo -e "${YELLOW_COLOR} $*${DEFAULT_COLOR}"
+	echo -e "${YELLOW_COLOR}$*${DEFAULT_COLOR}"
 }
 
 function __blue_color() {
-	echo -e "${BLUE_COLOR} $*${DEFAULT_COLOR}"
+	echo -e "${BLUE_COLOR}$*${DEFAULT_COLOR}"
 }
 
 function __magenta_color() {
-	echo -e "${MAGENTA_COLOR} $*${DEFAULT_COLOR}"
+	echo -e "${MAGENTA_COLOR}$*${DEFAULT_COLOR}"
 }
 
 function __cyan_color() {
-	echo -e "${CYAN_COLOR} $*${DEFAULT_COLOR}"
+	echo -e "${CYAN_COLOR}$*${DEFAULT_COLOR}"
 }
 
 function __white_color() {
-	echo -e "${WHITE_COLOR} $*${DEFAULT_COLOR}"
+	echo -e "${WHITE_COLOR}$*${DEFAULT_COLOR}"
 }
 
 function __red_bg_color() {
-	echo -e "${RED_BG_COLOR} $*${DEFAULT_COLOR}"
+	echo -e "${RED_BG_COLOR}$*${DEFAULT_COLOR}"
 }
 
 function __green_bg_color() {
-	echo -e "${GREEN_BG_COLOR} $*${DEFAULT_COLOR}"
+	echo -e "${GREEN_BG_COLOR}$*${DEFAULT_COLOR}"
 }
 
 function __yellow_bg_color() {
-	echo -e "${YELLOW_BG_COLOR} $*${DEFAULT_COLOR}"
+	echo -e "${YELLOW_BG_COLOR}$*${DEFAULT_COLOR}"
 }
 
 function __blue_bg_color() {
-	echo -e "${BLUE_BG_COLOR} $*${DEFAULT_COLOR}"
+	echo -e "${BLUE_BG_COLOR}$*${DEFAULT_COLOR}"
 }
 
 function __magenta_bg_color() {
-	echo -e "${MAGENTA_BG_COLOR} $*${DEFAULT_COLOR}"
+	echo -e "${MAGENTA_BG_COLOR}$*${DEFAULT_COLOR}"
 }
 
 function __cyan_bg_color() {
-	echo -e "${CYAN_BG_COLOR} $*${DEFAULT_COLOR}"
+	echo -e "${CYAN_BG_COLOR}$*${DEFAULT_COLOR}"
 }
 
 function __white_bg_color() {
-	echo -e "${WHITE_BG_COLOR} $*${DEFAULT_COLOR}"
+	echo -e "${WHITE_BG_COLOR}$*${DEFAULT_COLOR}"
 }
 
 
