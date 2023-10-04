@@ -387,6 +387,7 @@ function update_feeds() {
 	echo
 	echo "--------------update_feeds end--------------"
 }
+
 ################################################################################################################
 # 各源码库的公共脚本(文件检测、添加插件源、diy、files、patch等，以及Openwrt编译完成后的首次运行设置)
 ################################################################################################################
@@ -551,6 +552,288 @@ function diy_openwrt() {
 	
 	echo
 	echo "--------------common_diy_openwrt end--------------"
+}
+
+################################################################################################################
+# 处理插件冲突
+################################################################################################################
+function resolve_confflictions() {
+	cd ${HOME_PATH}
+
+	__yellow_color "正在判断插件是否有冲突..."
+	
+	make defconfig > /dev/null 2>&1
+	rm -rf ${CONFFLICTIONS} && touch ${CONFFLICTIONS}
+	
+	# lxc模式下编译.tar.gz固件
+	if [[ "${FIRMWARE_TYPE}" == "lxc" ]]; then
+		sed -i '/CONFIG_TARGET_ROOTFS_TARGZ/d' ${HOME_PATH}/.config > /dev/null 2>&1
+		sed -i '$a CONFIG_TARGET_ROOTFS_TARGZ=y' ${HOME_PATH}/.config > /dev/null 2>&1
+		__info_msg "lxc模式，添加openwrt-generic-rootfs.tar.gz文件编译"
+	fi
+	
+	if [[ `grep -c "CONFIG_PACKAGE_luci-app-adblock-plus=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		if [[ `grep -c "CONFIG_PACKAGE_luci-app-adblock=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+			sed -i 's/CONFIG_PACKAGE_luci-app-adblock=y/# CONFIG_PACKAGE_luci-app-adblock is not set/g' ${HOME_PATH}/.config
+			sed -i 's/CONFIG_PACKAGE_adblock=y/# CONFIG_PACKAGE_adblock is not set/g' ${HOME_PATH}/.config
+			sed -i '/luci-i18n-adblock/d' ${HOME_PATH}/.config
+			echo "__error_msg \"您同时选择luci-app-adblock-plus和luci-app-adblock，插件有依赖冲突，只能二选一，已删除luci-app-adblock\"" >> ${CONFFLICTIONS}
+			echo "" >> ${CONFFLICTIONS}
+		fi
+	fi
+	
+	if [[ `grep -c "CONFIG_PACKAGE_luci-app-advanced=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		if [[ `grep -c "CONFIG_PACKAGE_luci-app-fileassistant=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+			sed -i 's/CONFIG_PACKAGE_luci-app-fileassistant=y/# CONFIG_PACKAGE_luci-app-fileassistant is not set/g' ${HOME_PATH}/.config
+			echo "__error_msg \"您同时选择luci-app-advanced和luci-app-fileassistant，luci-app-advanced已附带luci-app-fileassistant，所以删除了luci-app-fileassistant\"" >> ${CONFFLICTIONS}
+			echo "" >> ${CONFFLICTIONS}
+		fi
+	fi
+	
+	if [[ `grep -c "CONFIG_PACKAGE_luci-app-docker=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		if [[ `grep -c "CONFIG_PACKAGE_luci-app-dockerman=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+			sed -i 's/CONFIG_PACKAGE_luci-app-docker=y/# CONFIG_PACKAGE_luci-app-docker is not set/g' ${HOME_PATH}/.config
+			sed -i 's/CONFIG_PACKAGE_luci-i18n-docker-zh-cn=y/# CONFIG_PACKAGE_luci-i18n-docker-zh-cn is not set/g' ${HOME_PATH}/.config
+			echo "__error_msg \"您同时选择luci-app-docker和luci-app-dockerman，插件有冲突，相同功能插件只能二选一，已删除luci-app-docker\"" >> ${CONFFLICTIONS}
+			echo "" >> ${CONFFLICTIONS}
+		fi
+	fi
+	
+	if [[ `grep -c "CONFIG_PACKAGE_luci-app-dockerman=y" ${HOME_PATH}/.config` -eq '0' ]] || [[ `grep -c "CONFIG_PACKAGE_luci-app-docker=y" ${HOME_PATH}/.config` -eq '0' ]]; then
+		sed -i '/CONFIG_PACKAGE_luci-lib-docker/d' ${HOME_PATH}/.config
+		sed -i '/CONFIG_PACKAGE_luci-i18n-dockerman-zh-cn/d' ${HOME_PATH}/.config
+		sed -i '/CONFIG_PACKAGE_docker/d' ${HOME_PATH}/.config
+		sed -i '/CONFIG_PACKAGE_dockerd/d' ${HOME_PATH}/.config
+		sed -i '/CONFIG_PACKAGE_runc/d' ${HOME_PATH}/.config
+		
+		sed -i '$a # CONFIG_PACKAGE_luci-lib-docker is not set' ${HOME_PATH}/.config
+		sed -i '$a # CONFIG_PACKAGE_luci-i18n-dockerman-zh-cn is not set' ${HOME_PATH}/.config
+		sed -i '$a # CONFIG_PACKAGE_docker is not set' ${HOME_PATH}/.config
+		sed -i '$a # CONFIG_PACKAGE_dockerd is not set' ${HOME_PATH}/.config
+		sed -i '$a # CONFIG_PACKAGE_runc is not set' ${HOME_PATH}/.config
+	fi
+	
+	if [[ `grep -c "CONFIG_PACKAGE_luci-app-ipsec-server=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		if [[ `grep -c "CONFIG_PACKAGE_luci-app-ipsec-vpnd=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+			sed -i 's/CONFIG_PACKAGE_luci-app-ipsec-vpnd=y/# CONFIG_PACKAGE_luci-app-ipsec-vpnd is not set/g' ${HOME_PATH}/.config
+			echo "__error_msg \"您同时选择luci-app-ipsec-vpnd和luci-app-ipsec-server，插件有冲突，相同功能插件只能二选一，已删除luci-app-ipsec-vpnd\""  >> ${CONFFLICTIONS}
+			echo "" >> ${CONFFLICTIONS}
+		fi
+	fi
+	
+	if [[ `grep -c "CONFIG_PACKAGE_luci-app-kodexplorer=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		if [[ `grep -c "CONFIG_PACKAGE_luci-app-vnstat=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+			sed -i 's/CONFIG_PACKAGE_luci-app-vnstat=y/# CONFIG_PACKAGE_luci-app-vnstat is not set/g' ${HOME_PATH}/.config
+			sed -i 's/CONFIG_PACKAGE_vnstat=y/# CONFIG_PACKAGE_vnstat is not set/g' ${HOME_PATH}/.config
+			sed -i 's/CONFIG_PACKAGE_vnstati=y/# CONFIG_PACKAGE_vnstati is not set/g' ${HOME_PATH}/.config
+			sed -i 's/CONFIG_PACKAGE_libgd=y/# CONFIG_PACKAGE_libgd is not set/g' ${HOME_PATH}/.config
+			sed -i '/luci-i18n-vnstat/d' ${HOME_PATH}/.config
+			echo "__error_msg \"您同时选择luci-app-kodexplorer和luci-app-vnstat，插件有依赖冲突，只能二选一，已删除luci-app-vnstat\"" >> ${CONFFLICTIONS}
+			echo "" >> ${CONFFLICTIONS}
+		fi
+	fi
+	
+	if [[ `grep -c "CONFIG_PACKAGE_wpad-openssl=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		if [[ `grep -c "CONFIG_PACKAGE_wpad=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+			sed -i 's/CONFIG_PACKAGE_wpad=y/# CONFIG_PACKAGE_wpad is not set/g' ${HOME_PATH}/.config
+		fi
+	fi
+	
+	if [[ `grep -c "CONFIG_PACKAGE_luci-app-passwall_INCLUDE_Trojan_Plus=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		if [[ `grep -c "CONFIG_PACKAGE_luci-app-passwall_INCLUDE_Trojan_GO=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+			sed -i 's/CONFIG_PACKAGE_luci-app-passwall_INCLUDE_Trojan_GO=y/# CONFIG_PACKAGE_luci-app-passwall_INCLUDE_Trojan_GO is not set/g' ${HOME_PATH}/.config
+			echo "__error_msg \"您选择了passwall的Trojan_GO，会和passwall的Trojan_Plus冲突导致编译错误，只能二选一，已删除Trojan_GO\"" >> ${CONFFLICTIONS}
+			echo "" >> ${CONFFLICTIONS}
+		fi
+	fi
+	
+	if [[ `grep -c "CONFIG_PACKAGE_luci-app-qbittorrent=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		if [[ `grep -c "CONFIG_PACKAGE_luci-app-qbittorrent-simple=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+			sed -i 's/CONFIG_PACKAGE_luci-app-qbittorrent-simple=y/# CONFIG_PACKAGE_luci-app-qbittorrent-simple is not set/g' ${HOME_PATH}/.config
+			sed -i 's/CONFIG_PACKAGE_luci-i18n-qbittorrent-simple-zh-cn=y/# CONFIG_PACKAGE_luci-i18n-qbittorrent-simple-zh-cn is not set/g' ${HOME_PATH}/.config
+			sed -i 's/CONFIG_PACKAGE_qbittorrent=y/# CONFIG_PACKAGE_qbittorrent is not set/g' ${HOME_PATH}/.config
+			echo "__error_msg \"您同时选择luci-app-qbittorrent和luci-app-qbittorrent-simple，插件有冲突，相同功能插件只能二选一，已删除luci-app-qbittorrent-simple\"" >> ${CONFFLICTIONS}
+			echo "" >> ${CONFFLICTIONS}
+		fi
+	fi
+	
+	if [[ `grep -c "CONFIG_PACKAGE_luci-app-samba4=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		if [[ `grep -c "CONFIG_PACKAGE_luci-app-samba=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+			sed -i 's/CONFIG_PACKAGE_luci-app-samba=y/# CONFIG_PACKAGE_luci-app-samba is not set/g' ${HOME_PATH}/.config
+			sed -i 's/CONFIG_PACKAGE_luci-i18n-samba-zh-cn=y/# CONFIG_PACKAGE_luci-i18n-samba-zh-cn is not set/g' ${HOME_PATH}/.config
+			sed -i 's/CONFIG_PACKAGE_samba36-server=y/# CONFIG_PACKAGE_samba36-server is not set/g' ${HOME_PATH}/.config
+			echo "__error_msg \"您同时选择luci-app-samba和luci-app-samba4，插件有冲突，相同功能插件只能二选一，已删除luci-app-samba\"" >> ${CONFFLICTIONS}
+			echo "" >> ${CONFFLICTIONS}
+		fi
+	elif [[ `grep -c "CONFIG_PACKAGE_samba4-server=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		sed -i '/CONFIG_PACKAGE_samba4-admin/d' ${HOME_PATH}/.config
+		sed -i '/CONFIG_PACKAGE_samba4-client/d' ${HOME_PATH}/.config
+		sed -i '/CONFIG_PACKAGE_samba4-libs/d' ${HOME_PATH}/.config
+		sed -i '/CONFIG_PACKAGE_samba4-server/d' ${HOME_PATH}/.config
+		sed -i '/CONFIG_PACKAGE_samba4-utils/d' ${HOME_PATH}/.config
+		
+		sed -i '$a # CONFIG_PACKAGE_samba4-admin is not set' ${HOME_PATH}/.config
+		sed -i '$a # CONFIG_PACKAGE_samba4-client is not set' ${HOME_PATH}/.config
+		sed -i '$a # CONFIG_PACKAGE_samba4-libs is not set' ${HOME_PATH}/.config
+		sed -i '$a # CONFIG_PACKAGE_samba4-server is not set' ${HOME_PATH}/.config
+		sed -i '$a # CONFIG_PACKAGE_samba4-utils is not set' ${HOME_PATH}/.config
+	fi
+	
+	if [[ `grep -c "CONFIG_PACKAGE_luci-app-sfe=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		if [[ `grep -c "CONFIG_PACKAGE_luci-app-flowoffload=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+			sed -i 's/CONFIG_DEFAULT_luci-app-flowoffload=y/# CONFIG_DEFAULT_luci-app-flowoffload is not set/g' ${HOME_PATH}/.config
+			sed -i 's/CONFIG_PACKAGE_luci-app-flowoffload=y/# CONFIG_PACKAGE_luci-app-flowoffload is not set/g' ${HOME_PATH}/.config
+			sed -i 's/CONFIG_PACKAGE_luci-i18n-flowoffload-zh-cn=y/# CONFIG_PACKAGE_luci-i18n-flowoffload-zh-cn is not set/g' ${HOME_PATH}/.config
+			echo "__error_msg \"提示：您同时选择了luci-app-sfe和luci-app-flowoffload，两个ACC网络加速，已删除luci-app-flowoffload\"" >> ${CONFFLICTIONS}
+			echo "" >> ${CONFFLICTIONS}
+		fi
+	fi
+	
+	if [[ `grep -c "CONFIG_PACKAGE_luci-app-ssr-plus=y" ${HOME_PATH}/.config` -ge '1' ]]; then
+		if [[ `grep -c "CONFIG_PACKAGE_luci-app-cshark=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+			sed -i 's/CONFIG_PACKAGE_luci-app-cshark=y/# CONFIG_PACKAGE_luci-app-cshark is not set/g' ${HOME_PATH}/.config
+			sed -i 's/CONFIG_PACKAGE_cshark=y/# CONFIG_PACKAGE_cshark is not set/g' ${HOME_PATH}/.config
+			sed -i 's/CONFIG_PACKAGE_libustream-mbedtls=y/# CONFIG_PACKAGE_libustream-mbedtls is not set/g' ${HOME_PATH}/.config
+			echo "__error_msg \"您同时选择luci-app-ssr-plus和luci-app-cshark，插件有依赖冲突，只能二选一，已删除luci-app-cshark\"" >> ${CONFFLICTIONS}
+			echo "" >> ${CONFFLICTIONS}
+		fi
+	fi
+	
+	if [[ `grep -c "CONFIG_PACKAGE_luci-app-turboacc_INCLUDE_SHORTCUT_FE_CM=y" ${HOME_PATH}/.config` -ge '1' ]]; then
+		if [[ `grep -c "CONFIG_PACKAGE_luci-app-turboacc_INCLUDE_SHORTCUT_FE=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+			sed -i 's/CONFIG_PACKAGE_luci-app-turboacc_INCLUDE_SHORTCUT_FE=y/# CONFIG_PACKAGE_luci-app-turboacc_INCLUDE_SHORTCUT_FE is not set/g' ${HOME_PATH}/.config
+			sed -i 's/CONFIG_PACKAGE_kmod-fast-classifier=y/# CONFIG_PACKAGE_kmod-fast-classifier is not set/g' ${HOME_PATH}/.config
+			echo "__error_msg \"luci-app-turboacc同时选择Include Shortcut-FE CM和Include Shortcut-FE，有冲突，只能二选一，已删除Include Shortcut-FE\"" >> ${CONFFLICTIONS}
+			echo "" >> ${CONFFLICTIONS}
+		fi
+	fi
+	
+	if [[ `grep -c "CONFIG_PACKAGE_luci-app-unblockneteasemusic=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		if [[ `grep -c "CONFIG_PACKAGE_luci-app-unblockneteasemusic-go=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+			sed -i 's/CONFIG_PACKAGE_luci-app-unblockneteasemusic-go=y/# CONFIG_PACKAGE_luci-app-unblockneteasemusic-go is not set/g' ${HOME_PATH}/.config
+			echo "__error_msg \"您选择了luci-app-unblockneteasemusic-go，会和luci-app-unblockneteasemusic冲突导致编译错误，已删除luci-app-unblockneteasemusic-go\"" >> ${CONFFLICTIONS}
+			echo "" >> ${CONFFLICTIONS}
+		fi
+		if [[ `grep -c "CONFIG_PACKAGE_luci-app-unblockmusic=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+			sed -i 's/CONFIG_PACKAGE_luci-app-unblockmusic=y/# CONFIG_PACKAGE_luci-app-unblockmusic is not set/g' ${HOME_PATH}/.config
+			echo "__error_msg \"您选择了luci-app-unblockmusic，会和luci-app-unblockneteasemusic冲突导致编译错误，已删除luci-app-unblockmusic\"" >> ${CONFFLICTIONS}
+			echo "" >> ${CONFFLICTIONS}
+		fi
+	fi
+	
+	if [[ `grep -c "CONFIG_PACKAGE_wpad-openssl=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		if [[ `grep -c "CONFIG_PACKAGE_wpad=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+			sed -i 's/CONFIG_PACKAGE_wpad=y/# CONFIG_PACKAGE_wpad is not set/g' ${HOME_PATH}/.config
+		fi
+	fi
+	
+	if [[ `grep -c "CONFIG_PACKAGE_dnsmasq-full=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		if [[ `grep -c "CONFIG_PACKAGE_dnsmasq=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_PACKAGE_dnsmasq-dhcpv6=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+			sed -i 's/CONFIG_PACKAGE_dnsmasq=y/# CONFIG_PACKAGE_dnsmasq is not set/g' ${HOME_PATH}/.config
+			sed -i 's/CONFIG_PACKAGE_dnsmasq-dhcpv6=y/# CONFIG_PACKAGE_dnsmasq-dhcpv6 is not set/g' ${HOME_PATH}/.config
+		fi
+	fi
+	
+	if [[ `grep -c "CONFIG_PACKAGE_odhcp6c=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		sed -i '/CONFIG_PACKAGE_odhcpd=y/d' ${HOME_PATH}/.config
+		sed -i '/CONFIG_PACKAGE_odhcpd_full_ext_cer_id=0/d' ${HOME_PATH}/.config
+	fi
+
+	if [[ `grep -c "CONFIG_PACKAGE_luci-theme-argon=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		if [[ `grep -c "CONFIG_PACKAGE_luci-theme-argon_new=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+			sed -i 's/CONFIG_PACKAGE_luci-theme-argon_new=y/# CONFIG_PACKAGE_luci-theme-argon_new is not set/g' ${HOME_PATH}/.config
+			echo "__error_msg \"您同时选择luci-theme-argon和luci-theme-argon_new，插件有冲突，相同功能插件只能二选一，已删除luci-theme-argon_new\"" >> ${CONFFLICTIONS}
+			echo "" >> ${CONFFLICTIONS}
+		fi
+		if [[ `grep -c "CONFIG_PACKAGE_luci-theme-argonne=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+			sed -i 's/CONFIG_PACKAGE_luci-theme-argonne=y/# CONFIG_PACKAGE_luci-theme-argonne is not set/g' ${HOME_PATH}/.config
+			echo "__error_msg \"您同时选择luci-theme-argon和luci-theme-argonne，插件有冲突，相同功能插件只能二选一，已删除luci-theme-argonne\"" >> ${CONFFLICTIONS}
+			echo "" >> ${CONFFLICTIONS}
+		fi
+		if [[ `grep -c "CONFIG_PACKAGE_luci-app-argon-config=y" ${HOME_PATH}/.config` -eq '0' ]] && [[ `grep -c "CONFIG_TARGET_x86=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+			sed -i '/CONFIG_PACKAGE_luci-app-argon-config/d' ${HOME_PATH}/.config
+			sed -i '/argon=y/i\CONFIG_PACKAGE_luci-app-argon-config=y' ${HOME_PATH}/.config
+		fi
+	fi
+	
+	if [[ `grep -c "CONFIG_PACKAGE_luci-theme-argon=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		if [[ `grep -c "CONFIG_PACKAGE_luci-app-argon-config=y" ${HOME_PATH}/.config` == '0' ]]; then
+			sed -i '/luci-app-argon-config/d' ${HOME_PATH}/.config
+			sed -i '$a CONFIG_PACKAGE_luci-app-argon-config=y' ${HOME_PATH}/.config
+		fi
+	else
+		sed -i '/luci-app-argon-config/d' ${HOME_PATH}/.config
+		sed -i '$a # CONFIG_PACKAGE_luci-app-argon-config is not set' ${HOME_PATH}/.config
+	fi
+
+	if [[ `grep -c "CONFIG_TARGET_x86=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_rockchip=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_bcm27xx=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		sed -i '/CONFIG_TARGET_IMAGES_GZIP/d' ${HOME_PATH}/.config
+		sed -i '$a CONFIG_TARGET_IMAGES_GZIP=y' ${HOME_PATH}/.config
+		sed -i '/CONFIG_PACKAGE_openssh-sftp-server/d' ${HOME_PATH}/.config
+		sed -i '$a CONFIG_PACKAGE_openssh-sftp-server=y' ${HOME_PATH}/.config
+	fi
+
+	if [[ `grep -c "CONFIG_TARGET_x86=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_rockchip=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_bcm27xx=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		sed -i '/CONFIG_PACKAGE_snmpd/d' ${HOME_PATH}/.config
+		sed -i '$a CONFIG_PACKAGE_snmpd=y' ${HOME_PATH}/.config
+		sed -i '/CONFIG_TARGET_IMAGES_GZIP/d' ${HOME_PATH}/.config
+		sed -i '$a CONFIG_TARGET_IMAGES_GZIP=y' ${HOME_PATH}/.config
+		sed -i '/CONFIG_PACKAGE_openssh-sftp-server/d' ${HOME_PATH}/.config
+		sed -i '$a CONFIG_PACKAGE_openssh-sftp-server=y' ${HOME_PATH}/.config
+		#sed -i '/CONFIG_GRUB_IMAGES/d' ${HOME_PATH}/.config
+		#sed -i '$a CONFIG_GRUB_IMAGES=y' ${HOME_PATH}/.config
+		if [[ `grep -c "CONFIG_TARGET_ROOTFS_PARTSIZE=" ${HOME_PATH}/.config` -eq '1' ]]; then
+			local partsize="$(grep -Eo "CONFIG_TARGET_ROOTFS_PARTSIZE=[0-9]+" ${HOME_PATH}/.config |cut -f2 -d=)"
+			if [[ "${partsize}" -lt "400" ]];then
+				sed -i '/CONFIG_TARGET_ROOTFS_PARTSIZE/d' ${HOME_PATH}/.config
+			fi
+		fi
+	fi
+	
+	if [[ `grep -c "CONFIG_TARGET_mxs=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_sunxi=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_zynq=y" ${HOME_PATH}/.config` -eq '1' ]]; then	
+		sed -i '/CONFIG_TARGET_IMAGES_GZIP/d' ${HOME_PATH}/.config
+		sed -i '$a CONFIG_TARGET_IMAGES_GZIP=y' ${HOME_PATH}/.config
+		sed -i '/CONFIG_PACKAGE_openssh-sftp-server/d' ${HOME_PATH}/.config
+		sed -i '$a CONFIG_PACKAGE_openssh-sftp-server=y' ${HOME_PATH}/.config
+		sed -i '/CONFIG_GRUB_IMAGES/d' ${HOME_PATH}/.config
+		sed -i '$a CONFIG_GRUB_IMAGES=y' ${HOME_PATH}/.config
+		if [[ `grep -c "CONFIG_TARGET_ROOTFS_PARTSIZE=" ${HOME_PATH}/.config` -eq '1' ]]; then
+			local partsize="$(grep -Eo "CONFIG_TARGET_ROOTFS_PARTSIZE=[0-9]+" ${HOME_PATH}/.config |cut -f2 -d=)"
+			if [[ "${partsize}" -lt "400" ]];then
+				sed -i '/CONFIG_TARGET_ROOTFS_PARTSIZE/d' ${HOME_PATH}/.config
+				sed -i '$a CONFIG_TARGET_ROOTFS_PARTSIZE=400' ${HOME_PATH}/.config
+			fi
+		fi
+	fi
+	
+	if [[ `grep -c "CONFIG_TARGET_armvirt=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_armsr=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		sed -i 's/CONFIG_PACKAGE_luci-app-autoupdate=y/# CONFIG_PACKAGE_luci-app-autoupdate is not set/g' ${HOME_PATH}/.config
+		sed -i '/CONFIG_TARGET_ROOTFS_TARGZ/d' ${HOME_PATH}/.config
+		sed -i '$a CONFIG_TARGET_ROOTFS_TARGZ=y' ${HOME_PATH}/.config
+	fi
+	
+	if [[ `grep -c "CONFIG_TARGET_ROOTFS_EXT4FS=y" ${HOME_PATH}/.config` -eq '1' ]]; then	
+		local partsize="$(grep -Eo "CONFIG_TARGET_ROOTFS_PARTSIZE=[0-9]+" ${HOME_PATH}/.config |cut -f2 -d=)"
+		if [[ "${partsize}" -lt "950" ]];then
+			sed -i '/CONFIG_TARGET_ROOTFS_PARTSIZE/d' ${HOME_PATH}/.config
+			sed -i '$a CONFIG_TARGET_ROOTFS_PARTSIZE=950' ${HOME_PATH}/.config
+			echo "__error_msg \"EXT4提示：请注意，您选择了ext4安装的固件格式,而检测到您的分配的固件系统分区过小\"" >> ${CONFFLICTIONS}
+			echo "__error_msg \"为避免编译出错,已自动帮您修改成950M\"" >> ${CONFFLICTIONS}
+			echo "" >> ${CONFFLICTIONS}
+		fi
+	fi
+	
+	if [[ `grep -c "CONFIG_PACKAGE_antfs-mount=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		if [[ `grep -c "CONFIG_PACKAGE_ntfs3-mount=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+			sed -i 's/CONFIG_PACKAGE_antfs-mount=y/# CONFIG_PACKAGE_antfs-mount is not set/g' ${HOME_PATH}/.config
+		fi
+	fi
+
+	if [[ `grep -c "CONFIG_PACKAGE_libustream-wolfssl=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		if [[ `grep -c "CONFIG_PACKAGE_libustream-openssl=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+			sed -i 's/CONFIG_PACKAGE_libustream-wolfssl=y/# CONFIG_PACKAGE_libustream-wolfssl is not set/g' ${HOME_PATH}/.config
+		fi
+	fi
 }
 
 ################################################################################################################
@@ -884,16 +1167,6 @@ function compile_info() {
 }
 
 ################################################################################################################
-# 插件列表
-################################################################################################################
-function update_plugin_list() {
-	cd ${HOME_PATH}
-	plugin_1="$(grep -Eo "CONFIG_PACKAGE_luci-app-.*=y|CONFIG_PACKAGE_luci-theme-.*=y" .config |grep -v 'INCLUDE\|_Proxy\|_static\|_dynamic' |sed 's/=y//' |sed 's/CONFIG_PACKAGE_//g')"
-	plugin_2="$(echo "${plugin_1}" |sed 's/^/、/g' |awk '$0=NR$0')"
-	echo "${plugin_2}" > ${HOME_PATH}/plugin_list
-}
-
-################################################################################################################
 # 更新编译仓库
 ################################################################################################################
 function update_repo() {
@@ -940,7 +1213,9 @@ function update_repo() {
 	fi
 	
 	# 更新plugins插件列表
-	update_plugin_list
+	plugin_1="$(grep -Eo "CONFIG_PACKAGE_luci-app-.*=y|CONFIG_PACKAGE_luci-theme-.*=y" ${HOME_PATH}/.config |grep -v 'INCLUDE\|_Proxy\|_static\|_dynamic' |sed 's/=y//' |sed 's/CONFIG_PACKAGE_//g')"
+	plugin_2="$(echo "${plugin_1}" |sed 's/^/、/g' |awk '$0=NR$0')"
+	echo "${plugin_2}" > ${HOME_PATH}/plugin_list
 	if [[ "$(cat ${HOME_PATH}/plugin_list)" != "$(cat ${repo_matrix_target_path}/plugins)" ]]; then
 		ENABLE_REPO_UPDATE="true"
 		# 覆盖原plugin文件
@@ -957,288 +1232,6 @@ function update_repo() {
 		__success_msg "Your branch is now up to the latest."
 	else
 		__info_msg "Your branch is already up to date with origin/${branch_head}. Nothing to commit, working tree clean."
-	fi
-}
-
-################################################################################################################
-# 处理插件冲突
-################################################################################################################
-function resolve_confflictions() {
-	cd ${HOME_PATH}
-
-	__yellow_color "正在判断插件是否有冲突..."
-	
-	make defconfig > /dev/null 2>&1
-	rm -rf ${CONFFLICTIONS} && touch ${CONFFLICTIONS}
-	
-	# lxc模式下编译.tar.gz固件
-	if [[ "${FIRMWARE_TYPE}" == "lxc" ]]; then
-		sed -i '/CONFIG_TARGET_ROOTFS_TARGZ/d' ${HOME_PATH}/.config > /dev/null 2>&1
-		sed -i '$a CONFIG_TARGET_ROOTFS_TARGZ=y' ${HOME_PATH}/.config > /dev/null 2>&1
-		__info_msg "lxc模式，添加openwrt-generic-rootfs.tar.gz文件编译"
-	fi
-	
-	if [[ `grep -c "CONFIG_PACKAGE_luci-app-adblock-plus=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-		if [[ `grep -c "CONFIG_PACKAGE_luci-app-adblock=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-			sed -i 's/CONFIG_PACKAGE_luci-app-adblock=y/# CONFIG_PACKAGE_luci-app-adblock is not set/g' ${HOME_PATH}/.config
-			sed -i 's/CONFIG_PACKAGE_adblock=y/# CONFIG_PACKAGE_adblock is not set/g' ${HOME_PATH}/.config
-			sed -i '/luci-i18n-adblock/d' ${HOME_PATH}/.config
-			echo "__error_msg \"您同时选择luci-app-adblock-plus和luci-app-adblock，插件有依赖冲突，只能二选一，已删除luci-app-adblock\"" >> ${CONFFLICTIONS}
-			echo "" >> ${CONFFLICTIONS}
-		fi
-	fi
-	
-	if [[ `grep -c "CONFIG_PACKAGE_luci-app-advanced=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-		if [[ `grep -c "CONFIG_PACKAGE_luci-app-fileassistant=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-			sed -i 's/CONFIG_PACKAGE_luci-app-fileassistant=y/# CONFIG_PACKAGE_luci-app-fileassistant is not set/g' ${HOME_PATH}/.config
-			echo "__error_msg \"您同时选择luci-app-advanced和luci-app-fileassistant，luci-app-advanced已附带luci-app-fileassistant，所以删除了luci-app-fileassistant\"" >> ${CONFFLICTIONS}
-			echo "" >> ${CONFFLICTIONS}
-		fi
-	fi
-	
-	if [[ `grep -c "CONFIG_PACKAGE_luci-app-docker=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-		if [[ `grep -c "CONFIG_PACKAGE_luci-app-dockerman=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-			sed -i 's/CONFIG_PACKAGE_luci-app-docker=y/# CONFIG_PACKAGE_luci-app-docker is not set/g' ${HOME_PATH}/.config
-			sed -i 's/CONFIG_PACKAGE_luci-i18n-docker-zh-cn=y/# CONFIG_PACKAGE_luci-i18n-docker-zh-cn is not set/g' ${HOME_PATH}/.config
-			echo "__error_msg \"您同时选择luci-app-docker和luci-app-dockerman，插件有冲突，相同功能插件只能二选一，已删除luci-app-docker\"" >> ${CONFFLICTIONS}
-			echo "" >> ${CONFFLICTIONS}
-		fi
-	fi
-	
-	if [[ `grep -c "CONFIG_PACKAGE_luci-app-dockerman=y" ${HOME_PATH}/.config` -eq '0' ]] || [[ `grep -c "CONFIG_PACKAGE_luci-app-docker=y" ${HOME_PATH}/.config` -eq '0' ]]; then
-		sed -i '/CONFIG_PACKAGE_luci-lib-docker/d' ${HOME_PATH}/.config
-		sed -i '/CONFIG_PACKAGE_luci-i18n-dockerman-zh-cn/d' ${HOME_PATH}/.config
-		sed -i '/CONFIG_PACKAGE_docker/d' ${HOME_PATH}/.config
-		sed -i '/CONFIG_PACKAGE_dockerd/d' ${HOME_PATH}/.config
-		sed -i '/CONFIG_PACKAGE_runc/d' ${HOME_PATH}/.config
-		
-		sed -i '$a # CONFIG_PACKAGE_luci-lib-docker is not set' ${HOME_PATH}/.config
-		sed -i '$a # CONFIG_PACKAGE_luci-i18n-dockerman-zh-cn is not set' ${HOME_PATH}/.config
-		sed -i '$a # CONFIG_PACKAGE_docker is not set' ${HOME_PATH}/.config
-		sed -i '$a # CONFIG_PACKAGE_dockerd is not set' ${HOME_PATH}/.config
-		sed -i '$a # CONFIG_PACKAGE_runc is not set' ${HOME_PATH}/.config
-	fi
-	
-	if [[ `grep -c "CONFIG_PACKAGE_luci-app-ipsec-server=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-		if [[ `grep -c "CONFIG_PACKAGE_luci-app-ipsec-vpnd=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-			sed -i 's/CONFIG_PACKAGE_luci-app-ipsec-vpnd=y/# CONFIG_PACKAGE_luci-app-ipsec-vpnd is not set/g' ${HOME_PATH}/.config
-			echo "__error_msg \"您同时选择luci-app-ipsec-vpnd和luci-app-ipsec-server，插件有冲突，相同功能插件只能二选一，已删除luci-app-ipsec-vpnd\""  >> ${CONFFLICTIONS}
-			echo "" >> ${CONFFLICTIONS}
-		fi
-	fi
-	
-	if [[ `grep -c "CONFIG_PACKAGE_luci-app-kodexplorer=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-		if [[ `grep -c "CONFIG_PACKAGE_luci-app-vnstat=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-			sed -i 's/CONFIG_PACKAGE_luci-app-vnstat=y/# CONFIG_PACKAGE_luci-app-vnstat is not set/g' ${HOME_PATH}/.config
-			sed -i 's/CONFIG_PACKAGE_vnstat=y/# CONFIG_PACKAGE_vnstat is not set/g' ${HOME_PATH}/.config
-			sed -i 's/CONFIG_PACKAGE_vnstati=y/# CONFIG_PACKAGE_vnstati is not set/g' ${HOME_PATH}/.config
-			sed -i 's/CONFIG_PACKAGE_libgd=y/# CONFIG_PACKAGE_libgd is not set/g' ${HOME_PATH}/.config
-			sed -i '/luci-i18n-vnstat/d' ${HOME_PATH}/.config
-			echo "__error_msg \"您同时选择luci-app-kodexplorer和luci-app-vnstat，插件有依赖冲突，只能二选一，已删除luci-app-vnstat\"" >> ${CONFFLICTIONS}
-			echo "" >> ${CONFFLICTIONS}
-		fi
-	fi
-	
-	if [[ `grep -c "CONFIG_PACKAGE_wpad-openssl=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-		if [[ `grep -c "CONFIG_PACKAGE_wpad=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-			sed -i 's/CONFIG_PACKAGE_wpad=y/# CONFIG_PACKAGE_wpad is not set/g' ${HOME_PATH}/.config
-		fi
-	fi
-	
-	if [[ `grep -c "CONFIG_PACKAGE_luci-app-passwall_INCLUDE_Trojan_Plus=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-		if [[ `grep -c "CONFIG_PACKAGE_luci-app-passwall_INCLUDE_Trojan_GO=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-			sed -i 's/CONFIG_PACKAGE_luci-app-passwall_INCLUDE_Trojan_GO=y/# CONFIG_PACKAGE_luci-app-passwall_INCLUDE_Trojan_GO is not set/g' ${HOME_PATH}/.config
-			echo "__error_msg \"您选择了passwall的Trojan_GO，会和passwall的Trojan_Plus冲突导致编译错误，只能二选一，已删除Trojan_GO\"" >> ${CONFFLICTIONS}
-			echo "" >> ${CONFFLICTIONS}
-		fi
-	fi
-	
-	if [[ `grep -c "CONFIG_PACKAGE_luci-app-qbittorrent=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-		if [[ `grep -c "CONFIG_PACKAGE_luci-app-qbittorrent-simple=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-			sed -i 's/CONFIG_PACKAGE_luci-app-qbittorrent-simple=y/# CONFIG_PACKAGE_luci-app-qbittorrent-simple is not set/g' ${HOME_PATH}/.config
-			sed -i 's/CONFIG_PACKAGE_luci-i18n-qbittorrent-simple-zh-cn=y/# CONFIG_PACKAGE_luci-i18n-qbittorrent-simple-zh-cn is not set/g' ${HOME_PATH}/.config
-			sed -i 's/CONFIG_PACKAGE_qbittorrent=y/# CONFIG_PACKAGE_qbittorrent is not set/g' ${HOME_PATH}/.config
-			echo "__error_msg \"您同时选择luci-app-qbittorrent和luci-app-qbittorrent-simple，插件有冲突，相同功能插件只能二选一，已删除luci-app-qbittorrent-simple\"" >> ${CONFFLICTIONS}
-			echo "" >> ${CONFFLICTIONS}
-		fi
-	fi
-	
-	if [[ `grep -c "CONFIG_PACKAGE_luci-app-samba4=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-		if [[ `grep -c "CONFIG_PACKAGE_luci-app-samba=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-			sed -i 's/CONFIG_PACKAGE_luci-app-samba=y/# CONFIG_PACKAGE_luci-app-samba is not set/g' ${HOME_PATH}/.config
-			sed -i 's/CONFIG_PACKAGE_luci-i18n-samba-zh-cn=y/# CONFIG_PACKAGE_luci-i18n-samba-zh-cn is not set/g' ${HOME_PATH}/.config
-			sed -i 's/CONFIG_PACKAGE_samba36-server=y/# CONFIG_PACKAGE_samba36-server is not set/g' ${HOME_PATH}/.config
-			echo "__error_msg \"您同时选择luci-app-samba和luci-app-samba4，插件有冲突，相同功能插件只能二选一，已删除luci-app-samba\"" >> ${CONFFLICTIONS}
-			echo "" >> ${CONFFLICTIONS}
-		fi
-	elif [[ `grep -c "CONFIG_PACKAGE_samba4-server=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-		sed -i '/CONFIG_PACKAGE_samba4-admin/d' ${HOME_PATH}/.config
-		sed -i '/CONFIG_PACKAGE_samba4-client/d' ${HOME_PATH}/.config
-		sed -i '/CONFIG_PACKAGE_samba4-libs/d' ${HOME_PATH}/.config
-		sed -i '/CONFIG_PACKAGE_samba4-server/d' ${HOME_PATH}/.config
-		sed -i '/CONFIG_PACKAGE_samba4-utils/d' ${HOME_PATH}/.config
-		
-		sed -i '$a # CONFIG_PACKAGE_samba4-admin is not set' ${HOME_PATH}/.config
-		sed -i '$a # CONFIG_PACKAGE_samba4-client is not set' ${HOME_PATH}/.config
-		sed -i '$a # CONFIG_PACKAGE_samba4-libs is not set' ${HOME_PATH}/.config
-		sed -i '$a # CONFIG_PACKAGE_samba4-server is not set' ${HOME_PATH}/.config
-		sed -i '$a # CONFIG_PACKAGE_samba4-utils is not set' ${HOME_PATH}/.config
-	fi
-	
-	if [[ `grep -c "CONFIG_PACKAGE_luci-app-sfe=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-		if [[ `grep -c "CONFIG_PACKAGE_luci-app-flowoffload=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-			sed -i 's/CONFIG_DEFAULT_luci-app-flowoffload=y/# CONFIG_DEFAULT_luci-app-flowoffload is not set/g' ${HOME_PATH}/.config
-			sed -i 's/CONFIG_PACKAGE_luci-app-flowoffload=y/# CONFIG_PACKAGE_luci-app-flowoffload is not set/g' ${HOME_PATH}/.config
-			sed -i 's/CONFIG_PACKAGE_luci-i18n-flowoffload-zh-cn=y/# CONFIG_PACKAGE_luci-i18n-flowoffload-zh-cn is not set/g' ${HOME_PATH}/.config
-			echo "__error_msg \"提示：您同时选择了luci-app-sfe和luci-app-flowoffload，两个ACC网络加速，已删除luci-app-flowoffload\"" >> ${CONFFLICTIONS}
-			echo "" >> ${CONFFLICTIONS}
-		fi
-	fi
-	
-	if [[ `grep -c "CONFIG_PACKAGE_luci-app-ssr-plus=y" ${HOME_PATH}/.config` -ge '1' ]]; then
-		if [[ `grep -c "CONFIG_PACKAGE_luci-app-cshark=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-			sed -i 's/CONFIG_PACKAGE_luci-app-cshark=y/# CONFIG_PACKAGE_luci-app-cshark is not set/g' ${HOME_PATH}/.config
-			sed -i 's/CONFIG_PACKAGE_cshark=y/# CONFIG_PACKAGE_cshark is not set/g' ${HOME_PATH}/.config
-			sed -i 's/CONFIG_PACKAGE_libustream-mbedtls=y/# CONFIG_PACKAGE_libustream-mbedtls is not set/g' ${HOME_PATH}/.config
-			echo "__error_msg \"您同时选择luci-app-ssr-plus和luci-app-cshark，插件有依赖冲突，只能二选一，已删除luci-app-cshark\"" >> ${CONFFLICTIONS}
-			echo "" >> ${CONFFLICTIONS}
-		fi
-	fi
-	
-	if [[ `grep -c "CONFIG_PACKAGE_luci-app-turboacc_INCLUDE_SHORTCUT_FE_CM=y" ${HOME_PATH}/.config` -ge '1' ]]; then
-		if [[ `grep -c "CONFIG_PACKAGE_luci-app-turboacc_INCLUDE_SHORTCUT_FE=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-			sed -i 's/CONFIG_PACKAGE_luci-app-turboacc_INCLUDE_SHORTCUT_FE=y/# CONFIG_PACKAGE_luci-app-turboacc_INCLUDE_SHORTCUT_FE is not set/g' ${HOME_PATH}/.config
-			sed -i 's/CONFIG_PACKAGE_kmod-fast-classifier=y/# CONFIG_PACKAGE_kmod-fast-classifier is not set/g' ${HOME_PATH}/.config
-			echo "__error_msg \"luci-app-turboacc同时选择Include Shortcut-FE CM和Include Shortcut-FE，有冲突，只能二选一，已删除Include Shortcut-FE\"" >> ${CONFFLICTIONS}
-			echo "" >> ${CONFFLICTIONS}
-		fi
-	fi
-	
-	if [[ `grep -c "CONFIG_PACKAGE_luci-app-unblockneteasemusic=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-		if [[ `grep -c "CONFIG_PACKAGE_luci-app-unblockneteasemusic-go=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-			sed -i 's/CONFIG_PACKAGE_luci-app-unblockneteasemusic-go=y/# CONFIG_PACKAGE_luci-app-unblockneteasemusic-go is not set/g' ${HOME_PATH}/.config
-			echo "__error_msg \"您选择了luci-app-unblockneteasemusic-go，会和luci-app-unblockneteasemusic冲突导致编译错误，已删除luci-app-unblockneteasemusic-go\"" >> ${CONFFLICTIONS}
-			echo "" >> ${CONFFLICTIONS}
-		fi
-		if [[ `grep -c "CONFIG_PACKAGE_luci-app-unblockmusic=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-			sed -i 's/CONFIG_PACKAGE_luci-app-unblockmusic=y/# CONFIG_PACKAGE_luci-app-unblockmusic is not set/g' ${HOME_PATH}/.config
-			echo "__error_msg \"您选择了luci-app-unblockmusic，会和luci-app-unblockneteasemusic冲突导致编译错误，已删除luci-app-unblockmusic\"" >> ${CONFFLICTIONS}
-			echo "" >> ${CONFFLICTIONS}
-		fi
-	fi
-	
-	if [[ `grep -c "CONFIG_PACKAGE_wpad-openssl=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-		if [[ `grep -c "CONFIG_PACKAGE_wpad=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-			sed -i 's/CONFIG_PACKAGE_wpad=y/# CONFIG_PACKAGE_wpad is not set/g' ${HOME_PATH}/.config
-		fi
-	fi
-	
-	if [[ `grep -c "CONFIG_PACKAGE_dnsmasq-full=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-		if [[ `grep -c "CONFIG_PACKAGE_dnsmasq=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_PACKAGE_dnsmasq-dhcpv6=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-			sed -i 's/CONFIG_PACKAGE_dnsmasq=y/# CONFIG_PACKAGE_dnsmasq is not set/g' ${HOME_PATH}/.config
-			sed -i 's/CONFIG_PACKAGE_dnsmasq-dhcpv6=y/# CONFIG_PACKAGE_dnsmasq-dhcpv6 is not set/g' ${HOME_PATH}/.config
-		fi
-	fi
-	
-	if [[ `grep -c "CONFIG_PACKAGE_odhcp6c=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-		sed -i '/CONFIG_PACKAGE_odhcpd=y/d' ${HOME_PATH}/.config
-		sed -i '/CONFIG_PACKAGE_odhcpd_full_ext_cer_id=0/d' ${HOME_PATH}/.config
-	fi
-
-	if [[ `grep -c "CONFIG_PACKAGE_luci-theme-argon=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-		if [[ `grep -c "CONFIG_PACKAGE_luci-theme-argon_new=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-			sed -i 's/CONFIG_PACKAGE_luci-theme-argon_new=y/# CONFIG_PACKAGE_luci-theme-argon_new is not set/g' ${HOME_PATH}/.config
-			echo "__error_msg \"您同时选择luci-theme-argon和luci-theme-argon_new，插件有冲突，相同功能插件只能二选一，已删除luci-theme-argon_new\"" >> ${CONFFLICTIONS}
-			echo "" >> ${CONFFLICTIONS}
-		fi
-		if [[ `grep -c "CONFIG_PACKAGE_luci-theme-argonne=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-			sed -i 's/CONFIG_PACKAGE_luci-theme-argonne=y/# CONFIG_PACKAGE_luci-theme-argonne is not set/g' ${HOME_PATH}/.config
-			echo "__error_msg \"您同时选择luci-theme-argon和luci-theme-argonne，插件有冲突，相同功能插件只能二选一，已删除luci-theme-argonne\"" >> ${CONFFLICTIONS}
-			echo "" >> ${CONFFLICTIONS}
-		fi
-		if [[ `grep -c "CONFIG_PACKAGE_luci-app-argon-config=y" ${HOME_PATH}/.config` -eq '0' ]] && [[ `grep -c "CONFIG_TARGET_x86=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-			sed -i '/CONFIG_PACKAGE_luci-app-argon-config/d' ${HOME_PATH}/.config
-			sed -i '/argon=y/i\CONFIG_PACKAGE_luci-app-argon-config=y' ${HOME_PATH}/.config
-		fi
-	fi
-	
-	if [[ `grep -c "CONFIG_PACKAGE_luci-theme-argon=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-		if [[ `grep -c "CONFIG_PACKAGE_luci-app-argon-config=y" ${HOME_PATH}/.config` == '0' ]]; then
-			sed -i '/luci-app-argon-config/d' ${HOME_PATH}/.config
-			sed -i '$a CONFIG_PACKAGE_luci-app-argon-config=y' ${HOME_PATH}/.config
-		fi
-	else
-		sed -i '/luci-app-argon-config/d' ${HOME_PATH}/.config
-		sed -i '$a # CONFIG_PACKAGE_luci-app-argon-config is not set' ${HOME_PATH}/.config
-	fi
-
-	if [[ `grep -c "CONFIG_TARGET_x86=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_rockchip=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_bcm27xx=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-		sed -i '/CONFIG_TARGET_IMAGES_GZIP/d' ${HOME_PATH}/.config
-		sed -i '$a CONFIG_TARGET_IMAGES_GZIP=y' ${HOME_PATH}/.config
-		sed -i '/CONFIG_PACKAGE_openssh-sftp-server/d' ${HOME_PATH}/.config
-		sed -i '$a CONFIG_PACKAGE_openssh-sftp-server=y' ${HOME_PATH}/.config
-	fi
-
-	if [[ `grep -c "CONFIG_TARGET_x86=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_rockchip=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_bcm27xx=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-		sed -i '/CONFIG_PACKAGE_snmpd/d' ${HOME_PATH}/.config
-		sed -i '$a CONFIG_PACKAGE_snmpd=y' ${HOME_PATH}/.config
-		sed -i '/CONFIG_TARGET_IMAGES_GZIP/d' ${HOME_PATH}/.config
-		sed -i '$a CONFIG_TARGET_IMAGES_GZIP=y' ${HOME_PATH}/.config
-		sed -i '/CONFIG_PACKAGE_openssh-sftp-server/d' ${HOME_PATH}/.config
-		sed -i '$a CONFIG_PACKAGE_openssh-sftp-server=y' ${HOME_PATH}/.config
-		#sed -i '/CONFIG_GRUB_IMAGES/d' ${HOME_PATH}/.config
-		#sed -i '$a CONFIG_GRUB_IMAGES=y' ${HOME_PATH}/.config
-		if [[ `grep -c "CONFIG_TARGET_ROOTFS_PARTSIZE=" ${HOME_PATH}/.config` -eq '1' ]]; then
-			local partsize="$(grep -Eo "CONFIG_TARGET_ROOTFS_PARTSIZE=[0-9]+" ${HOME_PATH}/.config |cut -f2 -d=)"
-			if [[ "${partsize}" -lt "400" ]];then
-				sed -i '/CONFIG_TARGET_ROOTFS_PARTSIZE/d' ${HOME_PATH}/.config
-			fi
-		fi
-	fi
-	
-	if [[ `grep -c "CONFIG_TARGET_mxs=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_sunxi=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_zynq=y" ${HOME_PATH}/.config` -eq '1' ]]; then	
-		sed -i '/CONFIG_TARGET_IMAGES_GZIP/d' ${HOME_PATH}/.config
-		sed -i '$a CONFIG_TARGET_IMAGES_GZIP=y' ${HOME_PATH}/.config
-		sed -i '/CONFIG_PACKAGE_openssh-sftp-server/d' ${HOME_PATH}/.config
-		sed -i '$a CONFIG_PACKAGE_openssh-sftp-server=y' ${HOME_PATH}/.config
-		sed -i '/CONFIG_GRUB_IMAGES/d' ${HOME_PATH}/.config
-		sed -i '$a CONFIG_GRUB_IMAGES=y' ${HOME_PATH}/.config
-		if [[ `grep -c "CONFIG_TARGET_ROOTFS_PARTSIZE=" ${HOME_PATH}/.config` -eq '1' ]]; then
-			local partsize="$(grep -Eo "CONFIG_TARGET_ROOTFS_PARTSIZE=[0-9]+" ${HOME_PATH}/.config |cut -f2 -d=)"
-			if [[ "${partsize}" -lt "400" ]];then
-				sed -i '/CONFIG_TARGET_ROOTFS_PARTSIZE/d' ${HOME_PATH}/.config
-				sed -i '$a CONFIG_TARGET_ROOTFS_PARTSIZE=400' ${HOME_PATH}/.config
-			fi
-		fi
-	fi
-	
-	if [[ `grep -c "CONFIG_TARGET_armvirt=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_armsr=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-		sed -i 's/CONFIG_PACKAGE_luci-app-autoupdate=y/# CONFIG_PACKAGE_luci-app-autoupdate is not set/g' ${HOME_PATH}/.config
-		sed -i '/CONFIG_TARGET_ROOTFS_TARGZ/d' ${HOME_PATH}/.config
-		sed -i '$a CONFIG_TARGET_ROOTFS_TARGZ=y' ${HOME_PATH}/.config
-	fi
-	
-	if [[ `grep -c "CONFIG_TARGET_ROOTFS_EXT4FS=y" ${HOME_PATH}/.config` -eq '1' ]]; then	
-		local partsize="$(grep -Eo "CONFIG_TARGET_ROOTFS_PARTSIZE=[0-9]+" ${HOME_PATH}/.config |cut -f2 -d=)"
-		if [[ "${partsize}" -lt "950" ]];then
-			sed -i '/CONFIG_TARGET_ROOTFS_PARTSIZE/d' ${HOME_PATH}/.config
-			sed -i '$a CONFIG_TARGET_ROOTFS_PARTSIZE=950' ${HOME_PATH}/.config
-			echo "__error_msg \"EXT4提示：请注意，您选择了ext4安装的固件格式,而检测到您的分配的固件系统分区过小\"" >> ${CONFFLICTIONS}
-			echo "__error_msg \"为避免编译出错,已自动帮您修改成950M\"" >> ${CONFFLICTIONS}
-			echo "" >> ${CONFFLICTIONS}
-		fi
-	fi
-	
-	if [[ `grep -c "CONFIG_PACKAGE_antfs-mount=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-		if [[ `grep -c "CONFIG_PACKAGE_ntfs3-mount=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-			sed -i 's/CONFIG_PACKAGE_antfs-mount=y/# CONFIG_PACKAGE_antfs-mount is not set/g' ${HOME_PATH}/.config
-		fi
-	fi
-
-	if [[ `grep -c "CONFIG_PACKAGE_libustream-wolfssl=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-		if [[ `grep -c "CONFIG_PACKAGE_libustream-openssl=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-			sed -i 's/CONFIG_PACKAGE_libustream-wolfssl=y/# CONFIG_PACKAGE_libustream-wolfssl is not set/g' ${HOME_PATH}/.config
-		fi
 	fi
 }
 
