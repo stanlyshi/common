@@ -987,6 +987,7 @@ function resolve_confflictions() {
 			echo "" >> ${CONFFLICTIONS}
 		fi
 	fi
+	
 	if [[ `grep -c "CONFIG_PACKAGE_luci-app-advanced=y" ${HOME_PATH}/.config` -eq '1' ]]; then
 		if [[ `grep -c "CONFIG_PACKAGE_luci-app-fileassistant=y" ${HOME_PATH}/.config` -eq '1' ]]; then
 			sed -i 's/CONFIG_PACKAGE_luci-app-fileassistant=y/# CONFIG_PACKAGE_luci-app-fileassistant is not set/g' ${HOME_PATH}/.config
@@ -994,6 +995,7 @@ function resolve_confflictions() {
 			echo "" >> ${CONFFLICTIONS}
 		fi
 	fi
+	
 	if [[ `grep -c "CONFIG_PACKAGE_luci-app-docker=y" ${HOME_PATH}/.config` -eq '1' ]]; then
 		if [[ `grep -c "CONFIG_PACKAGE_luci-app-dockerman=y" ${HOME_PATH}/.config` -eq '1' ]]; then
 			sed -i 's/CONFIG_PACKAGE_luci-app-docker=y/# CONFIG_PACKAGE_luci-app-docker is not set/g' ${HOME_PATH}/.config
@@ -1002,13 +1004,21 @@ function resolve_confflictions() {
 			echo "" >> ${CONFFLICTIONS}
 		fi
 	fi
+	
 	if [[ `grep -c "CONFIG_PACKAGE_luci-app-dockerman=y" ${HOME_PATH}/.config` -eq '0' ]] || [[ `grep -c "CONFIG_PACKAGE_luci-app-docker=y" ${HOME_PATH}/.config` -eq '0' ]]; then
-		echo "# CONFIG_PACKAGE_luci-lib-docker is not set" >> ${HOME_PATH}/.config
-		echo "# CONFIG_PACKAGE_luci-i18n-dockerman-zh-cn is not set" >> ${HOME_PATH}/.config
-		echo "# CONFIG_PACKAGE_docker is not set" >> ${HOME_PATH}/.config
-		echo "# CONFIG_PACKAGE_dockerd is not set" >> ${HOME_PATH}/.config
-		echo "# CONFIG_PACKAGE_runc is not set" >> ${HOME_PATH}/.config
+		sed -i '/CONFIG_PACKAGE_luci-lib-docker/d' ${HOME_PATH}/.config
+		sed -i '/CONFIG_PACKAGE_luci-i18n-dockerman-zh-cn/d' ${HOME_PATH}/.config
+		sed -i '/CONFIG_PACKAGE_docker/d' ${HOME_PATH}/.config
+		sed -i '/CONFIG_PACKAGE_dockerd/d' ${HOME_PATH}/.config
+		sed -i '/CONFIG_PACKAGE_runc/d' ${HOME_PATH}/.config
+		
+		sed -i '$a # CONFIG_PACKAGE_luci-lib-docker is not set' ${HOME_PATH}/.config
+		sed -i '$a # CONFIG_PACKAGE_luci-i18n-dockerman-zh-cn is not set' ${HOME_PATH}/.config
+		sed -i '$a # CONFIG_PACKAGE_docker is not set' ${HOME_PATH}/.config
+		sed -i '$a # CONFIG_PACKAGE_dockerd is not set' ${HOME_PATH}/.config
+		sed -i '$a # CONFIG_PACKAGE_runc is not set' ${HOME_PATH}/.config
 	fi
+	
 	if [[ `grep -c "CONFIG_PACKAGE_luci-app-ipsec-server=y" ${HOME_PATH}/.config` -eq '1' ]]; then
 		if [[ `grep -c "CONFIG_PACKAGE_luci-app-ipsec-vpnd=y" ${HOME_PATH}/.config` -eq '1' ]]; then
 			sed -i 's/CONFIG_PACKAGE_luci-app-ipsec-vpnd=y/# CONFIG_PACKAGE_luci-app-ipsec-vpnd is not set/g' ${HOME_PATH}/.config
@@ -1016,6 +1026,7 @@ function resolve_confflictions() {
 			echo "" >> ${CONFFLICTIONS}
 		fi
 	fi
+	
 	if [[ `grep -c "CONFIG_PACKAGE_luci-app-kodexplorer=y" ${HOME_PATH}/.config` -eq '1' ]]; then
 		if [[ `grep -c "CONFIG_PACKAGE_luci-app-vnstat=y" ${HOME_PATH}/.config` -eq '1' ]]; then
 			sed -i 's/CONFIG_PACKAGE_luci-app-vnstat=y/# CONFIG_PACKAGE_luci-app-vnstat is not set/g' ${HOME_PATH}/.config
@@ -1027,6 +1038,7 @@ function resolve_confflictions() {
 			echo "" >> ${CONFFLICTIONS}
 		fi
 	fi
+	
 	if [[ `grep -c "CONFIG_PACKAGE_wpad-openssl=y" ${HOME_PATH}/.config` -eq '1' ]]; then
 		if [[ `grep -c "CONFIG_PACKAGE_wpad=y" ${HOME_PATH}/.config` -eq '1' ]]; then
 			sed -i 's/CONFIG_PACKAGE_wpad=y/# CONFIG_PACKAGE_wpad is not set/g' ${HOME_PATH}/.config
@@ -1050,6 +1062,7 @@ function resolve_confflictions() {
 			echo "" >> ${CONFFLICTIONS}
 		fi
 	fi
+	
 	if [[ `grep -c "CONFIG_PACKAGE_luci-app-samba4=y" ${HOME_PATH}/.config` -eq '1' ]]; then
 		if [[ `grep -c "CONFIG_PACKAGE_luci-app-samba=y" ${HOME_PATH}/.config` -eq '1' ]]; then
 			sed -i 's/CONFIG_PACKAGE_luci-app-samba=y/# CONFIG_PACKAGE_luci-app-samba is not set/g' ${HOME_PATH}/.config
@@ -1059,12 +1072,19 @@ function resolve_confflictions() {
 			echo "" >> ${CONFFLICTIONS}
 		fi
 	elif [[ `grep -c "CONFIG_PACKAGE_samba4-server=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-		echo "# CONFIG_PACKAGE_samba4-admin is not set" >> ${HOME_PATH}/.config
-		echo "# CONFIG_PACKAGE_samba4-client is not set" >> ${HOME_PATH}/.config
-		echo "# CONFIG_PACKAGE_samba4-libs is not set" >> ${HOME_PATH}/.config
-		echo "# CONFIG_PACKAGE_samba4-server is not set" >> ${HOME_PATH}/.config
-		echo "# CONFIG_PACKAGE_samba4-utils is not set" >> ${HOME_PATH}/.config
+		sed -i '/CONFIG_PACKAGE_samba4-admin/d' ${HOME_PATH}/.config
+		sed -i '/CONFIG_PACKAGE_samba4-client/d' ${HOME_PATH}/.config
+		sed -i '/CONFIG_PACKAGE_samba4-libs/d' ${HOME_PATH}/.config
+		sed -i '/CONFIG_PACKAGE_samba4-server/d' ${HOME_PATH}/.config
+		sed -i '/CONFIG_PACKAGE_samba4-utils/d' ${HOME_PATH}/.config
+		
+		sed -i '$a # CONFIG_PACKAGE_samba4-admin is not set' ${HOME_PATH}/.config
+		sed -i '$a # CONFIG_PACKAGE_samba4-client is not set' ${HOME_PATH}/.config
+		sed -i '$a # CONFIG_PACKAGE_samba4-libs is not set' ${HOME_PATH}/.config
+		sed -i '$a # CONFIG_PACKAGE_samba4-server is not set' ${HOME_PATH}/.config
+		sed -i '$a # CONFIG_PACKAGE_samba4-utils is not set' ${HOME_PATH}/.config
 	fi
+	
 	if [[ `grep -c "CONFIG_PACKAGE_luci-app-sfe=y" ${HOME_PATH}/.config` -eq '1' ]]; then
 		if [[ `grep -c "CONFIG_PACKAGE_luci-app-flowoffload=y" ${HOME_PATH}/.config` -eq '1' ]]; then
 			sed -i 's/CONFIG_DEFAULT_luci-app-flowoffload=y/# CONFIG_DEFAULT_luci-app-flowoffload is not set/g' ${HOME_PATH}/.config
@@ -1074,6 +1094,7 @@ function resolve_confflictions() {
 			echo "" >> ${CONFFLICTIONS}
 		fi
 	fi
+	
 	if [[ `grep -c "CONFIG_PACKAGE_luci-app-ssr-plus=y" ${HOME_PATH}/.config` -ge '1' ]]; then
 		if [[ `grep -c "CONFIG_PACKAGE_luci-app-cshark=y" ${HOME_PATH}/.config` -eq '1' ]]; then
 			sed -i 's/CONFIG_PACKAGE_luci-app-cshark=y/# CONFIG_PACKAGE_luci-app-cshark is not set/g' ${HOME_PATH}/.config
@@ -1083,6 +1104,7 @@ function resolve_confflictions() {
 			echo "" >> ${CONFFLICTIONS}
 		fi
 	fi
+	
 	if [[ `grep -c "CONFIG_PACKAGE_luci-app-turboacc_INCLUDE_SHORTCUT_FE_CM=y" ${HOME_PATH}/.config` -ge '1' ]]; then
 		if [[ `grep -c "CONFIG_PACKAGE_luci-app-turboacc_INCLUDE_SHORTCUT_FE=y" ${HOME_PATH}/.config` -eq '1' ]]; then
 			sed -i 's/CONFIG_PACKAGE_luci-app-turboacc_INCLUDE_SHORTCUT_FE=y/# CONFIG_PACKAGE_luci-app-turboacc_INCLUDE_SHORTCUT_FE is not set/g' ${HOME_PATH}/.config
@@ -1091,6 +1113,7 @@ function resolve_confflictions() {
 			echo "" >> ${CONFFLICTIONS}
 		fi
 	fi
+	
 	if [[ `grep -c "CONFIG_PACKAGE_luci-app-unblockneteasemusic=y" ${HOME_PATH}/.config` -eq '1' ]]; then
 		if [[ `grep -c "CONFIG_PACKAGE_luci-app-unblockneteasemusic-go=y" ${HOME_PATH}/.config` -eq '1' ]]; then
 			sed -i 's/CONFIG_PACKAGE_luci-app-unblockneteasemusic-go=y/# CONFIG_PACKAGE_luci-app-unblockneteasemusic-go is not set/g' ${HOME_PATH}/.config
@@ -1103,11 +1126,13 @@ function resolve_confflictions() {
 			echo "" >> ${CONFFLICTIONS}
 		fi
 	fi
+	
 	if [[ `grep -c "CONFIG_PACKAGE_wpad-openssl=y" ${HOME_PATH}/.config` -eq '1' ]]; then
 		if [[ `grep -c "CONFIG_PACKAGE_wpad=y" ${HOME_PATH}/.config` -eq '1' ]]; then
 			sed -i 's/CONFIG_PACKAGE_wpad=y/# CONFIG_PACKAGE_wpad is not set/g' ${HOME_PATH}/.config
 		fi
 	fi
+	
 	if [[ `grep -c "CONFIG_PACKAGE_dnsmasq-full=y" ${HOME_PATH}/.config` -eq '1' ]]; then
 		if [[ `grep -c "CONFIG_PACKAGE_dnsmasq=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_PACKAGE_dnsmasq-dhcpv6=y" ${HOME_PATH}/.config` -eq '1' ]]; then
 			sed -i 's/CONFIG_PACKAGE_dnsmasq=y/# CONFIG_PACKAGE_dnsmasq is not set/g' ${HOME_PATH}/.config
@@ -1116,8 +1141,8 @@ function resolve_confflictions() {
 	fi
 	
 	if [[ `grep -c "CONFIG_PACKAGE_odhcp6c=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-		sed -i '/CONFIG_PACKAGE_odhcpd=y/d' "${HOME_PATH}/.config"
-		sed -i '/CONFIG_PACKAGE_odhcpd_full_ext_cer_id=0/d' "${HOME_PATH}/.config"
+		sed -i '/CONFIG_PACKAGE_odhcpd=y/d' ${HOME_PATH}/.config
+		sed -i '/CONFIG_PACKAGE_odhcpd_full_ext_cer_id=0/d' ${HOME_PATH}/.config
 	fi
 
 	if [[ `grep -c "CONFIG_PACKAGE_luci-theme-argon=y" ${HOME_PATH}/.config` -eq '1' ]]; then
@@ -1133,35 +1158,36 @@ function resolve_confflictions() {
 		fi
 		if [[ `grep -c "CONFIG_PACKAGE_luci-app-argon-config=y" ${HOME_PATH}/.config` -eq '0' ]] && [[ `grep -c "CONFIG_TARGET_x86=y" ${HOME_PATH}/.config` -eq '1' ]]; then
 			sed -i '/CONFIG_PACKAGE_luci-app-argon-config/d' ${HOME_PATH}/.config
-			sed -i '/argon=y/i\CONFIG_PACKAGE_luci-app-argon-config=y' "${HOME_PATH}/.config"
+			sed -i '/argon=y/i\CONFIG_PACKAGE_luci-app-argon-config=y' ${HOME_PATH}/.config
 		fi
 	fi
+	
 	if [[ `grep -c "CONFIG_PACKAGE_luci-theme-argon=y" ${HOME_PATH}/.config` -eq '1' ]]; then
 		if [[ `grep -c "CONFIG_PACKAGE_luci-app-argon-config=y" ${HOME_PATH}/.config` == '0' ]]; then
 			sed -i '/luci-app-argon-config/d' ${HOME_PATH}/.config
-			echo -e "\nCONFIG_PACKAGE_luci-app-argon-config=y" >> ${HOME_PATH}/.config
+			sed -i '$a CONFIG_PACKAGE_luci-app-argon-config=y' ${HOME_PATH}/.config
 		fi
 	else
 		sed -i '/luci-app-argon-config/d' ${HOME_PATH}/.config
-		echo -e "\n# CONFIG_PACKAGE_luci-app-argon-config is not set" >> ${HOME_PATH}/.config
+		sed -i '$a # CONFIG_PACKAGE_luci-app-argon-config is not set' ${HOME_PATH}/.config
 	fi
 
 	if [[ `grep -c "CONFIG_TARGET_x86=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_rockchip=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_bcm27xx=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-		sed -i '/IMAGES_GZIP/d' "${HOME_PATH}/.config"
-		echo -e "\nCONFIG_TARGET_IMAGES_GZIP=y" >> "${HOME_PATH}/.config"
-		sed -i '/CONFIG_PACKAGE_openssh-sftp-server/d' "${HOME_PATH}/.config"
-		echo -e "\nCONFIG_PACKAGE_openssh-sftp-server=y" >> "${HOME_PATH}/.config"
+		sed -i '/CONFIG_TARGET_IMAGES_GZIP/d' ${HOME_PATH}/.config
+		sed -i '$a CONFIG_TARGET_IMAGES_GZIP=y' ${HOME_PATH}/.config
+		sed -i '/CONFIG_PACKAGE_openssh-sftp-server/d' ${HOME_PATH}/.config
+		sed -i '$a CONFIG_PACKAGE_openssh-sftp-server=y' ${HOME_PATH}/.config
 	fi
 
 	if [[ `grep -c "CONFIG_TARGET_x86=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_rockchip=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_bcm27xx=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-		sed -i '/CONFIG_PACKAGE_snmpd/d' "${HOME_PATH}/.config"
-		echo -e "\nCONFIG_PACKAGE_snmpd=y" >> "${HOME_PATH}/.config"
-		sed -i '/CONFIG_TARGET_IMAGES_GZIP/d' "${HOME_PATH}/.config"
-		echo -e "\nCONFIG_TARGET_IMAGES_GZIP=y" >> "${HOME_PATH}/.config"
-		sed -i '/CONFIG_PACKAGE_openssh-sftp-server/d' "${HOME_PATH}/.config"
-		echo -e "\nCONFIG_PACKAGE_openssh-sftp-server=y" >> "${HOME_PATH}/.config"
-		#sed -i '/CONFIG_GRUB_IMAGES/d' "${HOME_PATH}/.config"
-		#echo -e "\nCONFIG_GRUB_IMAGES=y" >> "${HOME_PATH}/.config"
+		sed -i '/CONFIG_PACKAGE_snmpd/d' ${HOME_PATH}/.config
+		sed -i '$a CONFIG_PACKAGE_snmpd=y' ${HOME_PATH}/.config
+		sed -i '/CONFIG_TARGET_IMAGES_GZIP/d' ${HOME_PATH}/.config
+		sed -i '$a CONFIG_TARGET_IMAGES_GZIP=y' ${HOME_PATH}/.config
+		sed -i '/CONFIG_PACKAGE_openssh-sftp-server/d' ${HOME_PATH}/.config
+		sed -i '$a CONFIG_PACKAGE_openssh-sftp-server=y' ${HOME_PATH}/.config
+		#sed -i '/CONFIG_GRUB_IMAGES/d' ${HOME_PATH}/.config
+		#sed -i '$a CONFIG_GRUB_IMAGES=y' ${HOME_PATH}/.config
 		if [[ `grep -c "CONFIG_TARGET_ROOTFS_PARTSIZE=" ${HOME_PATH}/.config` -eq '1' ]]; then
 			local partsize="$(grep -Eo "CONFIG_TARGET_ROOTFS_PARTSIZE=[0-9]+" ${HOME_PATH}/.config |cut -f2 -d=)"
 			if [[ "${partsize}" -lt "400" ]];then
@@ -1171,32 +1197,32 @@ function resolve_confflictions() {
 	fi
 	
 	if [[ `grep -c "CONFIG_TARGET_mxs=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_sunxi=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_zynq=y" ${HOME_PATH}/.config` -eq '1' ]]; then	
-		sed -i '/CONFIG_TARGET_IMAGES_GZIP/d' "${HOME_PATH}/.config"
-		echo -e "\nCONFIG_TARGET_IMAGES_GZIP=y" >> "${HOME_PATH}/.config"
-		sed -i '/CONFIG_PACKAGE_openssh-sftp-server/d' "${HOME_PATH}/.config"
-		echo -e "\nCONFIG_PACKAGE_openssh-sftp-server=y" >> "${HOME_PATH}/.config"
-		sed -i '/CONFIG_GRUB_IMAGES/d' "${HOME_PATH}/.config"
-		echo -e "\nCONFIG_GRUB_IMAGES=y" >> "${HOME_PATH}/.config"
+		sed -i '/CONFIG_TARGET_IMAGES_GZIP/d' ${HOME_PATH}/.config
+		sed -i '$a CONFIG_TARGET_IMAGES_GZIP=y' ${HOME_PATH}/.config
+		sed -i '/CONFIG_PACKAGE_openssh-sftp-server/d' ${HOME_PATH}/.config
+		sed -i '$a CONFIG_PACKAGE_openssh-sftp-server=y' ${HOME_PATH}/.config
+		sed -i '/CONFIG_GRUB_IMAGES/d' ${HOME_PATH}/.config
+		sed -i '$a CONFIG_GRUB_IMAGES=y' ${HOME_PATH}/.config
 		if [[ `grep -c "CONFIG_TARGET_ROOTFS_PARTSIZE=" ${HOME_PATH}/.config` -eq '1' ]]; then
 			local partsize="$(grep -Eo "CONFIG_TARGET_ROOTFS_PARTSIZE=[0-9]+" ${HOME_PATH}/.config |cut -f2 -d=)"
 			if [[ "${partsize}" -lt "400" ]];then
 				sed -i '/CONFIG_TARGET_ROOTFS_PARTSIZE/d' ${HOME_PATH}/.config
-				echo -e "\nCONFIG_TARGET_ROOTFS_PARTSIZE=400" >> ${HOME_PATH}/.config
+				sed -i '$a CONFIG_TARGET_ROOTFS_PARTSIZE=400' ${HOME_PATH}/.config
 			fi
 		fi
 	fi
 	
 	if [[ `grep -c "CONFIG_TARGET_armvirt=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_armsr=y" ${HOME_PATH}/.config` -eq '1' ]]; then
 		sed -i 's/CONFIG_PACKAGE_luci-app-autoupdate=y/# CONFIG_PACKAGE_luci-app-autoupdate is not set/g' ${HOME_PATH}/.config
-		sed -i '/CONFIG_TARGET_ROOTFS_TARGZ/d' ${HOME_PATH}/.config		
-		echo -e "\nCONFIG_TARGET_ROOTFS_TARGZ=y" >> "${HOME_PATH}/.config"
+		sed -i '/CONFIG_TARGET_ROOTFS_TARGZ/d' ${HOME_PATH}/.config
+		sed -i '$a CONFIG_TARGET_ROOTFS_TARGZ=y' ${HOME_PATH}/.config
 	fi
 	
 	if [[ `grep -c "CONFIG_TARGET_ROOTFS_EXT4FS=y" ${HOME_PATH}/.config` -eq '1' ]]; then	
 		local partsize="$(grep -Eo "CONFIG_TARGET_ROOTFS_PARTSIZE=[0-9]+" ${HOME_PATH}/.config |cut -f2 -d=)"
 		if [[ "${partsize}" -lt "950" ]];then
 			sed -i '/CONFIG_TARGET_ROOTFS_PARTSIZE/d' ${HOME_PATH}/.config
-			echo -e "\nCONFIG_TARGET_ROOTFS_PARTSIZE=950" >> ${HOME_PATH}/.config
+			sed -i '$a CONFIG_TARGET_ROOTFS_PARTSIZE=950' ${HOME_PATH}/.config
 			echo "__error_msg \"EXT4提示：请注意，您选择了ext4安装的固件格式,而检测到您的分配的固件系统分区过小\"" >> ${CONFFLICTIONS}
 			echo "__error_msg \"为避免编译出错,已自动帮您修改成950M\"" >> ${CONFFLICTIONS}
 			echo "" >> ${CONFFLICTIONS}
