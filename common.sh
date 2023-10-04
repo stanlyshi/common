@@ -1274,22 +1274,23 @@ function organize_firmware() {
 				cp -rf ${firmware_rootfs_tar} ${AUTOUPDATE_PATH}/${FIRMWARE_NAME}-rootfs-${rootfs_tar_md5}${ROOTFS_EXT}
 				__info_msg "copy ${firmware_rootfs_tar} to ${AUTOUPDATE_PATH}/${FIRMWARE_NAME}-rootfs-${rootfs_tar_md5}${ROOTFS_EXT}"
 			}
-		elif [[ `ls -1 | grep -c "efi"` -ge '1' ]]; then
-			local firmware_uefi="$(ls -1 |grep -Eo ".*squashfs.*efi.*img.gz")"
-			[[ -f ${firmware_uefi} ]] && {
-				local uefimd5="$(md5sum ${firmware_uefi} |cut -c1-3)$(sha256sum ${firmware_uefi} |cut -c1-3)"
-				cp -rf "${firmware_uefi}" "${AUTOUPDATE_PATH}/${FIRMWARE_NAME}-uefi-${uefimd5}${FIRMWARE_EXT}"
-				__info_msg "copy ${firmware_uefi} to ${AUTOUPDATE_PATH}/${FIRMWARE_NAME}-uefi-${uefimd5}${FIRMWARE_EXT}"
-			}
-		elif [[ `ls -1 | grep -c "squashfs"` -ge '1' ]]; then
-			local firmware_legacy="$(ls -1 |grep -Eo ".*squashfs.*img.gz" |grep -v ".vm\|.vb\|.vh\|.qco\|efi\|root")"
-			[[ -f ${firmware_legacy} ]] && {
-				local legacymd5="$(md5sum ${firmware_legacy} |cut -c1-3)$(sha256sum ${firmware_legacy} |cut -c1-3)"
-				cp -rf "${firmware_legacy}" "${AUTOUPDATE_PATH}/${FIRMWARE_NAME}-legacy-${legacymd5}${FIRMWARE_EXT}"
-				__info_msg "copy ${firmware_legacy} to ${AUTOUPDATE_PATH}/${FIRMWARE_NAME}-legacy-${legacymd5}${FIRMWARE_EXT}"
-			}
 		else
-			__error_msg "没有找到squashfs格式的固件！"
+			if [[ `ls -1 | grep -c "efi"` -ge '1' ]]; then
+				local firmware_uefi="$(ls -1 |grep -Eo ".*squashfs.*efi.*img.gz")"
+				[[ -f ${firmware_uefi} ]] && {
+					local uefimd5="$(md5sum ${firmware_uefi} |cut -c1-3)$(sha256sum ${firmware_uefi} |cut -c1-3)"
+					cp -rf "${firmware_uefi}" "${AUTOUPDATE_PATH}/${FIRMWARE_NAME}-uefi-${uefimd5}${FIRMWARE_EXT}"
+					__info_msg "copy ${firmware_uefi} to ${AUTOUPDATE_PATH}/${FIRMWARE_NAME}-uefi-${uefimd5}${FIRMWARE_EXT}"
+				}
+			fi
+			if [[ `ls -1 | grep -c "squashfs"` -ge '1' ]]; then
+				local firmware_legacy="$(ls -1 |grep -Eo ".*squashfs.*img.gz" |grep -v ".vm\|.vb\|.vh\|.qco\|efi\|root")"
+				[[ -f ${firmware_legacy} ]] && {
+					local legacymd5="$(md5sum ${firmware_legacy} |cut -c1-3)$(sha256sum ${firmware_legacy} |cut -c1-3)"
+					cp -rf "${firmware_legacy}" "${AUTOUPDATE_PATH}/${FIRMWARE_NAME}-legacy-${legacymd5}${FIRMWARE_EXT}"
+					__info_msg "copy ${firmware_legacy} to ${AUTOUPDATE_PATH}/${FIRMWARE_NAME}-legacy-${legacymd5}${FIRMWARE_EXT}"
+				}
+			fi
 		fi
 	;;
 	*)
