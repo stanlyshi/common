@@ -2,7 +2,7 @@
 
 ACTIONS_VERSION="1.0.3"
 
-DEFAULT_COLOR="\e[0m"
+RESET_COLOR="\e[0m"
 RED_COLOR="\e[31m"
 GREEN_COLOR="\e[32m"
 YELLOW_COLOR="\e[33m"
@@ -11,91 +11,49 @@ MAGENTA_COLOR="\e[35m"
 CYAN_COLOR="\e[36m"
 WHITE_COLOR="\e[37m"
 
-BLACK_BG_COLOR="\e[40m"
-RED_BG_COLOR="\e[41m"
-GREEN_BG_COLOR="\e[42m"
-YELLOW_BG_COLOR="\e[43m"
-BLUE_BG_COLOR="\e[44m"
-MAGENTA_BG_COLOR="\e[45m"
-CYAN_BG_COLOR="\e[46m"
-WHITE_BG_COLOR="\e[47m"
-
 function __error_msg() {
-	echo -e "${RED_COLOR}[ERROR]${DEFAULT_COLOR} $*"
+	echo -e "${RED_COLOR}[ERROR]${RESET_COLOR} $*"
 }
 
 function __success_msg() {
-	echo -e "${GREEN_COLOR}[SUCCESS]${DEFAULT_COLOR} $*"
+	echo -e "${GREEN_COLOR}[SUCCESS]${RESET_COLOR} $*"
 }
 
 function __warning_msg() {
-	echo -e "${YELLOW_COLOR}[WARNING]${DEFAULT_COLOR} $*"
+	echo -e "${YELLOW_COLOR}[WARNING]${RESET_COLOR} $*"
 }
 
 function __info_msg() {
-	echo -e "${CYAN_COLOR}[INFO]${DEFAULT_COLOR} $*"
-}
-
-function __default_color() {
-	echo -e "${DEFAULT_COLOR} $*"
+	echo -e "${CYAN_COLOR}[INFO]${RESET_COLOR} $*"
 }
 
 function __red_color() {
-	echo -e "${RED_COLOR}$*${DEFAULT_COLOR}"
+	echo -e "${RED_COLOR}$*${RESET_COLOR}"
 }
 
 function __green_color() {
-	echo -e "${GREEN_COLOR}$*${DEFAULT_COLOR}"
+	echo -e "${GREEN_COLOR}$*${RESET_COLOR}"
 }
 
 function __yellow_color() {
-	echo -e "${YELLOW_COLOR}$*${DEFAULT_COLOR}"
+	echo -e "${YELLOW_COLOR}$*${RESET_COLOR}"
 }
 
 function __blue_color() {
-	echo -e "${BLUE_COLOR}$*${DEFAULT_COLOR}"
+	echo -e "${BLUE_COLOR}$*${RESET_COLOR}"
 }
 
 function __magenta_color() {
-	echo -e "${MAGENTA_COLOR}$*${DEFAULT_COLOR}"
+	echo -e "${MAGENTA_COLOR}$*${RESET_COLOR}"
 }
 
 function __cyan_color() {
-	echo -e "${CYAN_COLOR}$*${DEFAULT_COLOR}"
+	echo -e "${CYAN_COLOR}$*${RESET_COLOR}"
 }
 
 function __white_color() {
-	echo -e "${WHITE_COLOR}$*${DEFAULT_COLOR}"
+	echo -e "${WHITE_COLOR}$*${RESET_COLOR}"
 }
-
-function __red_bg_color() {
-	echo -e "${RED_BG_COLOR}$*${DEFAULT_COLOR}"
-}
-
-function __green_bg_color() {
-	echo -e "${GREEN_BG_COLOR}$*${DEFAULT_COLOR}"
-}
-
-function __yellow_bg_color() {
-	echo -e "${YELLOW_BG_COLOR}$*${DEFAULT_COLOR}"
-}
-
-function __blue_bg_color() {
-	echo -e "${BLUE_BG_COLOR}$*${DEFAULT_COLOR}"
-}
-
-function __magenta_bg_color() {
-	echo -e "${MAGENTA_BG_COLOR}$*${DEFAULT_COLOR}"
-}
-
-function __cyan_bg_color() {
-	echo -e "${CYAN_BG_COLOR}$*${DEFAULT_COLOR}"
-}
-
-function __white_bg_color() {
-	echo -e "${WHITE_BG_COLOR}$*${DEFAULT_COLOR}"
-}
-
 
 ################################################################################################################
 # 环境变量
@@ -1088,7 +1046,7 @@ function compile_info() {
 		__green_color "openwrt"
 		echo
 	else
-		__default_color "LXC固件：关闭"
+		__white_color "LXC固件：关闭"
 		echo
 		__red_color "自动更新信息"
 		__blue_color "插件版本: ${AUTOUPDATE_VERSION}"
@@ -1112,22 +1070,22 @@ function compile_info() {
 	if [[ "${UPLOAD_RELEASE}" == "true" ]]; then
 		__blue_color "发布firmware+ipk至Github Relese: 开启"
 	else
-		__default_color "发布firmware+ipk至Github Relese: 关闭"
+		__white_color "发布firmware+ipk至Github Relese: 关闭"
 	fi
 	if [[ "${UPLOAD_FIRMWARE}" == "true" ]]; then
 		__blue_color "上传firmware+ipk至Github Artifacts: 开启"
 	else
-		__default_color "上传firmware+ipk至Github Artifacts: 关闭"
+		__white_color "上传firmware+ipk至Github Artifacts: 关闭"
 	fi
 	if [[ "${UPLOAD_CONFIG}" == "true" ]]; then
 		__blue_color "上传.config配置文件至Github Artifacts: 开启"
 	else
-		__default_color "上传.config配置文件至Github Artifacts: 关闭"
+		__white_color "上传.config配置文件至Github Artifacts: 关闭"
 	fi
 	if [[ "${NOTICE_TYPE}" =~ (TG|telegram|PUSH|pushplus|WX|WeChat) ]]; then
 		__blue_color "pushplus/Telegram通知: 开启"
 	else
-		__default_color "pushplus/Telegram通知: 关闭"
+		__white_color "pushplus/Telegram通知: 关闭"
 	fi
 	echo
 	
