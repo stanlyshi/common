@@ -502,6 +502,63 @@ function resolve_confflictions() {
 		__info_msg "lxc模式，添加openwrt-generic-rootfs.tar.gz文件编译"
 	fi
 	
+	if [[ `grep -c "CONFIG_TARGET_x86=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_rockchip=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_bcm27xx=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		sed -i '/CONFIG_TARGET_IMAGES_GZIP/d' ${HOME_PATH}/.config
+		sed -i '$a CONFIG_TARGET_IMAGES_GZIP=y' ${HOME_PATH}/.config
+		sed -i '/CONFIG_PACKAGE_openssh-sftp-server/d' ${HOME_PATH}/.config
+		sed -i '$a CONFIG_PACKAGE_openssh-sftp-server=y' ${HOME_PATH}/.config
+	fi
+
+	if [[ `grep -c "CONFIG_TARGET_x86=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_rockchip=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_bcm27xx=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		sed -i '/CONFIG_PACKAGE_snmpd/d' ${HOME_PATH}/.config
+		sed -i '$a CONFIG_PACKAGE_snmpd=y' ${HOME_PATH}/.config
+		sed -i '/CONFIG_TARGET_IMAGES_GZIP/d' ${HOME_PATH}/.config
+		sed -i '$a CONFIG_TARGET_IMAGES_GZIP=y' ${HOME_PATH}/.config
+		sed -i '/CONFIG_PACKAGE_openssh-sftp-server/d' ${HOME_PATH}/.config
+		sed -i '$a CONFIG_PACKAGE_openssh-sftp-server=y' ${HOME_PATH}/.config
+		#sed -i '/CONFIG_GRUB_IMAGES/d' ${HOME_PATH}/.config
+		#sed -i '$a CONFIG_GRUB_IMAGES=y' ${HOME_PATH}/.config
+		if [[ `grep -c "CONFIG_TARGET_ROOTFS_PARTSIZE=" ${HOME_PATH}/.config` -eq '1' ]]; then
+			local partsize="$(grep -Eo "CONFIG_TARGET_ROOTFS_PARTSIZE=[0-9]+" ${HOME_PATH}/.config |cut -f2 -d=)"
+			if [[ "${partsize}" -lt "400" ]];then
+				sed -i '/CONFIG_TARGET_ROOTFS_PARTSIZE/d' ${HOME_PATH}/.config
+			fi
+		fi
+	fi
+	
+	if [[ `grep -c "CONFIG_TARGET_mxs=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_sunxi=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_zynq=y" ${HOME_PATH}/.config` -eq '1' ]]; then	
+		sed -i '/CONFIG_TARGET_IMAGES_GZIP/d' ${HOME_PATH}/.config
+		sed -i '$a CONFIG_TARGET_IMAGES_GZIP=y' ${HOME_PATH}/.config
+		sed -i '/CONFIG_PACKAGE_openssh-sftp-server/d' ${HOME_PATH}/.config
+		sed -i '$a CONFIG_PACKAGE_openssh-sftp-server=y' ${HOME_PATH}/.config
+		sed -i '/CONFIG_GRUB_IMAGES/d' ${HOME_PATH}/.config
+		sed -i '$a CONFIG_GRUB_IMAGES=y' ${HOME_PATH}/.config
+		if [[ `grep -c "CONFIG_TARGET_ROOTFS_PARTSIZE=" ${HOME_PATH}/.config` -eq '1' ]]; then
+			local partsize="$(grep -Eo "CONFIG_TARGET_ROOTFS_PARTSIZE=[0-9]+" ${HOME_PATH}/.config |cut -f2 -d=)"
+			if [[ "${partsize}" -lt "400" ]];then
+				sed -i '/CONFIG_TARGET_ROOTFS_PARTSIZE/d' ${HOME_PATH}/.config
+				sed -i '$a CONFIG_TARGET_ROOTFS_PARTSIZE=400' ${HOME_PATH}/.config
+			fi
+		fi
+	fi
+	
+	if [[ `grep -c "CONFIG_TARGET_armvirt=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_armsr=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		sed -i 's/CONFIG_PACKAGE_luci-app-autoupdate=y/# CONFIG_PACKAGE_luci-app-autoupdate is not set/g' ${HOME_PATH}/.config
+		sed -i '/CONFIG_TARGET_ROOTFS_TARGZ/d' ${HOME_PATH}/.config
+		sed -i '$a CONFIG_TARGET_ROOTFS_TARGZ=y' ${HOME_PATH}/.config
+	fi
+	
+	if [[ `grep -c "CONFIG_TARGET_ROOTFS_EXT4FS=y" ${HOME_PATH}/.config` -eq '1' ]]; then	
+		local partsize="$(grep -Eo "CONFIG_TARGET_ROOTFS_PARTSIZE=[0-9]+" ${HOME_PATH}/.config |cut -f2 -d=)"
+		if [[ "${partsize}" -lt "950" ]];then
+			sed -i '/CONFIG_TARGET_ROOTFS_PARTSIZE/d' ${HOME_PATH}/.config
+			sed -i '$a CONFIG_TARGET_ROOTFS_PARTSIZE=950' ${HOME_PATH}/.config
+			echo "__error_msg \"EXT4提示：请注意，您选择了ext4安装的固件格式,而检测到您的分配的固件系统分区过小\"" >> ${CONFFLICTIONS}
+			echo "__error_msg \"为避免编译出错,已自动帮您修改成950M\"" >> ${CONFFLICTIONS}
+			echo "" >> ${CONFFLICTIONS}
+		fi
+	fi
+	
 	if [[ `grep -c "CONFIG_PACKAGE_luci-app-adblock-plus=y" ${HOME_PATH}/.config` -eq '1' ]]; then
 		if [[ `grep -c "CONFIG_PACKAGE_luci-app-adblock=y" ${HOME_PATH}/.config` -eq '1' ]]; then
 			sed -i 's/CONFIG_PACKAGE_luci-app-adblock=y/# CONFIG_PACKAGE_luci-app-adblock is not set/g' ${HOME_PATH}/.config
@@ -645,18 +702,6 @@ function resolve_confflictions() {
 		fi
 	fi
 	
-	if [[ `grep -c "CONFIG_PACKAGE_dnsmasq-full=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-		if [[ `grep -c "CONFIG_PACKAGE_dnsmasq=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_PACKAGE_dnsmasq-dhcpv6=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-			sed -i 's/CONFIG_PACKAGE_dnsmasq=y/# CONFIG_PACKAGE_dnsmasq is not set/g' ${HOME_PATH}/.config
-			sed -i 's/CONFIG_PACKAGE_dnsmasq-dhcpv6=y/# CONFIG_PACKAGE_dnsmasq-dhcpv6 is not set/g' ${HOME_PATH}/.config
-		fi
-	fi
-	
-	if [[ `grep -c "CONFIG_PACKAGE_odhcp6c=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-		sed -i '/CONFIG_PACKAGE_odhcpd=y/d' ${HOME_PATH}/.config
-		sed -i '/CONFIG_PACKAGE_odhcpd_full_ext_cer_id=0/d' ${HOME_PATH}/.config
-	fi
-
 	if [[ `grep -c "CONFIG_PACKAGE_luci-theme-argon=y" ${HOME_PATH}/.config` -eq '1' ]]; then
 		if [[ `grep -c "CONFIG_PACKAGE_luci-theme-argon_new=y" ${HOME_PATH}/.config` -eq '1' ]]; then
 			sed -i 's/CONFIG_PACKAGE_luci-theme-argon_new=y/# CONFIG_PACKAGE_luci-theme-argon_new is not set/g' ${HOME_PATH}/.config
@@ -683,64 +728,19 @@ function resolve_confflictions() {
 		sed -i '/luci-app-argon-config/d' ${HOME_PATH}/.config
 		sed -i '$a # CONFIG_PACKAGE_luci-app-argon-config is not set' ${HOME_PATH}/.config
 	fi
+	
+	if [[ `grep -c "CONFIG_PACKAGE_dnsmasq-full=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		if [[ `grep -c "CONFIG_PACKAGE_dnsmasq=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_PACKAGE_dnsmasq-dhcpv6=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+			sed -i 's/CONFIG_PACKAGE_dnsmasq=y/# CONFIG_PACKAGE_dnsmasq is not set/g' ${HOME_PATH}/.config
+			sed -i 's/CONFIG_PACKAGE_dnsmasq-dhcpv6=y/# CONFIG_PACKAGE_dnsmasq-dhcpv6 is not set/g' ${HOME_PATH}/.config
+		fi
+	fi
+	
+	if [[ `grep -c "CONFIG_PACKAGE_odhcp6c=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		sed -i '/CONFIG_PACKAGE_odhcpd=y/d' ${HOME_PATH}/.config
+		sed -i '/CONFIG_PACKAGE_odhcpd_full_ext_cer_id=0/d' ${HOME_PATH}/.config
+	fi
 
-	if [[ `grep -c "CONFIG_TARGET_x86=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_rockchip=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_bcm27xx=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-		sed -i '/CONFIG_TARGET_IMAGES_GZIP/d' ${HOME_PATH}/.config
-		sed -i '$a CONFIG_TARGET_IMAGES_GZIP=y' ${HOME_PATH}/.config
-		sed -i '/CONFIG_PACKAGE_openssh-sftp-server/d' ${HOME_PATH}/.config
-		sed -i '$a CONFIG_PACKAGE_openssh-sftp-server=y' ${HOME_PATH}/.config
-	fi
-
-	if [[ `grep -c "CONFIG_TARGET_x86=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_rockchip=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_bcm27xx=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-		sed -i '/CONFIG_PACKAGE_snmpd/d' ${HOME_PATH}/.config
-		sed -i '$a CONFIG_PACKAGE_snmpd=y' ${HOME_PATH}/.config
-		sed -i '/CONFIG_TARGET_IMAGES_GZIP/d' ${HOME_PATH}/.config
-		sed -i '$a CONFIG_TARGET_IMAGES_GZIP=y' ${HOME_PATH}/.config
-		sed -i '/CONFIG_PACKAGE_openssh-sftp-server/d' ${HOME_PATH}/.config
-		sed -i '$a CONFIG_PACKAGE_openssh-sftp-server=y' ${HOME_PATH}/.config
-		#sed -i '/CONFIG_GRUB_IMAGES/d' ${HOME_PATH}/.config
-		#sed -i '$a CONFIG_GRUB_IMAGES=y' ${HOME_PATH}/.config
-		if [[ `grep -c "CONFIG_TARGET_ROOTFS_PARTSIZE=" ${HOME_PATH}/.config` -eq '1' ]]; then
-			local partsize="$(grep -Eo "CONFIG_TARGET_ROOTFS_PARTSIZE=[0-9]+" ${HOME_PATH}/.config |cut -f2 -d=)"
-			if [[ "${partsize}" -lt "400" ]];then
-				sed -i '/CONFIG_TARGET_ROOTFS_PARTSIZE/d' ${HOME_PATH}/.config
-			fi
-		fi
-	fi
-	
-	if [[ `grep -c "CONFIG_TARGET_mxs=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_sunxi=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_zynq=y" ${HOME_PATH}/.config` -eq '1' ]]; then	
-		sed -i '/CONFIG_TARGET_IMAGES_GZIP/d' ${HOME_PATH}/.config
-		sed -i '$a CONFIG_TARGET_IMAGES_GZIP=y' ${HOME_PATH}/.config
-		sed -i '/CONFIG_PACKAGE_openssh-sftp-server/d' ${HOME_PATH}/.config
-		sed -i '$a CONFIG_PACKAGE_openssh-sftp-server=y' ${HOME_PATH}/.config
-		sed -i '/CONFIG_GRUB_IMAGES/d' ${HOME_PATH}/.config
-		sed -i '$a CONFIG_GRUB_IMAGES=y' ${HOME_PATH}/.config
-		if [[ `grep -c "CONFIG_TARGET_ROOTFS_PARTSIZE=" ${HOME_PATH}/.config` -eq '1' ]]; then
-			local partsize="$(grep -Eo "CONFIG_TARGET_ROOTFS_PARTSIZE=[0-9]+" ${HOME_PATH}/.config |cut -f2 -d=)"
-			if [[ "${partsize}" -lt "400" ]];then
-				sed -i '/CONFIG_TARGET_ROOTFS_PARTSIZE/d' ${HOME_PATH}/.config
-				sed -i '$a CONFIG_TARGET_ROOTFS_PARTSIZE=400' ${HOME_PATH}/.config
-			fi
-		fi
-	fi
-	
-	if [[ `grep -c "CONFIG_TARGET_armvirt=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_armsr=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-		sed -i 's/CONFIG_PACKAGE_luci-app-autoupdate=y/# CONFIG_PACKAGE_luci-app-autoupdate is not set/g' ${HOME_PATH}/.config
-		sed -i '/CONFIG_TARGET_ROOTFS_TARGZ/d' ${HOME_PATH}/.config
-		sed -i '$a CONFIG_TARGET_ROOTFS_TARGZ=y' ${HOME_PATH}/.config
-	fi
-	
-	if [[ `grep -c "CONFIG_TARGET_ROOTFS_EXT4FS=y" ${HOME_PATH}/.config` -eq '1' ]]; then	
-		local partsize="$(grep -Eo "CONFIG_TARGET_ROOTFS_PARTSIZE=[0-9]+" ${HOME_PATH}/.config |cut -f2 -d=)"
-		if [[ "${partsize}" -lt "950" ]];then
-			sed -i '/CONFIG_TARGET_ROOTFS_PARTSIZE/d' ${HOME_PATH}/.config
-			sed -i '$a CONFIG_TARGET_ROOTFS_PARTSIZE=950' ${HOME_PATH}/.config
-			echo "__error_msg \"EXT4提示：请注意，您选择了ext4安装的固件格式,而检测到您的分配的固件系统分区过小\"" >> ${CONFFLICTIONS}
-			echo "__error_msg \"为避免编译出错,已自动帮您修改成950M\"" >> ${CONFFLICTIONS}
-			echo "" >> ${CONFFLICTIONS}
-		fi
-	fi
-	
 	if [[ `grep -c "CONFIG_PACKAGE_antfs-mount=y" ${HOME_PATH}/.config` -eq '1' ]]; then
 		if [[ `grep -c "CONFIG_PACKAGE_ntfs3-mount=y" ${HOME_PATH}/.config` -eq '1' ]]; then
 			sed -i 's/CONFIG_PACKAGE_antfs-mount=y/# CONFIG_PACKAGE_antfs-mount is not set/g' ${HOME_PATH}/.config
