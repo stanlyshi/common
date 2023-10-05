@@ -850,7 +850,7 @@ function firmware_settings() {
 	FIRMWARE_PATH=${HOME_PATH}/bin/targets/${TARGET_BOARD}/${TARGET_SUBTARGET}
 	__info_msg "固件保存路径：${FIRMWARE_PATH}"
 	# 固件版本 如：lede-x86-64-202310011001
-	FIRMWARE_VERSION="${SOURCE}-${TARGET_PROFILE}-${COMPILE_DATE_HM}"
+	FIRMWARE_BRIEF="${SOURCE}-${TARGET_PROFILE}-${COMPILE_DATE_HM}"
 	# 固件名称前缀 如：18.06-lede-x86-64，方便自动更新固件搜寻可更新固件
 	FIRMWARE_NAME_PREFIX="${LUCI_EDITION}-${SOURCE}-${TARGET_PROFILE}"
 	# 固件名称（简写，x86区分legacy、uefi）如：18.06-lede-x86-64-202310101010	
@@ -915,7 +915,7 @@ function firmware_settings() {
 	echo FIRMWARE_EXT="${FIRMWARE_EXT}" >> ${GITHUB_ENV}
 	echo RELEASE_TAG="${RELEASE_TAG}" >> ${GITHUB_ENV}
 	echo GITHUB_RELEASE_URL="${GITHUB_RELEASE_URL}" >> ${GITHUB_ENV}
-	echo FIRMWARE_VERSION="${FIRMWARE_VERSION}" >> ${GITHUB_ENV}
+	echo FIRMWARE_BRIEF="${FIRMWARE_BRIEF}" >> ${GITHUB_ENV}
 	
 	# 固件自动更新相关信息等
 	__yellow_color "开始设置自动更新固件相关信息..."
@@ -952,9 +952,11 @@ function firmware_settings() {
 	# .img.gz
 	FIRMWARE_EXT="${FIRMWARE_EXT}"
 	# lede-x86-64-202310011001
-	CURRENT_FIRMWARE="${FIRMWARE_VERSION}"
+	FIRMWARE_BRIEF="${FIRMWARE_BRIEF}"
 	# 18.06-lede-x86-64
 	FIRMWARE_NAME_PREFIX="${FIRMWARE_NAME_PREFIX}"
+	# 18.06-lede-x86-64-202310011001
+	CURRENT_FIRMWARE="${FIRMWARE_NAME}"
 	# luci-app-autoupdate version
 	AUTOUPDATE_VERSION="${AUTOUPDATE_VERSION}"
 	FILES_TO_DELETE="/etc/${FILENAME_TO_DELETE}"
@@ -1026,7 +1028,7 @@ function compile_info() {
 			__blue_color "固件名称: ${FIRMWARE_NAME}-sysupgrade${FIRMWARE_EXT}"
 			__blue_color "固件后缀: ${FIRMWARE_EXT}"
 		fi
-		__blue_color "固件版本: ${FIRMWARE_VERSION}"
+		__blue_color "固件版本: ${FIRMWARE_NAME}"
 		__blue_color "云端路径: ${GITHUB_RELEASE_URL}"
 		__white_color "编译成功后，会自动把固件发布到指定地址，生成云端路径"
 		__white_color "修改IP、DNS、网关或者在线更新，请输入命令：openwrt"
