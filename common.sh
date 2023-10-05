@@ -150,7 +150,7 @@ function parse_settings() {
 	echo PACKAGES_ADDR="${PACKAGES_ADDR}" >> ${GITHUB_ENV}
 	echo ENABLE_PACKAGES_UPDATE="${ENABLE_PACKAGES_UPDATE}" >> ${GITHUB_ENV}
 	echo ENABLE_REPO_UPDATE="false" >> ${GITHUB_ENV}
-	echo GITHUB_API="github_api" >> ${GITHUB_ENV}
+	echo GITHUB_API="zzz_api" >> ${GITHUB_ENV}
 	
 	# 日期时间
 	echo COMPILE_DATE_MD="$(date +%m.%d)" >> ${GITHUB_ENV}
