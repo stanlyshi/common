@@ -281,7 +281,7 @@ function update_feeds() {
 	
 	sed -i "/${packages}/d; /#/d; /^$/d; /argon/d; /ssrplus/d; /helloworld/d; /passwall/d; /OpenClash/d" "feeds.conf.default"
 	
-	__info_msg "添加${SOURCE}源码插件源：src-git ${packages} ${packages_url};${packages_branch}"
+	__info_msg "源码：${SOURCE} 插件源：${packages_url} 插件源分支：${packages_branch} 文件夹：${packages}"
 	cat >> "feeds.conf.default" <<-EOF
 	src-git ${packages} ${packages_url};${packages_branch}
 	EOF
