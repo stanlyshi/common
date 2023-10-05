@@ -279,7 +279,7 @@ function update_feeds() {
 	local packages_branch="${PACKAGE_BRANCH}"
 	local packages="pkg${GITHUB_ACTOR}"
 	
-	sed -i "/${packages}/d; /#/d; /^$/d;/argon/d; /ssrplus/d; /helloworld/d; /passwall/d; /OpenClash/d" "feeds.conf.default"
+	sed -i "/${packages}/d; /#/d; /^$/d; /argon/d; /ssrplus/d; /helloworld/d; /passwall/d; /OpenClash/d" "feeds.conf.default"
 	
 	__info_msg "添加${SOURCE}源码插件源：src-git ${packages} ${packages_url};${packages_branch}"
 	cat >> "feeds.conf.default" <<-EOF
