@@ -9,17 +9,39 @@ MAGENTA_COLOR="\e[35m"
 CYAN_COLOR="\e[36m"
 WHITE_COLOR="\e[37m"
 
-function __error_msg() { echo -e "${RED_COLOR}[ERROR]${RESET_COLOR} $*" }
-function __success_msg() { echo -e "${GREEN_COLOR}[SUCCESS]${RESET_COLOR} $*" }
-function __warning_msg() { echo -e "${YELLOW_COLOR}[WARNING]${RESET_COLOR} $*" }
-function __info_msg() { echo -e "${CYAN_COLOR}[INFO]${RESET_COLOR} $*" }
-function __red_color() { echo -e "${RED_COLOR}$*${RESET_COLOR}" }
-function __green_color() { echo -e "${GREEN_COLOR}$*${RESET_COLOR}" }
-function __yellow_color() { echo -e "${YELLOW_COLOR}$*${RESET_COLOR}" }
-function __blue_color() {  echo -e "${BLUE_COLOR}$*${RESET_COLOR}" }
-function __magenta_color() { echo -e "${MAGENTA_COLOR}$*${RESET_COLOR}" }
-function __cyan_color() { echo -e "${CYAN_COLOR}$*${RESET_COLOR}" }
-function __white_color() { echo -e "${WHITE_COLOR}$*${RESET_COLOR}" }
+function __error_msg() {
+	echo -e "${RED_COLOR}[ERROR]${RESET_COLOR} $*"
+}
+function __success_msg() {
+	echo -e "${GREEN_COLOR}[SUCCESS]${RESET_COLOR} $*"
+}
+function __warning_msg() {
+	echo -e "${YELLOW_COLOR}[WARNING]${RESET_COLOR} $*"
+}
+function __info_msg() {
+	echo -e "${CYAN_COLOR}[INFO]${RESET_COLOR} $*"
+}
+function __red_color() {
+	echo -e "${RED_COLOR}$*${RESET_COLOR}"
+}
+function __green_color() {
+	echo -e "${GREEN_COLOR}$*${RESET_COLOR}"
+}
+function __yellow_color() {
+	echo -e "${YELLOW_COLOR}$*${RESET_COLOR}"
+}
+function __blue_color() {
+	echo -e "${BLUE_COLOR}$*${RESET_COLOR}"
+}
+function __magenta_color() {
+	echo -e "${MAGENTA_COLOR}$*${RESET_COLOR}"
+}
+function __cyan_color() {
+	echo -e "${CYAN_COLOR}$*${RESET_COLOR}"
+}
+function __white_color() {
+	echo -e "${WHITE_COLOR}$*${RESET_COLOR}"
+}
 
 ################################################################################################################
 # 环境变量
