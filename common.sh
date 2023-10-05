@@ -1,7 +1,5 @@
 #!/bin/bash
 
-ACTIONS_VERSION="1.0.0"
-
 RESET_COLOR="\e[0m"
 RED_COLOR="\e[31m"
 GREEN_COLOR="\e[32m"
