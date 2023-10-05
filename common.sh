@@ -1088,8 +1088,8 @@ function compile_info() {
 	
 	if [[ -s ${CONFFLICTIONS} ]]; then
 		__red_color "插件冲突信息"
-		cat ${CONFFLICTIONS}
-		rm -rf ${CONFFLICTIONS} > /dev/null 2>&1
+		chmod +x ${CONFFLICTIONS} && source ${CONFFLICTIONS}
+		rm -rf ${CONFFLICTIONS}
 	fi
 }
 
