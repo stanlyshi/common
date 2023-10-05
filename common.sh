@@ -1245,7 +1245,7 @@ function release_info() {
 	sed -i "s#matrixtarget#${MATRIX_TARGET}#" ${RELEASEINFO_MD} > /dev/null 2>&1
 	
 	if [[ "${FIRMWARE_TYPE}" == "lxc" ]]; then
-		cat >> ${RELEASEINFO_MD} <<-EOF		
+		cat >> ${RELEASEINFO_MD} <<-EOF
 		注：「lxc容器专用」
 		EOF
 	fi
