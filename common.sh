@@ -204,9 +204,9 @@ function notice_begin() {
 ################################################################################################################
 function notice_end() {
 	if [[ "${NOTICE_TYPE}" == "TG" ]]; then
-		curl -k --data chat_id="${TELEGRAM_CHAT_ID}" --data "text=我亲爱的✨主人✨：您使用【${GITHUB_REPOSITORY}】仓库【${MATRIX_TARGET}】文件夹编译的【${SOURCE}-${TARGET_PROFILE}】固件顺利编译完成了！💐https://github.com/${GITHUB_REPOSITORY}/releases" "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"
+		curl -k --data chat_id="${TELEGRAM_CHAT_ID}" --data "text=我亲爱的✨主人✨：您使用【${GITHUB_REPOSITORY}】仓库【${MATRIX_TARGET}】文件夹编译的【${FIRMWARE_NAME_PREFIX}】固件顺利编译完成了！💐https://github.com/${GITHUB_REPOSITORY}/releases" "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"
 	elif [[ "${NOTICE_TYPE}" == "PUSH" ]]; then
-		curl -k --data token="${PUSH_PLUS_TOKEN}" --data title="【${SOURCE}-${TARGET_PROFILE}】编译成功" --data "content=我亲爱的✨主人✨：您使用【${GITHUB_REPOSITORY}】仓库【${MATRIX_TARGET}】文件夹编译的【${SOURCE}-${TARGET_PROFILE}】固件顺利编译完成了！💐https://github.com/${GITHUB_REPOSITORY}/releases" "http://www.pushplus.plus/send"
+		curl -k --data token="${PUSH_PLUS_TOKEN}" --data title="【${SOURCE}-${TARGET_PROFILE}】编译成功" --data "content=我亲爱的✨主人✨：您使用【${GITHUB_REPOSITORY}】仓库【${MATRIX_TARGET}】文件夹编译的【${FIRMWARE_NAME_PREFIX}】固件顺利编译完成了！💐https://github.com/${GITHUB_REPOSITORY}/releases" "http://www.pushplus.plus/send"
 	fi
 }
 
