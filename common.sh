@@ -276,6 +276,7 @@ function update_feeds() {
 	# 添加插件源
 	__yellow_color "开始添加插件源..."
 	local packages="mypackages"
+	local packages_branch="${PACKAGE_BRANCH}"
 	sed -i '/roacn/d; /stanlyshi/d; /281677160/d; /argon/d; /ssrplus/d; /helloworld/d; /passwall/d; /OpenClash/d; /${packages}/d' "feeds.conf.default"
 	cat feeds.conf.default|awk '!/^#/'|awk '!/^$/'|awk '!a[$1" "$2]++{print}' >uniq.conf
 	mv -f uniq.conf feeds.conf.default
@@ -290,10 +291,8 @@ function update_feeds() {
 	
 	if [[ "${SOURCE}" =~ (lede|Lede|LEDE) ]]; then
 		local packages_url="https://github.com/${PACKAGES_ADDR}.git"
-		local packages_branch="master"
 	else
 		local packages_url="https://github.com/281677160/openwrt-package.git"
-		local packages_branch="${PACKAGE_BRANCH}"
 		echo "src-git ssrplus https://github.com/fw876/helloworld.git;master" >> "feeds.conf.default"	
 		echo "src-git passwall_packages https://github.com/xiaorouji/openwrt-passwall-packages.git;main" >> "feeds.conf.default"
 		echo "src-git passwall https://github.com/xiaorouji/openwrt-passwall.git;main" >> "feeds.conf.default"
