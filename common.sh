@@ -316,21 +316,28 @@ function update_feeds() {
 	sudo rm -rf ${FEEDS_PATH}/${packages}/{LICENSE,*README*,*readme*,.diy,.github,.gitignore} > /dev/null 2>&1
 	
 	# 去重复文件
+	local files_to_delete=("README" "README.md" "Readme.md" "readme.md" "LICENSE" ".git" ".github" ".gitignore")
 	if [[ -d ${HOME_PATH}/feeds/luci ]];then
+		for X in ${text_to_delete[*]}; do
+			find ${HOME_PATH}/feeds/luci -name "${X}"
+		done
 		for X in $(ls ${HOME_PATH}/feeds/${packages}); do
-			find ${HOME_PATH}/feeds/luci -name "${X}" | xargs sudo rm -rf
+			find ${HOME_PATH}/feeds/luci -type d -name "${X}" | xargs sudo rm -rf
 		done
 	fi
 	if [[ -d ${HOME_PATH}/feeds/packages ]];then
+		for X in ${text_to_delete[*]}; do
+			find ${HOME_PATH}/feeds/luci -name "${X}"
+		done
 		for X in $(ls ${HOME_PATH}/feeds/${packages}); do
-			find ${HOME_PATH}/feeds/packages -name "${X}" | xargs sudo rm -rf
+			find ${HOME_PATH}/feeds/packages -type d -name "${X}" | xargs sudo rm -rf
 		done
 	fi
 	
 	# 设置中文语言包
 	__yellow_color "开始设置中文语言包..."
 	local app_path="$(find . -type d -name "applications" |grep 'luci' |sed "s?.?${HOME_PATH}?" |awk 'END {print}')"
-	if [[ `find "${app_path}" -type d -name "zh_Hans" |grep -c "zh_Hans"` -gt '20' ]]; then
+	if [[ $(find "${app_path}" -type d -name "zh_Hans" | grep -c "zh_Hans") -gt 20 ]]; then
 		LUCI_LANGUAGE="zh_Hans"
 		cp -rf ${HOME_PATH}/build/common/language/zh_Hans.sh ${HOME_PATH}/zh_Hans.sh
 		/bin/bash zh_Hans.sh && rm -rf zh_Hans.sh
