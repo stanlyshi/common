@@ -313,26 +313,19 @@ function update_feeds() {
 	__yellow_color "开始更新插件源..."
 	./scripts/feeds clean
 	./scripts/feeds update -a > /dev/null 2>&1 && __info_msg "OK."	
-	sudo rm -rf ${FEEDS_PATH}/${packages}/{LICENSE,*README*,*readme*,.diy,.github,.gitignore} > /dev/null 2>&1
+	sudo rm -rf ${FEEDS_PATH}/${packages}/{LICENSE,*README*,*readme*,.github,.gitignore} > /dev/null 2>&1
 	
-	# 去重复文件
-	local files_to_delete=("README" "README.md" "Readme.md" "readme.md" "LICENSE" ".git" ".github" ".gitignore")
-	if [[ -d ${HOME_PATH}/feeds/luci ]];then
-		for X in ${text_to_delete[*]}; do
-			find ${HOME_PATH}/feeds/luci -name "${X}"
-		done
-		#for X in $(ls ${HOME_PATH}/feeds/${packages}); do
-		#	find ${HOME_PATH}/feeds/luci -type d -name "${X}" | xargs sudo rm -rf
-		#done
-	fi
-	if [[ -d ${HOME_PATH}/feeds/packages ]];then
-		for X in ${text_to_delete[*]}; do
-			find ${HOME_PATH}/feeds/luci -name "${X}"
-		done
-		#for X in $(ls ${HOME_PATH}/feeds/${packages}); do
-		#	find ${HOME_PATH}/feeds/packages -type d -name "${X}" | xargs sudo rm -rf
-		#done
-	fi
+	# 去垃圾文件
+	local files_to_delete=("README" "README.md" "readme.md" "LICENSE" ".git" ".github" ".gitignore")
+	for X in ${files_to_delete[*]}; do
+		find ${FEEDS_PATH} -name "${X}" | xargs sudo rm -rf
+	done
+	#for X in $(ls ${HOME_PATH}/feeds/${packages}); do
+	#	find ${HOME_PATH}/feeds/luci -type d -name "${X}" | xargs sudo rm -rf
+	#done
+	#for X in $(ls ${HOME_PATH}/feeds/${packages}); do
+	#	find ${HOME_PATH}/feeds/packages -type d -name "${X}" | xargs sudo rm -rf
+	#done
 	
 	# 设置中文语言包
 	__yellow_color "开始设置中文语言包..."
