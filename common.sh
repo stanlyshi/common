@@ -167,6 +167,7 @@ function parse_settings() {
 	echo FILES_PATH="${GITHUB_WORKSPACE}/openwrt/package/base-files/files" >> ${GITHUB_ENV}
 	echo FILE_DEFAULT_UCI="${GITHUB_WORKSPACE}/openwrt/package/base-files/files/etc/default_uci" >> ${GITHUB_ENV}
 	echo FILES_TO_DELETE="${GITHUB_WORKSPACE}/openwrt/package/base-files/files/etc/default_delete" >> ${GITHUB_ENV}
+	echo FILES_TO_KEEP="${GITHUB_WORKSPACE}/openwrt/package/base-files/files/lib/upgrade/keep.d/base-files-essential" >> ${GITHUB_ENV}
 	echo FILENAME_DEFAULT_UCI="default_uci" >> ${GITHUB_ENV}
 	echo FILENAME_DEFAULT_SETTINGS="default_settings" >> ${GITHUB_ENV}
 	echo FILENAME_DEFAULT_RUNONCE="default_settings_runonce" >> ${GITHUB_ENV}
@@ -435,25 +436,33 @@ function diy_public() {
 	fi
 	
 	__yellow_color "开始执行其它设置..."
+	# Openwrt初次运行初始化设置	
 	# default_uci文件，UCI基础设置
 	echo '#!/bin/sh' > "${FILES_PATH}/etc/${FILENAME_DEFAULT_UCI}"
 	sudo chmod -f +x "${FILES_PATH}/etc/${FILENAME_DEFAULT_UCI}"
 	
-	# default_delete文件，Openwrt固件升级时需要删除的文件
-	echo '#!/bin/sh' > "${FILES_PATH}/etc/${FILENAME_TO_DELETE}"
-	sudo chmod -f +x "${FILES_PATH}/etc/${FILENAME_TO_DELETE}"
-	
-	# Openwrt初次运行初始化设置
 	cp -rf ${COMMON_PATH}/custom/${FILENAME_DEFAULT_RUNONCE} ${FILES_PATH}/etc/init.d/${FILENAME_DEFAULT_RUNONCE}
 	cp -rf ${COMMON_PATH}/custom/${FILENAME_DEFAULT_SETTINGS} ${FILES_PATH}/etc/${FILENAME_DEFAULT_SETTINGS}
 	sudo chmod -f +x ${FILES_PATH}/etc/${FILENAME_DEFAULT_SETTINGS}	
-	echo "
+	cat >> ${FILES_PATH}/etc/${FILENAME_DEFAULT_SETTINGS} <<-EOF
 	rm -rf /etc/init.d/${FILENAME_DEFAULT_RUNONCE}
 	rm -rf /etc/${FILENAME_DEFAULT_UCI}
 	rm -rf /etc/${FILENAME_TO_DELETE}
 	rm -rf /etc/${FILENAME_DEFAULT_SETTINGS}
 	exit 0
-	" >> ${FILES_PATH}/etc/${FILENAME_DEFAULT_SETTINGS}
+	EOF
+	
+	# default_delete文件，Openwrt固件升级时需要删除的文件
+	echo '#!/bin/sh' > "${FILES_PATH}/etc/${FILENAME_TO_DELETE}"
+	sudo chmod -f +x "${FILES_PATH}/etc/${FILENAME_TO_DELETE}"
+	
+	# base-files-essential文件，Openwrt固件升级时需要保留的文件
+	if [[ -z "$(grep "background" ${FILES_TO_KEEP})" ]]; then
+		cat >> "${FILES_TO_KEEP}" <<-EOF
+		/www/luci-static/argon/background/
+		/etc/smartdns/custom.conf
+		EOF
+	fi
 	
 	__info_msg "OK."
 	
@@ -923,8 +932,8 @@ function firmware_settings() {
 	echo GITHUB_RELEASE_URL="${GITHUB_RELEASE_URL}" >> ${GITHUB_ENV}
 	echo FIRMWARE_BRIEF="${FIRMWARE_BRIEF}" >> ${GITHUB_ENV}
 	
-	# 固件自动更新相关信息等
 	__yellow_color "开始设置自动更新固件相关信息..."
+	# 固件自动更新相关信息等(用于luci-app-autoupdate插件)
 	local file_openwrt_autoupdate="${FILES_PATH}/etc/openwrt_autoupdate"
 	local github_api_origin="${GITHUB_REPOSITORY_URL}/releases/download/${RELEASE_TAG}/${GITHUB_API}"
 	local github_api_ghproxy="https://ghproxy.com/${GITHUB_REPOSITORY_URL}/releases/download/${RELEASE_TAG}/${GITHUB_API}"
@@ -968,10 +977,9 @@ function firmware_settings() {
 	FILES_TO_DELETE="/etc/${FILENAME_TO_DELETE}"
 	EOF
 
-	cat ${COMMON_PATH}/autoupdate/replace >> ${file_openwrt_autoupdate}
 	sudo chmod +x ${file_openwrt_autoupdate}
 	cat ${file_openwrt_autoupdate}
-	
+		
 	echo
 	echo "--------------firmware_settings end--------------"
 }
