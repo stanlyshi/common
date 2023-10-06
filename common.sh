@@ -179,9 +179,9 @@ function parse_settings() {
 ################################################################################################################
 function notice_begin() {
 	if [[ "${NOTICE_TYPE}" == "TG" ]]; then
-		curl -k --data chat_id="${TELEGRAM_CHAT_ID}" --data "text=🎉 主人：您正在使用【${GITHUB_REPOSITORY}】仓库【${MATRIX_TARGET}】文件夹编译【${LUCI_EDITION}-${SOURCE}】固件,请耐心等待...... 😋" "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"
+		curl -k --data chat_id="${TELEGRAM_CHAT_ID}" --data "text=🎉 主人：您正在使用【${REPOSITORY}】仓库【${MATRIX_TARGET}】文件夹编译【${LUCI_EDITION}-${SOURCE}】固件,请耐心等待...... 😋" "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"
 	elif [[ "${NOTICE_TYPE}" == "PUSH" ]]; then
-		curl -k --data token="${PUSH_PLUS_TOKEN}" --data title="开始编译【${SOURCE}-${MATRIX_TARGET}】" --data "content=🎉 主人：您正在使用【${GITHUB_REPOSITORY}】仓库【${MATRIX_TARGET}】文件夹编译【${LUCI_EDITION}-${SOURCE}】固件,请耐心等待...... 😋💐" "http://www.pushplus.plus/send"
+		curl -k --data token="${PUSH_PLUS_TOKEN}" --data title="开始编译【${SOURCE}-${MATRIX_TARGET}】" --data "content=🎉 主人：您正在使用【${REPOSITORY}】仓库【${MATRIX_TARGET}】文件夹编译【${LUCI_EDITION}-${SOURCE}】固件,请耐心等待...... 😋💐" "http://www.pushplus.plus/send"
 	fi
 }
 
@@ -190,9 +190,9 @@ function notice_begin() {
 ################################################################################################################
 function notice_end() {
 	if [[ "${NOTICE_TYPE}" == "TG" ]]; then
-		curl -k --data chat_id="${TELEGRAM_CHAT_ID}" --data "text=我亲爱的✨主人✨：您使用【${GITHUB_REPOSITORY}】仓库【${MATRIX_TARGET}】文件夹编译的【${FIRMWARE_NAME_PREFIX}】固件顺利编译完成了！💐https://github.com/${GITHUB_REPOSITORY}/releases" "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"
+		curl -k --data chat_id="${TELEGRAM_CHAT_ID}" --data "text=我亲爱的✨主人✨：您使用【${REPOSITORY}】仓库【${MATRIX_TARGET}】文件夹编译的【${FIRMWARE_NAME_PREFIX}】固件顺利编译完成了！💐https://github.com/${GITHUB_REPOSITORY}/releases" "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"
 	elif [[ "${NOTICE_TYPE}" == "PUSH" ]]; then
-		curl -k --data token="${PUSH_PLUS_TOKEN}" --data title="【${SOURCE}-${TARGET_PROFILE}】编译成功" --data "content=我亲爱的✨主人✨：您使用【${GITHUB_REPOSITORY}】仓库【${MATRIX_TARGET}】文件夹编译的【${FIRMWARE_NAME_PREFIX}】固件顺利编译完成了！💐https://github.com/${GITHUB_REPOSITORY}/releases" "http://www.pushplus.plus/send"
+		curl -k --data token="${PUSH_PLUS_TOKEN}" --data title="【${SOURCE}-${TARGET_PROFILE}】编译成功" --data "content=我亲爱的✨主人✨：您使用【${REPOSITORY}】仓库【${MATRIX_TARGET}】文件夹编译的【${FIRMWARE_NAME_PREFIX}】固件顺利编译完成了！💐https://github.com/${GITHUB_REPOSITORY}/releases" "http://www.pushplus.plus/send"
 	fi
 }
 
@@ -313,6 +313,14 @@ function update_feeds() {
 	./scripts/feeds clean
 	./scripts/feeds update -a > /dev/null 2>&1 && __info_msg "OK."	
 	rm -rf ${FEEDS_PATH}/${packages}/{LICENSE,*README*,*readme*,.diy,.github,.gitignore} > /dev/null 2>&1
+	
+	# 去重复文件
+	for X in $(ls ${HOME_PATH}/feeds/${packages}); do
+		find ${HOME_PATH}/feeds/luci -name "${X}" | xargs rm -rf
+	done
+	for X in $(ls ${HOME_PATH}/feeds/${packages}); do
+		find ${HOME_PATH}/feeds/packages -name "${X}" | xargs rm -rf
+	done
 	
 	echo
 	echo "--------------update_feeds end--------------"
