@@ -321,17 +321,17 @@ function update_feeds() {
 		for X in ${text_to_delete[*]}; do
 			find ${HOME_PATH}/feeds/luci -name "${X}"
 		done
-		for X in $(ls ${HOME_PATH}/feeds/${packages}); do
-			find ${HOME_PATH}/feeds/luci -type d -name "${X}" | xargs sudo rm -rf
-		done
+		#for X in $(ls ${HOME_PATH}/feeds/${packages}); do
+		#	find ${HOME_PATH}/feeds/luci -type d -name "${X}" | xargs sudo rm -rf
+		#done
 	fi
 	if [[ -d ${HOME_PATH}/feeds/packages ]];then
 		for X in ${text_to_delete[*]}; do
 			find ${HOME_PATH}/feeds/luci -name "${X}"
 		done
-		for X in $(ls ${HOME_PATH}/feeds/${packages}); do
-			find ${HOME_PATH}/feeds/packages -type d -name "${X}" | xargs sudo rm -rf
-		done
+		#for X in $(ls ${HOME_PATH}/feeds/${packages}); do
+		#	find ${HOME_PATH}/feeds/packages -type d -name "${X}" | xargs sudo rm -rf
+		#done
 	fi
 	
 	# 设置中文语言包
@@ -1013,7 +1013,7 @@ function make_defconfig() {
 	cd ${HOME_PATH}
 	
 	# 生成.config文件
-	make defconfig > /dev/null 2>&1
+	make defconfig > /dev/null
 	# 生成diffconfig文件
 	bash ${HOME_PATH}/scripts/diffconfig.sh > ${DIFFCONFIG_TXT}
 }
