@@ -315,12 +315,16 @@ function update_feeds() {
 	rm -rf ${FEEDS_PATH}/${packages}/{LICENSE,*README*,*readme*,.diy,.github,.gitignore} > /dev/null 2>&1
 	
 	# 去重复文件
-	for X in $(ls ${HOME_PATH}/feeds/${packages}); do
-		find ${HOME_PATH}/feeds/luci -name "${X}" | xargs rm -rf
-	done
-	for X in $(ls ${HOME_PATH}/feeds/${packages}); do
-		find ${HOME_PATH}/feeds/packages -name "${X}" | xargs rm -rf
-	done
+	if [[ -d ${HOME_PATH}/feeds/luci ]];then
+		for X in $(ls ${HOME_PATH}/feeds/${packages}); do
+			find ${HOME_PATH}/feeds/luci -name "${X}" | xargs rm -rf
+		done
+	fi
+	if [[ -d ${HOME_PATH}/feeds/packages ]];then
+		for X in $(ls ${HOME_PATH}/feeds/${packages}); do
+			find ${HOME_PATH}/feeds/packages -name "${X}" | xargs rm -rf
+		done
+	fi
 	
 	echo
 	echo "--------------update_feeds end--------------"
