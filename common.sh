@@ -312,17 +312,17 @@ function update_feeds() {
 	__yellow_color "开始更新插件源..."
 	./scripts/feeds clean
 	./scripts/feeds update -a > /dev/null 2>&1 && __info_msg "OK."	
-	rm -rf ${FEEDS_PATH}/${packages}/{LICENSE,*README*,*readme*,.diy,.github,.gitignore} > /dev/null 2>&1
+	sudo rm -rf ${FEEDS_PATH}/${packages}/{LICENSE,*README*,*readme*,.diy,.github,.gitignore} > /dev/null 2>&1
 	
 	# 去重复文件
 	if [[ -d ${HOME_PATH}/feeds/luci ]];then
 		for X in $(ls ${HOME_PATH}/feeds/${packages}); do
-			find ${HOME_PATH}/feeds/luci -name "${X}" | xargs rm -rf
+			find ${HOME_PATH}/feeds/luci -name "${X}" | xargs sudo rm -rf
 		done
 	fi
 	if [[ -d ${HOME_PATH}/feeds/packages ]];then
 		for X in $(ls ${HOME_PATH}/feeds/${packages}); do
-			find ${HOME_PATH}/feeds/packages -name "${X}" | xargs rm -rf
+			find ${HOME_PATH}/feeds/packages -name "${X}" | xargs sudo rm -rf
 		done
 	fi
 	
@@ -361,20 +361,20 @@ function diy_public() {
 	__yellow_color "开始替换diy文件夹内文件..."
 	# 替换编译前源码中对应目录文件
 	if [ -n "$(ls -A "${MATRIX_TARGET_PATH}/diy" 2>/dev/null)" ]; then
-		rm -rf ${MATRIX_TARGET_PATH}/diy/{LICENSE,*README*,*readme*} > /dev/null 2>&1
+		sudo rm -rf ${MATRIX_TARGET_PATH}/diy/{LICENSE,*README*,*readme*} > /dev/null 2>&1
 		cp -rf ${MATRIX_TARGET_PATH}/diy/* ${FILES_PATH} && chmod -Rf +x ${FILES_PATH}
 	fi
 	
 	__yellow_color "开始替换files文件夹内文件..."
 	# 替换编译后固件中对应目录文件（备用）
 	if [ -n "$(ls -A "${MATRIX_TARGET_PATH}/files" 2>/dev/null)" ]; then
-		rm -rf ${MATRIX_TARGET_PATH}/files/{LICENSE,*README*,.*readme*} > /dev/null 2>&1
+		sudo rm -rf ${MATRIX_TARGET_PATH}/files/{LICENSE,*README*,.*readme*} > /dev/null 2>&1
 		cp -rf ${MATRIX_TARGET_PATH}/files ${HOME_PATH}
 	fi
 	
 	__yellow_color "开始执行补丁文件..."
 	# 打补丁
-	rm -rf ${MATRIX_TARGET_PATH}/patches/{LICENSE,*README*,*readme*} > /dev/null 2>&1
+	sudo rm -rf ${MATRIX_TARGET_PATH}/patches/{LICENSE,*README*,*readme*} > /dev/null 2>&1
 	if [ -n "$(ls -A "${MATRIX_TARGET_PATH}/patches" 2>/dev/null)" ]; then
 		find "${MATRIX_TARGET_PATH}/patches" -type f -name '*.patch' -print0 | sort -z | xargs -I % -t -0 -n 1 sh -c "cat '%'  | patch -d './' -p1 --forward --no-backup-if-mismatch"
 	fi
@@ -392,13 +392,13 @@ function diy_public() {
 	__yellow_color "开始设置自动更新插件..."
 	# 自动更新插件（luci-app-autoupdate）
 	if [[ "${FIRMWARE_TYPE}" == "lxc" ]]; then
-		find . -type d -name "luci-app-autoupdate" | xargs -i rm -rf {}
+		find . -type d -name "luci-app-autoupdate" | xargs -i sudo rm -rf {}
 		if [[ -n "$(grep "luci-app-autoupdate" ${HOME_PATH}/include/target.mk)" ]]; then
 			sed -i 's?luci-app-autoupdate??g' ${HOME_PATH}/include/target.mk
 		fi
 		__info_msg "lxc固件，删除自动更新插件"
 	else
-		find . -type d -name 'luci-app-autoupdate' | xargs -i rm -rf {}
+		find . -type d -name 'luci-app-autoupdate' | xargs -i sudo rm -rf {}
 		git clone -b main https://github.com/stanlyshi/luci-app-autoupdate ${HOME_PATH}/package/luci-app-autoupdate 2>/dev/null
 		if [[ `grep -c "luci-app-autoupdate" ${HOME_PATH}/include/target.mk` -eq '0' ]]; then
 			sed -i 's?DEFAULT_PACKAGES:=?DEFAULT_PACKAGES:=luci-app-autoupdate luci-app-ttyd ?g' ${HOME_PATH}/include/target.mk
@@ -1184,11 +1184,11 @@ function organize_firmware() {
 	# 清理无关文件
 	__yellow_color "开始清理无关文件..."
 	for X in $(cat ${FILES_TO_CLEAR} | sed '/^#.*/d'); do		
-		rm -rf *"${X}"* > /dev/null 2>&1
+		sudo rm -rf *"${X}"* > /dev/null 2>&1
 		__info_msg "delete ${X}"
 	done
-	rm -rf packages > /dev/null 2>&1
-	rm -rf ${FILES_TO_CLEAR}
+	sudo rm -rf packages > /dev/null 2>&1
+	sudo rm -rf ${FILES_TO_CLEAR}
 
 	__yellow_color "开始准备固件自动更新相关固件..."
 	[[ ! -d ${AUTOUPDATE_PATH} ]] && mkdir -p ${AUTOUPDATE_PATH} || rm -rf ${AUTOUPDATE_PATH}/*
