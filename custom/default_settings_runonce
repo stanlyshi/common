@@ -4,10 +4,11 @@
 START=99
 
 run_default_settings_once() {
-	if [ -f "/etc/default-settings" ]; then
-		chmod +x /etc/default-settings
-		/etc/default-settings
-		rm -rf /etc/default-settings
+	if [ -f "/etc/default_settings" ]; then
+		chmod +x /etc/default_settings
+		/etc/default_settings
+		rm -rf /etc/default_settings > /dev/null 2>&1
+		rm -rf /etc/init.d/default_settings_runonce > /dev/null 2>&1
 	fi
 }
 
