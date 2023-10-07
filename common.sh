@@ -453,8 +453,7 @@ function diy_public() {
 	__yellow_color "开始执行其它设置..."
 	# Openwrt初次运行初始化设置	
 	# default_uci文件，UCI基础设置
-	echo '#!/bin/sh' > "${FILES_PATH}/etc/${FILENAME_DEFAULT_UCI}"
-	sudo chmod +x "${FILES_PATH}/etc/${FILENAME_DEFAULT_UCI}"
+	echo "#!/bin/sh" > ${FILES_PATH}/etc/${FILENAME_DEFAULT_UCI} && sudo chmod +x ${FILES_PATH}/etc/${FILENAME_DEFAULT_UCI}
 	
 	cp -rf ${COMMON_PATH}/custom/${FILENAME_DEFAULT_RUNONCE} ${FILES_PATH}/etc/init.d/${FILENAME_DEFAULT_RUNONCE} && sudo chmod +x ${FILES_PATH}/etc/init.d/${FILENAME_DEFAULT_RUNONCE}
 	cp -rf ${COMMON_PATH}/custom/${FILENAME_DEFAULT_SETTINGS} ${FILES_PATH}/etc/${FILENAME_DEFAULT_SETTINGS} && sudo chmod +x ${FILES_PATH}/etc/${FILENAME_DEFAULT_SETTINGS}
@@ -468,8 +467,7 @@ function diy_public() {
 	EOF
 	
 	# default_delete文件，Openwrt固件升级时需要删除的文件
-	echo '#!/bin/sh' > "${FILES_PATH}/etc/${FILENAME_TO_DELETE}"
-	sudo chmod +x "${FILES_PATH}/etc/${FILENAME_TO_DELETE}"
+	echo "#!/bin/sh" > ${FILES_PATH}/etc/${FILENAME_TO_DELETE} && sudo chmod +x "${FILES_PATH}/etc/${FILENAME_TO_DELETE}"
 	
 	# base-files-essential文件，Openwrt固件升级时需要保留的文件
 	if [[ -z "$(grep "background" ${FILES_TO_KEEP})" ]]; then

@@ -2,13 +2,15 @@
 
 # diy_part.sh中的UCI设置
 [[ -f /etc/default_uci ]] && chmod +x /etc/default_uci && source /etc/default_uci
-[[ -f /etc/default_delete ]] && chmod +x /etc/default_delete && source /etc/default_delete
+#[[ -f /etc/default_delete ]] && chmod +x /etc/default_delete && source /etc/default_delete
 
 #[[ ! -f /mnt/network ]] && cp -rf /etc/config/network /mnt/network
 
 chmod -R 0775 /etc/init.d /usr/share
-touch /etc/crontabs/root
-
+#touch /etc/crontabs/root
+if [[ -f /etc/crontabs/root ]];then
+	sed -i '/coremark/d' /etc/crontabs/root
+fi
 source /etc/openwrt_release
 if [[ ! "${DISTRIB_ARCH}" == "x86_64" ]]; then
 	sed -i "s?x86_64?${DISTRIB_TARGET}?g" /etc/banner
@@ -21,11 +23,17 @@ if [[ -f "/usr/lib/lua/luci/controller/ttyd.lua" ]]; then
 	sed -i 's?services?system?g' "/usr/lib/lua/luci/controller/ttyd.lua"
 fi
 
-if [[ `grep -c "roacn" /etc/opkg/distfeeds.conf` -ge '1' ]]; then
-	sed -i '/roacn/d' /etc/opkg/distfeeds.conf
+if [[ `grep -c "pkgstlyshi" /etc/opkg/distfeeds.conf` -ge '1' ]]; then
+	sed -i '/pkgstlyshi/d' /etc/opkg/distfeeds.conf
+fi
+if [[ `grep -c "pkgroacn" /etc/opkg/distfeeds.conf` -ge '1' ]]; then
+	sed -i '/pkgroacn/d' /etc/opkg/distfeeds.conf
 fi
 if [[ `grep -c "helloworld" /etc/opkg/distfeeds.conf` -ge '1' ]]; then
 	sed -i '/helloworld/d' /etc/opkg/distfeeds.conf
+fi
+if [[ `grep -c "ssrplus" /etc/opkg/distfeeds.conf` -ge '1' ]]; then
+	sed -i '/ssrplus/d' /etc/opkg/distfeeds.conf
 fi
 if [[ `grep -c "passwall" /etc/opkg/distfeeds.conf` -ge '1' ]]; then
 	sed -i '/passwall/d' /etc/opkg/distfeeds.conf
