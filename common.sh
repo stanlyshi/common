@@ -1,37 +1,37 @@
 #!/bin/bash
 
 function __error_msg() {
-	echo -e "\033[31m[ERROR]\033[0m $1"
+	echo -e "\033[31m[ERROR]\033[0m $*"
 }
 function __success_msg() {
-	echo -e "\033[32m[SUCCESS]\033[0m $1"
+	echo -e "\033[32m[SUCCESS]\033[0m $*"
 }
 function __warning_msg() {
-	echo -e "\033[33m[WARNING]\033[0m $1"
+	echo -e "\033[33m[WARNING]\033[0m $*"
 }
 function __info_msg() {
-	echo -e "\033[36m[INFO]\033[0m $1"
+	echo -e "\033[36m[INFO]\033[0m $*"
 }
 function __red_color() {
-	echo -e "\033[31m$1\033[0m"
+	echo -e "\033[31m$*\033[0m"
 }
 function __green_color() {
-	echo -e "\033[32m$1\033[0m"
+	echo -e "\033[32m$*\033[0m"
 }
 function __yellow_color() {
-	echo -e "\033[33m$1\033[0m"
+	echo -e "\033[33m$*\033[0m"
 }
 function __blue_color() {
-	echo -e "\033[34m$1\033[0m"
+	echo -e "\033[34m$*\033[0m"
 }
 function __magenta_color() {
-	echo -e "\033[35m$1\033[0m"
+	echo -e "\033[35m$*\033[0m"
 }
 function __cyan_color() {
-	echo -e "\033[36m$1\033[0m"
+	echo -e "\033[36m$*\033[0m"
 }
 function __white_color() {
-	echo -e "\033[37m$1\033[0m"
+	echo -e "\033[37m$*\033[0m"
 }
 
 ################################################################################################################
