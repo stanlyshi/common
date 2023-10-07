@@ -328,19 +328,26 @@ function update_feeds() {
 	#done
 	
 	# 设置中文语言包
-	__yellow_color "开始设置中文语言包..."
-	local app_path="$(find . -type d -name "applications" |grep 'luci' |sed "s?.?${HOME_PATH}?" |awk 'END {print}')"
-	if [[ $(find "${app_path}" -type d -name "zh_Hans" | grep -c "zh_Hans") -gt 20 ]]; then
-		LUCI_LANGUAGE="zh_Hans"
-		cp -rf ${HOME_PATH}/build/common/language/zh_Hans.sh ${HOME_PATH}/zh_Hans.sh
-		/bin/bash zh_Hans.sh && rm -rf zh_Hans.sh
-	else
-		LUCI_LANGUAGE="zh-cn"
-		cp -rf ${HOME_PATH}/build/common/language/zh-cn.sh ${HOME_PATH}/zh-cn.sh
-		/bin/bash zh-cn.sh && rm -rf zh-cn.sh
-	fi
+	__yellow_color "开始设置中文语言包..."	
+	for e in $(ls -d ${FEEDS_PATH}/${packages}/luci-*/po); do
+		if [[ -d $e/zh-cn && ! -d $e/zh_Hans ]]; then
+			rm -rf $e/zh_Hans && ln -s zh-cn $e/zh_Hans 2>/dev/null
+		elif [[ -d $e/zh_Hans && ! -d $e/zh-cn ]]; then
+			rm -rf $e/zh-cn && ln -s zh_Hans $e/zh-cn 2>/dev/null
+		fi
+	done	
+	#local app_path="$(find . -type d -name "applications" |grep 'luci' |sed "s?.?${HOME_PATH}?" |awk 'END {print}')"	
+	#if [[ $(find "${app_path}" -type d -name "zh_Hans" | grep -c "zh_Hans") -gt 20 ]]; then
+	#	LUCI_LANGUAGE="zh_Hans"
+	#	cp -rf ${HOME_PATH}/build/common/language/zh_Hans.sh ${HOME_PATH}/zh_Hans.sh
+	#	/bin/bash zh_Hans.sh && rm -rf zh_Hans.sh
+	#else
+	#	LUCI_LANGUAGE="zh-cn"
+	#	cp -rf ${HOME_PATH}/build/common/language/zh-cn.sh ${HOME_PATH}/zh-cn.sh
+	#	/bin/bash zh-cn.sh && rm -rf zh-cn.sh
+	#fi
 	#echo "LUCI_LANGUAGE=${LUCI_LANGUAGE}" >> $GITHUB_ENV
-	__info_msg "中文语言包设置为：${LUCI_LANGUAGE}"
+	#__info_msg "中文语言包设置为：${LUCI_LANGUAGE}"
 	
 	echo
 	echo "--------------common_update_feeds end--------------"
