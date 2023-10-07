@@ -1,37 +1,37 @@
 #!/bin/bash
 
 function __error_msg() {
-	echo -e "\033[1;31m[ERROR]\033[0m $1"
+	echo -e "\033[31m[ERROR]\033[0m $1"
 }
 function __success_msg() {
-	echo -e "\033[1;32m[SUCCESS]\033[0m $1"
+	echo -e "\033[32m[SUCCESS]\033[0m $1"
 }
 function __warning_msg() {
-	echo -e "\033[1;33m[WARNING]\033[0m $1"
+	echo -e "\033[33m[WARNING]\033[0m $1"
 }
 function __info_msg() {
-	echo -e "\033[1;36m[INFO]\033[0m $1"
+	echo -e "\033[36m[INFO]\033[0m $1"
 }
 function __red_color() {
-	echo -e "\033[1;31m$1\033[0m"
+	echo -e "\033[31m$1\033[0m"
 }
 function __green_color() {
-	echo -e "\033[1;32m$1\033[0m"
+	echo -e "\033[32m$1\033[0m"
 }
 function __yellow_color() {
-	echo -e "\033[1;33m$1\033[0m"
+	echo -e "\033[33m$1\033[0m"
 }
 function __blue_color() {
-	echo -e "\033[1;34m$1\033[0m"
+	echo -e "\033[34m$1\033[0m"
 }
 function __magenta_color() {
-	echo -e "\033[1;35m$1\033[0m"
+	echo -e "\033[35m$1\033[0m"
 }
 function __cyan_color() {
-	echo -e "\033[1;36m$1\033[0m"
+	echo -e "\033[36m$1\033[0m"
 }
 function __white_color() {
-	echo -e "\033[1;37m$1\033[0m"
+	echo -e "\033[37m$1\033[0m"
 }
 
 ################################################################################################################
@@ -1089,7 +1089,7 @@ function compile_info() {
 	
 	echo
 	__red_color "Github在线编译CPU型号"
-	__blue_color `cat /proc/cpuinfo | grep name | cut -f2 -d: | uniq -c`
+	__blue_color $(cat /proc/cpuinfo | grep name | cut -d: -f2 | uniq)
 	echo
 	echo -e "常见CPU类型及性能排行:
 	Intel(R) Xeon(R) Platinum 8370C CPU @ 2.80GHz
