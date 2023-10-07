@@ -1,46 +1,37 @@
 #!/bin/bash
 
-RESET_COLOR="\e[0m"
-RED_COLOR="\e[31m"
-GREEN_COLOR="\e[32m"
-YELLOW_COLOR="\e[33m"
-BLUE_COLOR="\e[34m"
-MAGENTA_COLOR="\e[35m"
-CYAN_COLOR="\e[36m"
-WHITE_COLOR="\e[37m"
-
 function __error_msg() {
-	echo -e "${RED_COLOR}[ERROR]${RESET_COLOR} $*"
+	echo -e "\033[1;31m[ERROR]\033[0m $1"
 }
 function __success_msg() {
-	echo -e "${GREEN_COLOR}[SUCCESS]${RESET_COLOR} $*"
+	echo -e "\033[1;32m[SUCCESS]\033[0m $1"
 }
 function __warning_msg() {
-	echo -e "${YELLOW_COLOR}[WARNING]${RESET_COLOR} $*"
+	echo -e "\033[1;33m[WARNING]\033[0m $1"
 }
 function __info_msg() {
-	echo -e "${CYAN_COLOR}[INFO]${RESET_COLOR} $*"
+	echo -e "\033[1;36m[INFO]\033[0m $1"
 }
 function __red_color() {
-	echo -e "${RED_COLOR}$*${RESET_COLOR}"
+	echo -e "\033[1;31m$1\033[0m"
 }
 function __green_color() {
-	echo -e "${GREEN_COLOR}$*${RESET_COLOR}"
+	echo -e "\033[1;32m$1\033[0m"
 }
 function __yellow_color() {
-	echo -e "${YELLOW_COLOR}$*${RESET_COLOR}"
+	echo -e "\033[1;33m$1\033[0m"
 }
 function __blue_color() {
-	echo -e "${BLUE_COLOR}$*${RESET_COLOR}"
+	echo -e "\033[1;34m$1\033[0m"
 }
 function __magenta_color() {
-	echo -e "${MAGENTA_COLOR}$*${RESET_COLOR}"
+	echo -e "\033[1;35m$1\033[0m"
 }
 function __cyan_color() {
-	echo -e "${CYAN_COLOR}$*${RESET_COLOR}"
+	echo -e "\033[1;36m$1\033[0m"
 }
 function __white_color() {
-	echo -e "${WHITE_COLOR}$*${RESET_COLOR}"
+	echo -e "\033[1;37m$1\033[0m"
 }
 
 ################################################################################################################
