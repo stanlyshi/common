@@ -925,13 +925,15 @@ function firmware_settings() {
 
 	# release标签
 	if [[ "${FIRMWARE_TYPE}" == "lxc" ]]; then
-		RELEASE_TAG="AutoUpdate-${TARGET_BOARD}-lxc"
+		RELEASE_TAG="${SOURCE}-${TARGET_PROFILE}-lxc"
+		AUTOUPDATE_TAG="AutoUpdate-${TARGET_BOARD}-lxc"
 	else
-		RELEASE_TAG="AutoUpdate-${TARGET_BOARD}"
+		RELEASE_TAG="${SOURCE}-${TARGET_PROFILE}"
+		AUTOUPDATE_TAG="AutoUpdate-${TARGET_BOARD}"
 	fi
 	# release地址
-	GITHUB_RELEASE_URL="${GITHUB_REPOSITORY_URL}/releases/tag/${RELEASE_TAG}"
-	GITHUB_RELEASE_DOWNLOAD_URL="${GITHUB_REPOSITORY_URL}/releases/download/${RELEASE_TAG}"
+	GITHUB_RELEASE_URL="${GITHUB_REPOSITORY_URL}/releases/tag/${AUTOUPDATE_TAG}"
+	GITHUB_RELEASE_DOWNLOAD_URL="${GITHUB_REPOSITORY_URL}/releases/download/${AUTOUPDATE_TAG}"
 
 	echo FIRMWARE_NAME="${FIRMWARE_NAME}" >> ${GITHUB_ENV}
 	echo TARGET_BOARD="${TARGET_BOARD}" >> ${GITHUB_ENV}
@@ -944,23 +946,24 @@ function firmware_settings() {
 	echo LINUX_KERNEL="${LINUX_KERNEL}" >> ${GITHUB_ENV}
 	echo FIRMWARE_EXT="${FIRMWARE_EXT}" >> ${GITHUB_ENV}
 	echo RELEASE_TAG="${RELEASE_TAG}" >> ${GITHUB_ENV}
+	echo AUTOUPDATE_TAG="${AUTOUPDATE_TAG}" >> ${GITHUB_ENV}
 	echo GITHUB_RELEASE_URL="${GITHUB_RELEASE_URL}" >> ${GITHUB_ENV}
 	echo FIRMWARE_BRIEF="${FIRMWARE_BRIEF}" >> ${GITHUB_ENV}
 	
 	__yellow_color "开始设置自动更新固件相关信息..."
 	# 固件自动更新相关信息等(用于luci-app-autoupdate插件)
 	local file_openwrt_autoupdate="${FILES_PATH}/etc/openwrt_autoupdate"
-	local github_api_origin="${GITHUB_REPOSITORY_URL}/releases/download/${RELEASE_TAG}/${GITHUB_API}"
-	local github_api_ghproxy="https://ghproxy.com/${GITHUB_REPOSITORY_URL}/releases/download/${RELEASE_TAG}/${GITHUB_API}"
-	local github_api_fastgit="https://download.fastgit.org/${GITHUB_REPOSITORY}/releases/download/${RELEASE_TAG}/${GITHUB_API}"
-	local release_download_origin="${GITHUB_REPOSITORY_URL}/releases/download/${RELEASE_TAG}"
-	local release_download_ghproxy="https://ghproxy.com/${GITHUB_REPOSITORY_URL}/releases/download/${RELEASE_TAG}"
+	local github_api_origin="${GITHUB_REPOSITORY_URL}/releases/download/${AUTOUPDATE_TAG}/${GITHUB_API}"
+	local github_api_ghproxy="https://ghproxy.com/${GITHUB_REPOSITORY_URL}/releases/download/${AUTOUPDATE_TAG}/${GITHUB_API}"
+	local github_api_fastgit="https://download.fastgit.org/${GITHUB_REPOSITORY}/releases/download/${AUTOUPDATE_TAG}/${GITHUB_API}"
+	local release_download_origin="${GITHUB_REPOSITORY_URL}/releases/download/${AUTOUPDATE_TAG}"
+	local release_download_ghproxy="https://ghproxy.com/${GITHUB_REPOSITORY_URL}/releases/download/${AUTOUPDATE_TAG}"
 	cat > "${file_openwrt_autoupdate}" <<-EOF
 	GITHUB_REPOSITORY="${GITHUB_REPOSITORY}"
 	GITHUB_REPOSITORY_URL="https://github.com/${GITHUB_REPOSITORY}"
 	GITHUB_RELEASE_URL="${GITHUB_RELEASE_URL}"
 	GITHUB_RELEASE_DOWNLOAD_URL="${GITHUB_RELEASE_DOWNLOAD_URL}"
-	GITHUB_TAG="${RELEASE_TAG}"
+	GITHUB_TAG="${AUTOUPDATE_TAG}"
 	GITHUB_API="${GITHUB_API}"
 	GITHUB_API_URL_ORIGIN="${github_api_origin}"
 	GITHUB_API_URL_FASTGIT="${github_api_fastgit}"
