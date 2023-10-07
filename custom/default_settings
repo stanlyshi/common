@@ -8,9 +8,11 @@
 
 chmod -R 0775 /etc/init.d /usr/share
 #touch /etc/crontabs/root
-if [[ -f /etc/crontabs/root ]];then
-	sed -i '/coremark/d' /etc/crontabs/root
+# 去除coremark定时任务
+if [[ `grep -c "coremark" /etc/crontabs/root` -eq 1 ]]; then
+  sed -i /coremark/d /etc/crontabs/root
 fi
+
 source /etc/openwrt_release
 if [[ ! "${DISTRIB_ARCH}" == "x86_64" ]]; then
 	sed -i "s?x86_64?${DISTRIB_TARGET}?g" /etc/banner
