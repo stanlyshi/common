@@ -399,10 +399,10 @@ function diy_public() {
 	# openwrt.sh
 	[[ ! -d "${FILES_PATH}/usr/bin" ]] && mkdir -p ${FILES_PATH}/usr/bin
 	if [[ "${FIRMWARE_TYPE}" == "lxc" ]]; then
-		cp -rf ${COMMON_PATH}/custom/openwrt.lxc.sh ${FILES_PATH}/usr/bin/openwrt.lxc && sudo chmod -f +x ${FILES_PATH}/usr/bin/openwrt.lxc
+		cp -rf ${COMMON_PATH}/custom/openwrt.lxc.sh ${FILES_PATH}/usr/bin/openwrt.lxc && sudo chmod +x ${FILES_PATH}/usr/bin/openwrt.lxc
 	else
-		cp -rf ${COMMON_PATH}/custom/openwrt.sh ${FILES_PATH}/usr/bin/openwrt && sudo chmod -f +x ${FILES_PATH}/usr/bin/openwrt
-		cp -rf ${COMMON_PATH}/custom/tools.sh "${FILES_PATH}/usr/bin/tools" && sudo chmod -f +x "${FILES_PATH}/usr/bin/tools"
+		cp -rf ${COMMON_PATH}/custom/openwrt.sh ${FILES_PATH}/usr/bin/openwrt && sudo chmod +x ${FILES_PATH}/usr/bin/openwrt
+		cp -rf ${COMMON_PATH}/custom/tools.sh "${FILES_PATH}/usr/bin/tools" && sudo chmod +x "${FILES_PATH}/usr/bin/tools"
 	fi
 	
 	__yellow_color "开始设置自动更新插件..."
@@ -454,10 +454,10 @@ function diy_public() {
 	# Openwrt初次运行初始化设置	
 	# default_uci文件，UCI基础设置
 	echo '#!/bin/sh' > "${FILES_PATH}/etc/${FILENAME_DEFAULT_UCI}"
-	sudo chmod -f +x "${FILES_PATH}/etc/${FILENAME_DEFAULT_UCI}"
+	sudo chmod +x "${FILES_PATH}/etc/${FILENAME_DEFAULT_UCI}"
 	
-	cp -rf ${COMMON_PATH}/custom/${FILENAME_DEFAULT_RUNONCE} ${FILES_PATH}/etc/init.d/${FILENAME_DEFAULT_RUNONCE} && sudo chmod -f +x ${FILES_PATH}/etc/init.d/${FILENAME_DEFAULT_RUNONCE}
-	cp -rf ${COMMON_PATH}/custom/${FILENAME_DEFAULT_SETTINGS} ${FILES_PATH}/etc/${FILENAME_DEFAULT_SETTINGS} && sudo chmod -f +x ${FILES_PATH}/etc/${FILENAME_DEFAULT_SETTINGS}
+	cp -rf ${COMMON_PATH}/custom/${FILENAME_DEFAULT_RUNONCE} ${FILES_PATH}/etc/init.d/${FILENAME_DEFAULT_RUNONCE} && sudo chmod +x ${FILES_PATH}/etc/init.d/${FILENAME_DEFAULT_RUNONCE}
+	cp -rf ${COMMON_PATH}/custom/${FILENAME_DEFAULT_SETTINGS} ${FILES_PATH}/etc/${FILENAME_DEFAULT_SETTINGS} && sudo chmod +x ${FILES_PATH}/etc/${FILENAME_DEFAULT_SETTINGS}
 
 	cat >> ${FILES_PATH}/etc/${FILENAME_DEFAULT_SETTINGS} <<-EOF
 	rm -rf /etc/init.d/${FILENAME_DEFAULT_RUNONCE}
@@ -469,7 +469,7 @@ function diy_public() {
 	
 	# default_delete文件，Openwrt固件升级时需要删除的文件
 	echo '#!/bin/sh' > "${FILES_PATH}/etc/${FILENAME_TO_DELETE}"
-	sudo chmod -f +x "${FILES_PATH}/etc/${FILENAME_TO_DELETE}"
+	sudo chmod +x "${FILES_PATH}/etc/${FILENAME_TO_DELETE}"
 	
 	# base-files-essential文件，Openwrt固件升级时需要保留的文件
 	if [[ -z "$(grep "background" ${FILES_TO_KEEP})" ]]; then
@@ -996,7 +996,7 @@ function firmware_settings() {
 	FILES_TO_DELETE="/etc/${FILENAME_TO_DELETE}"
 	EOF
 
-	sudo chmod +x ${file_openwrt_autoupdate}
+	sudo chmod 1777 ${file_openwrt_autoupdate}
 	cat ${file_openwrt_autoupdate}
 		
 	echo
