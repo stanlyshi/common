@@ -293,7 +293,7 @@ function update_feeds() {
 	local packages_branch="${PACKAGE_BRANCH}"
 	local packages="pkg${GITHUB_ACTOR}"
 	
-	sed -i "/${packages}/d; /#/d; /^$/d; /argon/d; /ssrplus/d; /helloworld/d; /passwall/d; /OpenClash/d" "feeds.conf.default"
+	sed -i "/${packages}/d; /#/d; /^$/d; /ssrplus/d; /helloworld/d; /passwall/d; /OpenClash/d" "feeds.conf.default"
 	
 	__info_msg "源码：${SOURCE} 插件源：${packages_url} 插件源分支：${packages_branch} 文件夹：${packages}"
 	cat >> "feeds.conf.default" <<-EOF
@@ -753,14 +753,7 @@ function resolve_confflictions() {
 			echo "__error_msg \"您同时选择luci-theme-argon和luci-theme-argonne，插件有冲突，相同功能插件只能二选一，已删除luci-theme-argonne\"" >> ${CONFFLICTIONS}
 			echo "" >> ${CONFFLICTIONS}
 		fi
-		if [[ `grep -c "CONFIG_PACKAGE_luci-app-argon-config=y" ${HOME_PATH}/.config` -eq '0' ]] && [[ `grep -c "CONFIG_TARGET_x86=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-			sed -i '/CONFIG_PACKAGE_luci-app-argon-config/d' ${HOME_PATH}/.config
-			sed -i '/argon=y/i\CONFIG_PACKAGE_luci-app-argon-config=y' ${HOME_PATH}/.config
-		fi
-	fi
-	
-	if [[ `grep -c "CONFIG_PACKAGE_luci-theme-argon=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-		if [[ `grep -c "CONFIG_PACKAGE_luci-app-argon-config=y" ${HOME_PATH}/.config` == '0' ]]; then
+		if [[ `grep -c "CONFIG_PACKAGE_luci-app-argon-config=y" ${HOME_PATH}/.config` -eq '0' ]]; then
 			sed -i '/luci-app-argon-config/d' ${HOME_PATH}/.config
 			sed -i '$a CONFIG_PACKAGE_luci-app-argon-config=y' ${HOME_PATH}/.config
 		fi
