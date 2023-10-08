@@ -295,10 +295,12 @@ function update_feeds() {
 	
 	sed -i "/${packages}/d; /#/d; /^$/d; /ssrplus/d; /helloworld/d; /passwall/d; /OpenClash/d" "feeds.conf.default"
 	
+	# feeds.conf.default内源靠前的优先安装，如果希望自己的插件库与源码插件库重复的使用自己库内，把自己库放在源码前面
 	__info_msg "源码：${SOURCE} 插件源：${packages_url} 插件源分支：${packages_branch} 文件夹：${packages}"
-	cat >> "feeds.conf.default" <<-EOF
-	src-git ${packages} ${packages_url};${packages_branch}
-	EOF
+	sed -i "1i src-git ${packages} ${packages_url};${packages_branch}" "feeds.conf.default"
+	#cat >> "feeds.conf.default" <<-EOF
+	#src-git ${packages} ${packages_url};${packages_branch}
+	#EOF	
 	
 	# 更新插件源
 	__yellow_color "开始更新插件源..."
