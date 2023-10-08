@@ -496,6 +496,14 @@ function diy_lede() {
 
 	__info_msg "设置密码为空"
 	sed -i '/CYXluq4wUazHjmCDBCqXF/d' ${ZZZ_PATH}
+		
+	if [[ "${FIRMWARE_TYPE}" == "lxc" ]]; then
+		__info_msg "修复lxc固件openssl"
+		sudo rm -rf "${HOME_PATH}/include/openssl-module.mk"
+		sudo rm -rf "${HOME_PATH}/package/libs/openssl"
+		cp -rf "${HOME_PATH}/build/common/Share/include/openssl-engine.mk" "${HOME_PATH}/include/openssl-engine.mk"
+		cp -rf "${HOME_PATH}/build/common/Share/package/libs/openssl" "${HOME_PATH}/package/libs/openssl"
+	fi
 
 	echo
 	echo "--------------common_diy_lede end--------------"
