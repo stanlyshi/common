@@ -125,6 +125,7 @@ function parse_settings() {
 	echo PACKAGE_BRANCH="${PACKAGE_BRANCH}" >> ${GITHUB_ENV}	
 	echo REPOSITORY="${GITHUB_REPOSITORY##*/}" >> ${GITHUB_ENV}
 	echo DIY_PART_SH="${DIY_PART_SH}" >> ${GITHUB_ENV}
+	echo BIOS_MODE="${BIOS_MODE}" >> ${GITHUB_ENV}
 	echo PACKAGES_ADDR="${PACKAGES_ADDR}" >> ${GITHUB_ENV}
 	echo ENABLE_PACKAGES_UPDATE="${ENABLE_PACKAGES_UPDATE}" >> ${GITHUB_ENV}
 	echo ENABLE_REPO_UPDATE="false" >> ${GITHUB_ENV}
@@ -860,6 +861,22 @@ function firmware_settings() {
 		__info_msg "编译固件内核：[ ${KERNEL_PATCHVER} ]"
 	fi
 
+	# BIOS引导模式
+	if [[ "${BIOS_MODE}" =~ (uefi|UEFI|Uefi) ]]; then
+		sed -i '/CONFIG_GRUB_IMAGES/d' ${HOME_PATH}/.config > /dev/null 2>&1
+		sed -i '$a # CONFIG_GRUB_IMAGES is not set=y' ${HOME_PATH}/.config > /dev/null 2>&1
+		sed -i '/CONFIG_GRUB_EFI_IMAGES/d' ${HOME_PATH}/.config > /dev/null 2>&1
+		sed -i '$a CONFIG_GRUB_EFI_IMAGES=y' ${HOME_PATH}/.config > /dev/null 2>&1
+		__info_msg "编译legacy固件"
+	elif [[ "${BIOS_MODE}" =~ (legacy|LEGACY|Legacy) ]]; then
+		sed -i '/CONFIG_GRUB_IMAGES/d' ${HOME_PATH}/.config > /dev/null 2>&1
+		sed -i '$a CONFIG_GRUB_IMAGES=y' ${HOME_PATH}/.config > /dev/null 2>&1
+		sed -i '/CONFIG_GRUB_EFI_IMAGES/d' ${HOME_PATH}/.config > /dev/null 2>&1
+		sed -i '$a # CONFIG_GRUB_EFI_IMAGES is not set' ${HOME_PATH}/.config > /dev/null 2>&1
+		__info_msg "编译uefi固件"
+	else
+		__info_msg "编译uefi、legacy固件由.config文件决定"
+	fi
 
 	# 固件相关
 	__yellow_color "开始设置固件名称、后缀等相关信息..."
