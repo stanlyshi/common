@@ -44,6 +44,7 @@ function parse_settings() {
 		SOURCE_BRANCH="${INPUTS_SOURCE_BRANCH}"
 		CONFIG_FILE="${INPUTS_CONFIG_FILE}"
 		FIRMWARE_TYPE="${INPUTS_FIRMWARE_TYPE}"
+		BIOS_MODE="${INPUTS_BIOS_MODE}"
 		NOTICE_TYPE="${INPUTS_NOTICE_TYPE}"
 		ENABLE_SSH="${INPUTS_ENABLE_SSH}"
 		UPLOAD_RELEASE="${INPUTS_UPLOAD_RELEASE}"
@@ -110,6 +111,7 @@ function parse_settings() {
 	echo SOURCE_BRANCH="${SOURCE_BRANCH}" >> ${GITHUB_ENV}
 	echo CONFIG_FILE="${CONFIG_FILE}" >> ${GITHUB_ENV}
 	echo FIRMWARE_TYPE="${FIRMWARE_TYPE}" >> ${GITHUB_ENV}
+	echo BIOS_MODE="${BIOS_MODE}" >> ${GITHUB_ENV}
 	echo NOTICE_TYPE="${NOTICE_TYPE}" >> ${GITHUB_ENV}
 	echo ENABLE_SSH="${ENABLE_SSH}" >> ${GITHUB_ENV}
 	echo UPLOAD_RELEASE="${UPLOAD_RELEASE}" >> ${GITHUB_ENV}
@@ -874,6 +876,12 @@ function firmware_settings() {
 		sed -i '/CONFIG_GRUB_EFI_IMAGES/d' ${HOME_PATH}/.config > /dev/null 2>&1
 		sed -i '$a # CONFIG_GRUB_EFI_IMAGES is not set' ${HOME_PATH}/.config > /dev/null 2>&1
 		__info_msg "编译uefi固件"
+	elif [[ "${BIOS_MODE}" =~ (both|BOTH|Both|all|ALL|All) ]]; then
+		sed -i '/CONFIG_GRUB_IMAGES/d' ${HOME_PATH}/.config > /dev/null 2>&1
+		sed -i '$a CONFIG_GRUB_IMAGES=y' ${HOME_PATH}/.config > /dev/null 2>&1
+		sed -i '/CONFIG_GRUB_EFI_IMAGES/d' ${HOME_PATH}/.config > /dev/null 2>&1
+		sed -i '$a CONFIG_GRUB_EFI_IMAGES=y' ${HOME_PATH}/.config > /dev/null 2>&1
+		__info_msg "编译uefi及legacy固件"
 	else
 		__info_msg "编译uefi、legacy固件由.config文件决定"
 	fi
