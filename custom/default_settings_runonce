@@ -9,6 +9,7 @@ run_default_settings_once() {
 		/etc/default_settings
 		rm -rf /etc/default_settings > /dev/null 2>&1
 		rm -rf /etc/init.d/default_settings_runonce > /dev/null 2>&1
+		rm -rf /etc/rc.d/S99default_settings_runonce > /dev/null 2>&1
 	fi
 }
 
