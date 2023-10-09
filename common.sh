@@ -483,8 +483,8 @@ function diy_lede() {
 	cd ${HOME_PATH}
 	
 
-	__info_msg "去除防火墙规则"
-	sed -i '/to-ports 53/d' ${ZZZ_PATH}
+	#__info_msg "去除防火墙规则"
+	#sed -i '/to-ports 53/d' ${ZZZ_PATH}
 
 	__info_msg "设置密码为空"
 	sed -i '/CYXluq4wUazHjmCDBCqXF/d' ${ZZZ_PATH}
