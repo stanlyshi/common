@@ -40,8 +40,6 @@ function __white_color() {
 function parse_settings() {
 	source build/${MATRIX_TARGET}/settings.ini
 	if [[ -n "${INPUTS_SOURCE_BRANCH}" ]]; then
-		__info_msg "获取到actions设置，替换settings.ini设置"
-		
 		[[ "${INPUTS_SOURCE_BRANCH}" =~ (default|DEFAULT|Default) ]] && SOURCE_BRANCH="${SOURCE_BRANCH}" || SOURCE_BRANCH="${INPUTS_SOURCE_BRANCH}"
 		[[ "${INPUTS_CONFIG_FILE}" =~ (default|DEFAULT|Default) ]] && CONFIG_FILE="${CONFIG_FILE}" || CONFIG_FILE="${INPUTS_CONFIG_FILE}"
 		[[ "${INPUTS_FIRMWARE_TYPE}" =~ (default|DEFAULT|Default) ]] && FIRMWARE_TYPE="${FIRMWARE_TYPE}" || FIRMWARE_TYPE="${INPUTS_FIRMWARE_TYPE}"
