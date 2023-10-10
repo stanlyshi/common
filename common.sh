@@ -250,7 +250,7 @@ function update_packages() {
 function do_diy() {
 	cd ${HOME_PATH}
 
-	# 添加添加源
+	# 添加插件源、更新插件源
 	update_feeds
 	
 	# 执行公共脚本
@@ -266,7 +266,7 @@ function do_diy() {
 	# 执行diy_part.sh脚本
 	/bin/bash "${MATRIX_TARGET_PATH}/${DIY_PART_SH}"
 	
-	# 安装插件源
+	# 再次更新插件源，并安装插件源
 	./scripts/feeds update -a > /dev/null 2>&1 && ./scripts/feeds install -a > /dev/null 2>&1
 		
 	# 修改.config文件
@@ -294,7 +294,7 @@ function update_feeds() {
 	
 	sed -i "/${packages}/d; /#/d; /^$/d; /ssrplus/d; /helloworld/d; /passwall/d; /OpenClash/d" "feeds.conf.default"
 	
-	# feeds.conf.default内源靠前的优先安装，如果希望自己的插件库与源码插件库重复的使用自己库内，把自己库放在源码前面
+	# 当插件源添加至 feeds.conf.default 首行时，优先安装自己添加的插件源
 	#sed -i "1i src-git ${packages} ${packages_url};${packages_branch}" "feeds.conf.default"
 	
 	# 当插件源添加至 feeds.conf.default 结尾时，重复插件，先删除相应文件，操作完毕后，再一次运行./scripts/feeds update -a，即可更新对应的.index与target.index文件
@@ -308,13 +308,13 @@ function update_feeds() {
 	./scripts/feeds update -a > /dev/null 2>&1
 	sudo rm -rf ${FEEDS_PATH}/${packages}/{LICENSE,*README*,*readme*,.git,.github,.gitignore} > /dev/null 2>&1
 	
-	# 去垃圾文件
-	#local files_to_delete=("README" "README.md" "readme.md" "LICENSE" ".git" ".github" ".gitignore")
-	#for X in ${files_to_delete[*]}; do
-	#	find ${FEEDS_PATH} -name "${X}" | xargs sudo rm -rf
-	#done
+	# 删除自己插件源不用的文件
+	local files_to_delete=(".git" ".github")
+	for X in ${files_to_delete[*]}; do
+		find ${HOME_PATH}/feeds -maxdepth 3 -type d -name "${X}" | grep "${packages}" | xargs sudo rm -rf {}
+	done
 	
-	# 去源码中重复插件及依赖
+	# 删除源码中重复插件及依赖
 	for X in $(ls ${HOME_PATH}/feeds/${packages}); do
 		find ${HOME_PATH}/feeds -maxdepth 3 -type d -name "${X}" | grep -v "${packages}" | xargs sudo rm -rf {}
 	done
