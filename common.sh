@@ -268,12 +268,8 @@ function do_diy() {
 	
 	# 安装插件源
 	./scripts/feeds update -a > /dev/null 2>&1 && ./scripts/feeds install -a > /dev/null 2>&1
-	
-	# .config相关
-	# 复制自定义.config文件
-	cp -rf ${CONFIG_PATH}/${CONFIG_FILE} ${HOME_PATH}/.config
-	
-	# 修改.config文件配置
+		
+	# 修改.config文件
 	modify_config > /dev/null 2>&1
 	
 	# 编译机型CPU架构、内核版本等信息，替换内核等
@@ -522,10 +518,13 @@ function diy_openwrt() {
 ################################################################################################################
 function modify_config() {
 	cd ${HOME_PATH}
-
-	__yellow_color "正在判断插件是否有冲突..."
 	
+	# 复制自定义.config文件
+	cp -rf ${CONFIG_PATH}/${CONFIG_FILE} ${HOME_PATH}/.config
 	make defconfig > /dev/null 2>&1
+	
+	__yellow_color "开始处理.config文件..."
+
 	rm -rf ${CONFFLICTIONS} && touch ${CONFFLICTIONS}
 	
 	# lxc模式下编译.tar.gz固件
@@ -794,9 +793,6 @@ function firmware_settings() {
 	echo
 	
 	cd ${HOME_PATH}
-	
-	# 如未运行过 make menuconfig，需要运行下一行命令
-	# make defconfig > /dev/null 2>&1
 	
 	# x86、ramips...
 	TARGET_BOARD="$(awk -F '[="]+' '/CONFIG_TARGET_BOARD/{print $2}' ${HOME_PATH}/.config)"
