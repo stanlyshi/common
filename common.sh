@@ -267,14 +267,14 @@ function do_diy() {
 	/bin/bash "${MATRIX_TARGET_PATH}/${DIY_PART_SH}"
 	
 	# 安装插件源
-	./scripts/feeds install -a > /dev/null 2>&1
+	./scripts/feeds update -a > /dev/null 2>&1 && ./scripts/feeds install -a > /dev/null 2>&1
 	
 	# .config相关
 	# 复制自定义.config文件
 	cp -rf ${CONFIG_PATH}/${CONFIG_FILE} ${HOME_PATH}/.config
 	
-	# 处理插件冲突
-	resolve_confflictions > /dev/null 2>&1
+	# 修改.config文件配置
+	modify_config > /dev/null 2>&1
 	
 	# 编译机型CPU架构、内核版本等信息，替换内核等
 	firmware_settings
@@ -294,33 +294,34 @@ function update_feeds() {
 	local packages_url="https://github.com/${PACKAGES_ADDR}.git"
 	local packages_branch="${PACKAGE_BRANCH}"
 	local packages="pkg${GITHUB_ACTOR}"
+	__info_msg "源码：${SOURCE} 插件源：${packages_url} 插件源分支：${packages_branch} 文件夹：${packages}"
 	
 	sed -i "/${packages}/d; /#/d; /^$/d; /ssrplus/d; /helloworld/d; /passwall/d; /OpenClash/d" "feeds.conf.default"
 	
 	# feeds.conf.default内源靠前的优先安装，如果希望自己的插件库与源码插件库重复的使用自己库内，把自己库放在源码前面
-	__info_msg "源码：${SOURCE} 插件源：${packages_url} 插件源分支：${packages_branch} 文件夹：${packages}"
-	sed -i "1i src-git ${packages} ${packages_url};${packages_branch}" "feeds.conf.default"
-	#cat >> "feeds.conf.default" <<-EOF
-	#src-git ${packages} ${packages_url};${packages_branch}
-	#EOF	
+	#sed -i "1i src-git ${packages} ${packages_url};${packages_branch}" "feeds.conf.default"
+	
+	# 当插件源添加至 feeds.conf.default 结尾时，重复插件，先删除相应文件，操作完毕后，再一次运行./scripts/feeds update -a，即可更新对应的.index与target.index文件
+	cat >> "feeds.conf.default" <<-EOF
+	src-git ${packages} ${packages_url};${packages_branch}
+	EOF
 	
 	# 更新插件源
 	__yellow_color "开始更新插件源..."
 	./scripts/feeds clean
-	./scripts/feeds update -a > /dev/null 2>&1 && __info_msg "OK."	
-	sudo rm -rf ${FEEDS_PATH}/${packages}/{LICENSE,*README*,*readme*,.github,.gitignore} > /dev/null 2>&1
+	./scripts/feeds update -a > /dev/null 2>&1
+	sudo rm -rf ${FEEDS_PATH}/${packages}/{LICENSE,*README*,*readme*,.git,.github,.gitignore} > /dev/null 2>&1
 	
 	# 去垃圾文件
-	local files_to_delete=("README" "README.md" "readme.md" "LICENSE" ".git" ".github" ".gitignore")
-	for X in ${files_to_delete[*]}; do
-		find ${FEEDS_PATH} -name "${X}" | xargs sudo rm -rf
+	#local files_to_delete=("README" "README.md" "readme.md" "LICENSE" ".git" ".github" ".gitignore")
+	#for X in ${files_to_delete[*]}; do
+	#	find ${FEEDS_PATH} -name "${X}" | xargs sudo rm -rf
+	#done
+	
+	# 去源码中重复插件及依赖
+	for X in $(ls ${HOME_PATH}/feeds/${packages}); do
+		find ${HOME_PATH}/feeds -maxdepth 3 -type d -name "${X}" | grep -v "${packages}" | xargs sudo rm -rf {}
 	done
-	#for X in $(ls ${HOME_PATH}/feeds/${packages}); do
-	#	find ${HOME_PATH}/feeds/luci -type d -name "${X}" | xargs sudo rm -rf
-	#done
-	#for X in $(ls ${HOME_PATH}/feeds/${packages}); do
-	#	find ${HOME_PATH}/feeds/packages -type d -name "${X}" | xargs sudo rm -rf
-	#done
 	
 	# 设置中文语言包
 	__yellow_color "开始设置中文语言包..."	
@@ -424,7 +425,7 @@ function diy_public() {
 
 	# "默认设置文件..."
 	# https://github.com/coolsnowwolf/lede/blob/master/package/lean/default-settings/files/zzz-default-settings
-	export ZZZ_PATH="$(find "${HOME_PATH}/package" -type f -name "*-default-settings" |grep files)"
+	export ZZZ_PATH="$(find "${HOME_PATH}/package" -type f -name "*-default-settings" | grep files)"
 	if [[ -n "${ZZZ_PATH}" ]]; then  
 		echo ZZZ_PATH="${ZZZ_PATH}" >> ${GITHUB_ENV}
 	fi
@@ -517,9 +518,9 @@ function diy_openwrt() {
 }
 
 ################################################################################################################
-# 处理插件冲突
+# 修改.config文件配置
 ################################################################################################################
-function resolve_confflictions() {
+function modify_config() {
 	cd ${HOME_PATH}
 
 	__yellow_color "正在判断插件是否有冲突..."
