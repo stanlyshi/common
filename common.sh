@@ -490,13 +490,13 @@ function diy_lede() {
 	fi
 
 	# 修复后台管理页面无法打开
-	if [[ "${FIRMWARE_TYPE}" == "lxc" ]]; then
-		__info_msg "修复lxc固件openssl"
-		sudo rm -rf "${HOME_PATH}/include/openssl-module.mk"
-		sudo rm -rf "${HOME_PATH}/package/libs/openssl"
-		cp -rf "${HOME_PATH}/build/common/Share/include/openssl-engine.mk" "${HOME_PATH}/include/openssl-engine.mk"
-		cp -rf "${HOME_PATH}/build/common/Share/package/libs/openssl" "${HOME_PATH}/package/libs/openssl"
-	fi
+	#if [[ "${FIRMWARE_TYPE}" == "lxc" ]]; then
+	#	__info_msg "修复lxc固件openssl"
+	#	sudo rm -rf "${HOME_PATH}/include/openssl-module.mk"
+	#	sudo rm -rf "${HOME_PATH}/package/libs/openssl"
+	#	cp -rf "${HOME_PATH}/build/common/Share/include/openssl-engine.mk" "${HOME_PATH}/include/openssl-engine.mk"
+	#	cp -rf "${HOME_PATH}/build/common/Share/package/libs/openssl" "${HOME_PATH}/package/libs/openssl"
+	#fi
 
 	echo
 	echo "--------------common_diy_lede end--------------"
@@ -766,11 +766,11 @@ function modify_config() {
 		fi
 	fi
 	
-	if [[ `grep -c "CONFIG_PACKAGE_wpad-openssl=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-		if [[ `grep -c "CONFIG_PACKAGE_wpad=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-			sed -i 's/CONFIG_PACKAGE_wpad=y/# CONFIG_PACKAGE_wpad is not set/g' ${HOME_PATH}/.config
-		fi
-	fi
+	#if [[ `grep -c "CONFIG_PACKAGE_wpad-openssl=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+	#	if [[ `grep -c "CONFIG_PACKAGE_wpad=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+	#		sed -i 's/CONFIG_PACKAGE_wpad=y/# CONFIG_PACKAGE_wpad is not set/g' ${HOME_PATH}/.config
+	#	fi
+	#fi
 	
 	# luci-ssl-openssl依赖libustream-openssl；luci-ssl依赖libustream-mbedtls
 	if [[ `grep -c "CONFIG_PACKAGE_libustream-openssl=y" ${HOME_PATH}/.config` -eq '1' ]]; then
