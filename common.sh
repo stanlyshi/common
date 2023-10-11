@@ -311,12 +311,12 @@ function update_feeds() {
 	# 删除自己插件源不用的文件
 	local files_to_delete=(".git" ".github")
 	for X in ${files_to_delete[*]}; do
-		find ${HOME_PATH}/feeds -maxdepth 3 -type d -name "${X}" | grep "${packages}" | xargs sudo rm -rf {}
+		find ${FEEDS_PATH} -maxdepth 3 -type d -name "${X}" | grep "${packages}" | xargs sudo rm -rf {}
 	done
 	
 	# 删除源码中重复插件及依赖
-	for X in $(ls ${HOME_PATH}/feeds/${packages}); do
-		find ${HOME_PATH}/feeds -maxdepth 3 -type d -name "${X}" | grep -v "${packages}" | xargs sudo rm -rf {}
+	for X in $(ls ${FEEDS_PATH}/${packages}); do
+		find ${FEEDS_PATH} -maxdepth 3 -type d -name "${X}" | grep -v "${packages}" | xargs sudo rm -rf {}
 	done
 	
 	# 设置中文语言包
@@ -395,13 +395,15 @@ function diy_public() {
 	__yellow_color "开始设置自动更新插件..."
 	# 自动更新插件（luci-app-autoupdate）
 	if [[ "${FIRMWARE_TYPE}" == "lxc" ]]; then
-		find . -type d -name "luci-app-autoupdate" | xargs -i sudo rm -rf {}
+		find ${HOME_PATH}/feeds -type d -name "luci-app-autoupdate" | xargs -i sudo rm -rf {}
+		find ${HOME_PATH}/package -type d -name "luci-app-autoupdate" | xargs -i sudo rm -rf {}
 		if [[ -n "$(grep "luci-app-autoupdate" ${HOME_PATH}/include/target.mk)" ]]; then
-			sed -i 's?luci-app-autoupdate??g' ${HOME_PATH}/include/target.mk
+			sed -i 's/luci-app-autoupdate//g' ${HOME_PATH}/include/target.mk
 		fi
 		__info_msg "lxc固件，删除自动更新插件"
 	else
-		find . -type d -name 'luci-app-autoupdate' | xargs -i sudo rm -rf {}
+		find ${HOME_PATH}/feeds -type d -name "luci-app-autoupdate" | xargs -i sudo rm -rf {}
+		find ${HOME_PATH}/package -type d -name "luci-app-autoupdate" | xargs -i sudo rm -rf {}
 		git clone -b main https://github.com/stanlyshi/luci-app-autoupdate ${HOME_PATH}/package/luci-app-autoupdate 2>/dev/null
 		if [[ `grep -c "luci-app-autoupdate" ${HOME_PATH}/include/target.mk` -eq '0' ]]; then
 			sed -i 's?DEFAULT_PACKAGES:=?DEFAULT_PACKAGES:=luci-app-autoupdate luci-app-ttyd ?g' ${HOME_PATH}/include/target.mk
@@ -479,13 +481,15 @@ function diy_lede() {
 	
 	cd ${HOME_PATH}
 	
+	if [[ -n "${ZZZ_PATH}" ]]; then  
+		#__info_msg "去除防火墙规则"
+		#sed -i '/to-ports 53/d' ${ZZZ_PATH}
 
-	#__info_msg "去除防火墙规则"
-	#sed -i '/to-ports 53/d' ${ZZZ_PATH}
+		__info_msg "设置密码为空"
+		sed -i '/CYXluq4wUazHjmCDBCqXF/d' ${ZZZ_PATH}
+	fi
 
-	__info_msg "设置密码为空"
-	sed -i '/CYXluq4wUazHjmCDBCqXF/d' ${ZZZ_PATH}
-		
+	# 修复后台管理页面无法打开
 	if [[ "${FIRMWARE_TYPE}" == "lxc" ]]; then
 		__info_msg "修复lxc固件openssl"
 		sudo rm -rf "${HOME_PATH}/include/openssl-module.mk"
@@ -518,21 +522,21 @@ function diy_openwrt() {
 ################################################################################################################
 function modify_config() {
 	cd ${HOME_PATH}
+
+	__yellow_color "开始处理.config文件..."
 	
 	# 复制自定义.config文件
 	cp -rf ${CONFIG_PATH}/${CONFIG_FILE} ${HOME_PATH}/.config
 	make defconfig > /dev/null 2>&1
-	
-	__yellow_color "开始处理.config文件..."
 
-	rm -rf ${CONFFLICTIONS} && touch ${CONFFLICTIONS}
-	
 	# lxc模式下编译.tar.gz固件
 	if [[ "${FIRMWARE_TYPE}" == "lxc" ]]; then
 		sed -i '/CONFIG_TARGET_ROOTFS_TARGZ/d' ${HOME_PATH}/.config > /dev/null 2>&1
 		sed -i '$a CONFIG_TARGET_ROOTFS_TARGZ=y' ${HOME_PATH}/.config > /dev/null 2>&1
 		__info_msg "lxc模式，添加openwrt-generic-rootfs.tar.gz文件编译"
 	fi
+	
+	rm -rf ${CONFFLICTIONS} && touch ${CONFFLICTIONS}
 	
 	if [[ `grep -c "CONFIG_TARGET_x86=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_rockchip=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_bcm27xx=y" ${HOME_PATH}/.config` -eq '1' ]]; then
 		sed -i '/CONFIG_TARGET_IMAGES_GZIP/d' ${HOME_PATH}/.config
@@ -862,7 +866,7 @@ function firmware_settings() {
 	# BIOS引导模式
 	if [[ "${BIOS_MODE}" =~ (uefi|UEFI|Uefi) ]]; then
 		sed -i '/CONFIG_GRUB_IMAGES/d' ${HOME_PATH}/.config > /dev/null 2>&1
-		sed -i '$a # CONFIG_GRUB_IMAGES is not set=y' ${HOME_PATH}/.config > /dev/null 2>&1
+		sed -i '$a # CONFIG_GRUB_IMAGES is not set' ${HOME_PATH}/.config > /dev/null 2>&1
 		sed -i '/CONFIG_GRUB_EFI_IMAGES/d' ${HOME_PATH}/.config > /dev/null 2>&1
 		sed -i '$a CONFIG_GRUB_EFI_IMAGES=y' ${HOME_PATH}/.config > /dev/null 2>&1
 		__info_msg "编译legacy固件"
@@ -1218,7 +1222,7 @@ function organize_firmware() {
 
 	# 清理无关文件
 	__yellow_color "开始清理无关文件..."
-	for X in $(cat ${FILES_TO_CLEAR} | sed '/^#.*/d'); do		
+	for X in $(cat ${FILES_TO_CLEAR} | sed '/^#/d'); do		
 		sudo rm -rf *"${X}"* > /dev/null 2>&1
 		__info_msg "delete ${X}"
 	done
