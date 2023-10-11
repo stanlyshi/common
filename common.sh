@@ -365,14 +365,14 @@ function diy_public() {
 	# 替换编译前源码中对应目录文件
 	if [ -n "$(ls -A "${MATRIX_TARGET_PATH}/diy" 2>/dev/null)" ]; then
 		sudo rm -rf ${MATRIX_TARGET_PATH}/diy/{LICENSE,*README*,*readme*} > /dev/null 2>&1
-		cp -rf ${MATRIX_TARGET_PATH}/diy/* ${FILES_PATH} && chmod -Rf +x ${FILES_PATH}
+		cp -rf ${MATRIX_TARGET_PATH}/diy/* ${FILES_PATH} > /dev/null 2>&1 && chmod -Rf +x ${FILES_PATH}
 	fi
 	
 	__yellow_color "开始替换files文件夹内文件..."
 	# 替换编译后固件中对应目录文件（备用）
 	if [ -n "$(ls -A "${MATRIX_TARGET_PATH}/files" 2>/dev/null)" ]; then
 		sudo rm -rf ${MATRIX_TARGET_PATH}/files/{LICENSE,*README*,.*readme*} > /dev/null 2>&1
-		cp -rf ${MATRIX_TARGET_PATH}/files ${HOME_PATH}
+		cp -rf ${MATRIX_TARGET_PATH}/files ${HOME_PATH} > /dev/null 2>&1
 	fi
 	
 	__yellow_color "开始执行补丁文件..."
@@ -543,8 +543,8 @@ function modify_config() {
 		sed -i '$a CONFIG_TARGET_IMAGES_GZIP=y' ${HOME_PATH}/.config
 		#sed -i '/CONFIG_PACKAGE_snmpd/d' ${HOME_PATH}/.config
 		#sed -i '$a CONFIG_PACKAGE_snmpd=y' ${HOME_PATH}/.config
-		#sed -i '/CONFIG_PACKAGE_openssh-sftp-server/d' ${HOME_PATH}/.config
-		#sed -i '$a CONFIG_PACKAGE_openssh-sftp-server=y' ${HOME_PATH}/.config
+		sed -i '/CONFIG_PACKAGE_openssh-sftp-server/d' ${HOME_PATH}/.config
+		sed -i '$a CONFIG_PACKAGE_openssh-sftp-server=y' ${HOME_PATH}/.config
 		if [[ `grep -c "CONFIG_TARGET_ROOTFS_PARTSIZE=" ${HOME_PATH}/.config` -eq '1' ]]; then
 			local partsize="$(grep -Eo "CONFIG_TARGET_ROOTFS_PARTSIZE=[0-9]+" ${HOME_PATH}/.config |cut -f2 -d=)"
 			if [[ "${partsize}" -lt "400" ]];then
@@ -766,17 +766,17 @@ function modify_config() {
 		fi
 	fi
 	
-	#if [[ `grep -c "CONFIG_PACKAGE_wpad-openssl=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-	#	if [[ `grep -c "CONFIG_PACKAGE_wpad=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-	#		sed -i 's/CONFIG_PACKAGE_wpad=y/# CONFIG_PACKAGE_wpad is not set/g' ${HOME_PATH}/.config
-	#	fi
-	#fi
+	if [[ `grep -c "CONFIG_PACKAGE_wpad-openssl=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		if [[ `grep -c "CONFIG_PACKAGE_wpad=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+			sed -i 's/CONFIG_PACKAGE_wpad=y/# CONFIG_PACKAGE_wpad is not set/g' ${HOME_PATH}/.config
+		fi
+	fi
 	
-	#if [[ `grep -c "CONFIG_PACKAGE_libustream-wolfssl=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-	#	if [[ `grep -c "CONFIG_PACKAGE_libustream-openssl=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-	#		sed -i 's/CONFIG_PACKAGE_libustream-wolfssl=y/# CONFIG_PACKAGE_libustream-wolfssl is not set/g' ${HOME_PATH}/.config
-	#	fi
-	#fi
+	if [[ `grep -c "CONFIG_PACKAGE_libustream-wolfssl=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		if [[ `grep -c "CONFIG_PACKAGE_libustream-openssl=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+			sed -i 's/CONFIG_PACKAGE_libustream-wolfssl=y/# CONFIG_PACKAGE_libustream-wolfssl is not set/g' ${HOME_PATH}/.config
+		fi
+	fi
 }
 
 ################################################################################################################
