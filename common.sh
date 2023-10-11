@@ -772,10 +772,20 @@ function modify_config() {
 		fi
 	fi
 	
-	if [[ `grep -c "CONFIG_PACKAGE_libustream-wolfssl=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-		if [[ `grep -c "CONFIG_PACKAGE_libustream-openssl=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+	# luci-ssl-openssl依赖libustream-openssl；luci-ssl依赖libustream-mbedtls
+	if [[ `grep -c "CONFIG_PACKAGE_libustream-openssl=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		if [[ `grep -c "CONFIG_PACKAGE_libustream-wolfssl=y" ${HOME_PATH}/.config` -eq '1' ]]; then
 			sed -i 's/CONFIG_PACKAGE_libustream-wolfssl=y/# CONFIG_PACKAGE_libustream-wolfssl is not set/g' ${HOME_PATH}/.config
 		fi
+		if [[ `grep -c "CONFIG_PACKAGE_libustream-mbedtls=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+			sed -i 's/CONFIG_PACKAGE_libustream-mbedtls=y/# CONFIG_PACKAGE_libustream-mbedtls is not set/g' ${HOME_PATH}/.config
+		fi
+		if [[ `grep -c "CONFIG_PACKAGE_luci-ssl-openssl=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+			if [[ `grep -c "CONFIG_PACKAGE_luci-ssl=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+				sed -i 's/CONFIG_PACKAGE_luci-ssl=y/# CONFIG_PACKAGE_luci-ssl is not set/g' ${HOME_PATH}/.config
+			fi
+		fi
+		
 	fi
 }
 
