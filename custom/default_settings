@@ -2,11 +2,8 @@
 
 # diy_part.sh中的UCI设置
 [[ -f /etc/default_uci ]] && chmod +x /etc/default_uci && source /etc/default_uci
-#[[ -f /etc/default_delete ]] && chmod +x /etc/default_delete && source /etc/default_delete
-#[[ ! -f /mnt/network ]] && cp -rf /etc/config/network /mnt/network
+/etc/init.d/network restart
 
-chmod -R 0775 /etc/init.d /usr/share
-#touch /etc/crontabs/root
 # 去除coremark定时任务
 if [[ `grep -c "coremark" /etc/crontabs/root` -eq 1 ]]; then
   sed -i /coremark/d /etc/crontabs/root
@@ -33,9 +30,6 @@ if [[ `grep -c "passwall" /etc/opkg/distfeeds.conf` -ge '1' ]]; then
 fi
 if [[ `grep -c "OpenClash" /etc/opkg/distfeeds.conf` -ge '1' ]]; then
 	sed -i '/OpenClash/d' /etc/opkg/distfeeds.conf
-fi
-if [[ `grep -c "openwrt_x" /etc/opkg/distfeeds.conf` -ge '1' ]]; then
-	sed -i '/openwrt_x/d' /etc/opkg/distfeeds.conf
 fi
 
 luci_web=/usr/lib/lua/luci/view/admin_status/index.htm
