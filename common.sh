@@ -539,36 +539,45 @@ function modify_config() {
 	# 修复lxc固件openssl无法打开后台管理界面，以wolfssl替代openssl
 	if [[ "${FIRMWARE_TYPE}" == "lxc" ]]; then
 		# 依赖
-		# LuCI->Collections->luci-ssl(依赖libustream-mbedtls)
-		# Utilities->cache-domains-mbedtls(依赖libustream-mbedtls)
-		
-		# LuCI->Collections->luci-ssl-openssl(依赖libustream-openssl)
-		# Utilities->cache-domains-openssl(依赖libustream-openssl)
-
-		# Utilities->cache-domains-wolfssl(依赖libustream-wolfssl)
-		
+		# LuCI->Collections	->	[ ] luci-ssl(依赖libustream-mbedtls)
+		# LuCI->Collections	->	[ ] luci-ssl-openssl(依赖libustream-openssl)
+		# Utilities			->	[ ] cache-domains-mbedtls(依赖libustream-mbedtls)
+		# Utilities			->	[ ] cache-domains-openssl(依赖libustream-openssl)
+		# Utilities			->	    cache-domains-wolfssl(依赖libustream-wolfssl)
 		# 库
-		# Libraries->libustream-mbedtls
-		# Libraries->libustream-openssl
-		# Libraries->libustream-wolfssl
+		# Libraries			->	[ ] libustream-mbedtls(库文件，三选一，依赖libmbedtls)
+		# Libraries			->	[ ] libustream-openssl(库文件，三选一，依赖libopenssl)
+		# Libraries			->	[*] libustream-wolfssl(库文件，三选一，依赖libwolfssl)
+		# Libraries->SSL	->	[*] libmbedtls(库文件，自动勾选，无需关注)
+		# Libraries->SSL	->	[*] libopenssl(库文件，自动勾选，无需关注)
+		# Libraries->SSL	->	[*] libwolfssl(库文件，自动勾选，无需关注)
+		# 插件
+		# LuCI-Applications ->	[ ] luci-app-cshark(依赖Network->cshark,cshark依赖libustream-mbedtls)
+		sed -i '/CONFIG_PACKAGE_libustream-wolfssl/d' ${HOME_PATH}/.config
 		sed -i '/CONFIG_PACKAGE_libustream-mbedtls/d' ${HOME_PATH}/.config
 		sed -i '/CONFIG_PACKAGE_libustream-openssl/d' ${HOME_PATH}/.config
-		sed -i '/CONFIG_PACKAGE_libustream-wolfssl/d' ${HOME_PATH}/.config
-		sed -i '/CONFIG_PACKAGE_luci-ssl-openssl/d' ${HOME_PATH}/.config
-		sed -i '/CONFIG_PACKAGE_luci-ssl/d' ${HOME_PATH}/.config
+		sed -i '/CONFIG_PACKAGE_luci-ssl-openssl=y/d' ${HOME_PATH}/.config
+		sed -i '/CONFIG_PACKAGE_luci-ssl=y/d' ${HOME_PATH}/.config
+		sed -i '/CONFIG_PACKAGE_luci-app-cshark=y/d' ${HOME_PATH}/.config
+		#sed -i '/CONFIG_PACKAGE_cshark=y/d' ${HOME_PATH}/.config
 		
+		sed -i '$a CONFIG_PACKAGE_libustream-wolfssl=y' ${HOME_PATH}/.config
+		#sed -i '$a CONFIG_PACKAGE_libwolfssl=y' ${HOME_PATH}/.config
 		sed -i '$a # CONFIG_PACKAGE_libustream-mbedtls is not set' ${HOME_PATH}/.config
 		sed -i '$a # CONFIG_PACKAGE_libustream-openssl is not set' ${HOME_PATH}/.config
-		sed -i '$a CONFIG_PACKAGE_libustream-wolfssl=y' ${HOME_PATH}/.config
-		sed -i '$a CONFIG_PACKAGE_libwolfssl=y' ${HOME_PATH}/.config
-		sed -i '$a # CONFIG_PACKAGE_luci-ssl-openssl is not set' ${HOME_PATH}/.config
-		sed -i '$a # CONFIG_PACKAGE_luci-ssl is not set' ${HOME_PATH}/.config
+		#sed -i '$a # CONFIG_PACKAGE_luci-ssl-openssl is not set' ${HOME_PATH}/.config
+		#sed -i '$a # CONFIG_PACKAGE_luci-ssl is not set' ${HOME_PATH}/.config
+		#sed -i '$a # CONFIG_PACKAGE_luci-app-cshark is not set' ${HOME_PATH}/.config
+		#sed -i '$a # CONFIG_PACKAGE_cshark is not set' ${HOME_PATH}/.config
+		
 		
 		if [[ `grep -c "CONFIG_PACKAGE_cache-domains-mbedtls=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_PACKAGE_cache-domains-openssl=y" ${HOME_PATH}/.config` -eq '1' ]]; then
 			sed -i '/CONFIG_PACKAGE_cache-domains-mbedtls/d' ${HOME_PATH}/.config
 			sed -i '/CONFIG_PACKAGE_cache-domains-openssl/d' ${HOME_PATH}/.config
 			sed -i '/CONFIG_PACKAGE_cache-domains-wolfssl/d' ${HOME_PATH}/.config
 			sed -i '$a CONFIG_PACKAGE_cache-domains-wolfssl=y' ${HOME_PATH}/.config
+			#sed -i '$a # CONFIG_PACKAGE_cache-domains-mbedtls is not set' ${HOME_PATH}/.config
+			#sed -i '$a # CONFIG_PACKAGE_cache-domains-openssl is not set' ${HOME_PATH}/.config
 		fi
 	else
 		if [[ `grep -c "CONFIG_PACKAGE_libustream-openssl=y" ${HOME_PATH}/.config` -eq '1' ]]; then
