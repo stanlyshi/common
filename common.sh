@@ -489,7 +489,7 @@ function diy_lede() {
 		sed -i '/CYXluq4wUazHjmCDBCqXF/d' ${ZZZ_PATH}
 	fi
 
-	# 修复后台管理页面无法打开
+	# 修复后台管理页面无法打开，降级openssl到1.1.1版本
 	#if [[ "${FIRMWARE_TYPE}" == "lxc" ]]; then
 	#	__info_msg "修复lxc固件openssl"
 	#	sudo rm -rf "${HOME_PATH}/include/openssl-module.mk"
@@ -535,6 +535,54 @@ function modify_config() {
 		sed -i '$a CONFIG_TARGET_ROOTFS_TARGZ=y' ${HOME_PATH}/.config > /dev/null 2>&1
 		__info_msg "lxc模式，添加openwrt-generic-rootfs.tar.gz文件编译"
 	fi
+
+	# 修复lxc固件openssl无法打开后台管理界面，以wolfssl替代openssl
+	if [[ "${FIRMWARE_TYPE}" == "lxc" ]]; then
+		# 依赖
+		# LuCI->Collections->luci-ssl(依赖libustream-mbedtls)
+		# Utilities->cache-domains-mbedtls(依赖libustream-mbedtls)
+		
+		# LuCI->Collections->luci-ssl-openssl(依赖libustream-openssl)
+		# Utilities->cache-domains-openssl(依赖libustream-openssl)
+
+		# Utilities->cache-domains-wolfssl(依赖libustream-wolfssl)
+		
+		# 库
+		# Libraries->libustream-mbedtls
+		# Libraries->libustream-openssl
+		# Libraries->libustream-wolfssl
+		sed -i '/CONFIG_PACKAGE_libustream-mbedtls/d' ${HOME_PATH}/.config
+		sed -i '/CONFIG_PACKAGE_libustream-openssl/d' ${HOME_PATH}/.config
+		sed -i '/CONFIG_PACKAGE_libustream-wolfssl/d' ${HOME_PATH}/.config
+		sed -i '/CONFIG_PACKAGE_luci-ssl-openssl/d' ${HOME_PATH}/.config
+		sed -i '/CONFIG_PACKAGE_luci-ssl/d' ${HOME_PATH}/.config
+		
+		sed -i '$a # CONFIG_PACKAGE_libustream-mbedtls is not set' ${HOME_PATH}/.config
+		sed -i '$a # CONFIG_PACKAGE_libustream-openssl is not set' ${HOME_PATH}/.config
+		sed -i '$a CONFIG_PACKAGE_libustream-wolfssl=y' ${HOME_PATH}/.config
+		sed -i '$a CONFIG_PACKAGE_libwolfssl=y' ${HOME_PATH}/.config
+		sed -i '$a # CONFIG_PACKAGE_luci-ssl-openssl is not set' ${HOME_PATH}/.config
+		sed -i '$a # CONFIG_PACKAGE_luci-ssl is not set' ${HOME_PATH}/.config
+		
+		if [[ `grep -c "CONFIG_PACKAGE_cache-domains-mbedtls=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_PACKAGE_cache-domains-openssl=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+			sed -i '/CONFIG_PACKAGE_cache-domains-mbedtls/d' ${HOME_PATH}/.config
+			sed -i '/CONFIG_PACKAGE_cache-domains-openssl/d' ${HOME_PATH}/.config
+			sed -i '/CONFIG_PACKAGE_cache-domains-wolfssl/d' ${HOME_PATH}/.config
+			sed -i '$a CONFIG_PACKAGE_cache-domains-wolfssl=y' ${HOME_PATH}/.config
+		fi
+	else
+		if [[ `grep -c "CONFIG_PACKAGE_libustream-openssl=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+			if [[ `grep -c "CONFIG_PACKAGE_libustream-mbedtls=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+				sed -i 's/CONFIG_PACKAGE_libustream-mbedtls=y/# CONFIG_PACKAGE_libustream-mbedtls is not set/g' ${HOME_PATH}/.config
+			fi
+			if [[ `grep -c "CONFIG_PACKAGE_luci-ssl-openssl=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+				if [[ `grep -c "CONFIG_PACKAGE_luci-ssl=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+					sed -i 's/CONFIG_PACKAGE_luci-ssl=y/# CONFIG_PACKAGE_luci-ssl is not set/g' ${HOME_PATH}/.config
+				fi
+			fi
+			
+		fi
+	fi
 	
 	rm -rf ${CONFFLICTIONS} && touch ${CONFFLICTIONS}
 
@@ -576,9 +624,9 @@ function modify_config() {
 	
 	if [[ `grep -c "CONFIG_TARGET_ROOTFS_EXT4FS=y" ${HOME_PATH}/.config` -eq '1' ]]; then	
 		local partsize="$(grep -Eo "CONFIG_TARGET_ROOTFS_PARTSIZE=[0-9]+" ${HOME_PATH}/.config |cut -f2 -d=)"
-		if [[ "${partsize}" -lt "950" ]];then
+		if [[ "${partsize}" -lt "800" ]];then
 			sed -i '/CONFIG_TARGET_ROOTFS_PARTSIZE/d' ${HOME_PATH}/.config
-			sed -i '$a CONFIG_TARGET_ROOTFS_PARTSIZE=950' ${HOME_PATH}/.config
+			sed -i '$a CONFIG_TARGET_ROOTFS_PARTSIZE=800' ${HOME_PATH}/.config
 			echo "__error_msg \"EXT4提示：请注意，您选择了ext4安装的固件格式,而检测到您的分配的固件系统分区过小\"" >> ${CONFFLICTIONS}
 			echo "__error_msg \"为避免编译出错,已自动帮您修改成950M\"" >> ${CONFFLICTIONS}
 			echo "" >> ${CONFFLICTIONS}
@@ -764,28 +812,6 @@ function modify_config() {
 		if [[ `grep -c "CONFIG_PACKAGE_ntfs3-mount=y" ${HOME_PATH}/.config` -eq '1' ]]; then
 			sed -i 's/CONFIG_PACKAGE_antfs-mount=y/# CONFIG_PACKAGE_antfs-mount is not set/g' ${HOME_PATH}/.config
 		fi
-	fi
-	
-	#if [[ `grep -c "CONFIG_PACKAGE_wpad-openssl=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-	#	if [[ `grep -c "CONFIG_PACKAGE_wpad=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-	#		sed -i 's/CONFIG_PACKAGE_wpad=y/# CONFIG_PACKAGE_wpad is not set/g' ${HOME_PATH}/.config
-	#	fi
-	#fi
-	
-	# luci-ssl-openssl依赖libustream-openssl；luci-ssl依赖libustream-mbedtls
-	if [[ `grep -c "CONFIG_PACKAGE_libustream-openssl=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-		if [[ `grep -c "CONFIG_PACKAGE_libustream-wolfssl=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-			sed -i 's/CONFIG_PACKAGE_libustream-wolfssl=y/# CONFIG_PACKAGE_libustream-wolfssl is not set/g' ${HOME_PATH}/.config
-		fi
-		if [[ `grep -c "CONFIG_PACKAGE_libustream-mbedtls=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-			sed -i 's/CONFIG_PACKAGE_libustream-mbedtls=y/# CONFIG_PACKAGE_libustream-mbedtls is not set/g' ${HOME_PATH}/.config
-		fi
-		if [[ `grep -c "CONFIG_PACKAGE_luci-ssl-openssl=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-			if [[ `grep -c "CONFIG_PACKAGE_luci-ssl=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-				sed -i 's/CONFIG_PACKAGE_luci-ssl=y/# CONFIG_PACKAGE_luci-ssl is not set/g' ${HOME_PATH}/.config
-			fi
-		fi
-		
 	fi
 }
 
