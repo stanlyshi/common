@@ -559,17 +559,13 @@ function modify_config() {
 		sed -i '/CONFIG_PACKAGE_luci-ssl-openssl=y/d' ${HOME_PATH}/.config
 		sed -i '/CONFIG_PACKAGE_luci-ssl=y/d' ${HOME_PATH}/.config
 		sed -i '/CONFIG_PACKAGE_luci-app-cshark=y/d' ${HOME_PATH}/.config
-		#sed -i '/CONFIG_PACKAGE_cshark=y/d' ${HOME_PATH}/.config
 		
 		sed -i '$a CONFIG_PACKAGE_libustream-wolfssl=y' ${HOME_PATH}/.config
-		#sed -i '$a CONFIG_PACKAGE_libwolfssl=y' ${HOME_PATH}/.config
 		sed -i '$a # CONFIG_PACKAGE_libustream-mbedtls is not set' ${HOME_PATH}/.config
 		sed -i '$a # CONFIG_PACKAGE_libustream-openssl is not set' ${HOME_PATH}/.config
 		#sed -i '$a # CONFIG_PACKAGE_luci-ssl-openssl is not set' ${HOME_PATH}/.config
 		#sed -i '$a # CONFIG_PACKAGE_luci-ssl is not set' ${HOME_PATH}/.config
-		#sed -i '$a # CONFIG_PACKAGE_luci-app-cshark is not set' ${HOME_PATH}/.config
-		#sed -i '$a # CONFIG_PACKAGE_cshark is not set' ${HOME_PATH}/.config
-		
+		#sed -i '$a # CONFIG_PACKAGE_luci-app-cshark is not set' ${HOME_PATH}/.config	
 		
 		if [[ `grep -c "CONFIG_PACKAGE_cache-domains-mbedtls=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_PACKAGE_cache-domains-openssl=y" ${HOME_PATH}/.config` -eq '1' ]]; then
 			sed -i '/CONFIG_PACKAGE_cache-domains-mbedtls/d' ${HOME_PATH}/.config
