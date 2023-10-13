@@ -538,21 +538,22 @@ function modify_config() {
 
 	# 修复lxc固件openssl无法打开后台管理界面，以wolfssl替代openssl(仅lede源码需要修改，官方不需要，官方使用wolfssl反而会出现问题)
 	if [[ "${FIRMWARE_TYPE}" == "lxc" ]] && [[ "${SOURCE}" =~ (lede|Lede|LEDE) ]]; then
-		# 依赖
-		# LuCI->Collections  ->  [ ] luci-ssl(依赖libustream-mbedtls)
-		# LuCI->Collections  ->  [ ] luci-ssl-openssl(依赖libustream-openssl)
-		# Utilities          ->  [ ] cache-domains-mbedtls(依赖libustream-mbedtls)
-		# Utilities          ->  [ ] cache-domains-openssl(依赖libustream-openssl)
-		# Utilities          ->      cache-domains-wolfssl(依赖libustream-wolfssl)
+		# 依赖关系
+		# LuCI -> Collections ->  [ ] luci-ssl(依赖libustream-mbedtls)
+		# LuCI -> Collections ->  [ ] luci-ssl-openssl(依赖libustream-openssl)
+		# Utilities           ->  [ ] cache-domains-mbedtls(依赖libustream-mbedtls)
+		# Utilities           ->  [ ] cache-domains-openssl(依赖libustream-openssl)
+		# Utilities           ->      cache-domains-wolfssl(依赖libustream-wolfssl)
 		# 库
-		# Libraries          ->  [ ] libustream-mbedtls(库文件，三选一，依赖libmbedtls)
-		# Libraries          ->  [ ] libustream-openssl(库文件，三选一，依赖libopenssl)
-		# Libraries          ->  [*] libustream-wolfssl(库文件，三选一，依赖libwolfssl)
-		# Libraries->SSL     ->  [*] libmbedtls(库文件，自动勾选，无需关注)
-		# Libraries->SSL     ->  [*] libopenssl(库文件，自动勾选，无需关注)
-		# Libraries->SSL     ->  [*] libwolfssl(库文件，自动勾选，无需关注)
+		# Libraries           ->  [ ] libustream-mbedtls(库文件，三选一，依赖libmbedtls)
+		# Libraries           ->  [ ] libustream-openssl(库文件，三选一，依赖libopenssl)
+		# Libraries           ->  [*] libustream-wolfssl(库文件，三选一，依赖libwolfssl)
+		# Libraries  ->  SSL  ->  [*] libmbedtls(库文件，自动勾选，无需关注)
+		# Libraries  ->  SSL  ->  [*] libopenssl(库文件，自动勾选，无需关注)
+		# Libraries  ->  SSL  ->  [*] libwolfssl(库文件，自动勾选，无需关注)
 		# 插件
-		# LuCI-Applications ->	[ ] luci-app-cshark(依赖Network->cshark,cshark依赖libustream-mbedtls)
+		# LuCI->Applications  ->  [ ] luci-app-cshark(依赖Network->cshark,cshark依赖libustream-mbedtls)
+		
 		sed -i '/CONFIG_PACKAGE_libustream-wolfssl/d' ${HOME_PATH}/.config
 		sed -i '/CONFIG_PACKAGE_libustream-mbedtls/d' ${HOME_PATH}/.config
 		sed -i '/CONFIG_PACKAGE_libustream-openssl/d' ${HOME_PATH}/.config
