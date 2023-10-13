@@ -848,6 +848,12 @@ function modify_config() {
 		fi
 	fi
 	
+	if [[ -s ${CONFFLICTIONS} ]]; then
+		__red_color "插件冲突信息"
+		chmod +x ${CONFFLICTIONS} && source ${CONFFLICTIONS}
+		rm -rf ${CONFFLICTIONS}
+	fi
+	
 	echo
 	echo "--------------common_modify_config end--------------"
 }
