@@ -851,7 +851,6 @@ function modify_config() {
 	if [[ -s ${CONFFLICTIONS} ]]; then
 		__red_color "插件冲突信息"
 		chmod +x ${CONFFLICTIONS} && source ${CONFFLICTIONS}
-		rm -rf ${CONFFLICTIONS}
 	fi
 	
 	echo
