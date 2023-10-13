@@ -348,8 +348,6 @@ function diy_public() {
 		__error_msg "编译脚本的[${MATRIX_TARGET}配置文件夹内缺少${CONFIG_FILE}文件],请在[${MATRIX_TARGET}/config/]文件夹内补齐"
 		echo
 		exit 1
-	else
-		__info_msg "[${MATRIX_TARGET}/config/${CONFIG_FILE}] OK."
 	fi
 	
 	# 检查diy_part.sh文件是否存在
@@ -357,8 +355,6 @@ function diy_public() {
 		__error_msg "编译脚本的[${MATRIX_TARGET}文件夹内缺少${DIY_PART_SH}文件],请在[${MATRIX_TARGET}]文件夹内补齐"
 		echo
 		exit 1
-	else
-		__info_msg "[${MATRIX_TARGET}/${DIY_PART_SH}] OK."
 	fi
 
 	__yellow_color "开始替换diy文件夹内文件..."
@@ -465,8 +461,6 @@ function diy_public() {
 		/etc/smartdns/custom.conf
 		EOF
 	fi
-	
-	__info_msg "OK."
 	
 	echo
 	echo "--------------common_diy_public end--------------"
