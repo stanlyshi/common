@@ -927,13 +927,13 @@ function firmware_settings() {
 		sed -i '$a # CONFIG_GRUB_IMAGES is not set' ${HOME_PATH}/.config > /dev/null 2>&1
 		sed -i '/CONFIG_GRUB_EFI_IMAGES/d' ${HOME_PATH}/.config > /dev/null 2>&1
 		sed -i '$a CONFIG_GRUB_EFI_IMAGES=y' ${HOME_PATH}/.config > /dev/null 2>&1
-		__info_msg "编译legacy固件"
+		__info_msg "编译uefi固件"
 	elif [[ "${BIOS_MODE}" =~ (legacy|LEGACY|Legacy) ]]; then
 		sed -i '/CONFIG_GRUB_IMAGES/d' ${HOME_PATH}/.config > /dev/null 2>&1
 		sed -i '$a CONFIG_GRUB_IMAGES=y' ${HOME_PATH}/.config > /dev/null 2>&1
 		sed -i '/CONFIG_GRUB_EFI_IMAGES/d' ${HOME_PATH}/.config > /dev/null 2>&1
 		sed -i '$a # CONFIG_GRUB_EFI_IMAGES is not set' ${HOME_PATH}/.config > /dev/null 2>&1
-		__info_msg "编译uefi固件"
+		__info_msg "编译legacy固件"
 	elif [[ "${BIOS_MODE}" =~ (both|BOTH|Both|all|ALL|All) ]]; then
 		sed -i '/CONFIG_GRUB_IMAGES/d' ${HOME_PATH}/.config > /dev/null 2>&1
 		sed -i '$a CONFIG_GRUB_IMAGES=y' ${HOME_PATH}/.config > /dev/null 2>&1
