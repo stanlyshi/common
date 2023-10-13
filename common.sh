@@ -432,7 +432,7 @@ function diy_public() {
 	# 修改源码中IP设置
 	local def_ipaddress="$(grep "ipaddr:-" "${FILES_PATH}/bin/${FILENAME_CONFIG_GEN}" | grep -v 'addr_offset' | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+")"
 	local new_ipaddress="$(grep "network.lan.ipaddr" ${MATRIX_TARGET_PATH}/${DIY_PART_SH} | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+")"
-	if [[ -n "${new_ipaddress}" ]]; then
+	if [[ -n "${def_ipaddress}" ]] && [[ -n "${new_ipaddress}" ]]; then
 		sed -i "s/${def_ipaddress}/${new_ipaddress}/g" ${FILES_PATH}/bin/${FILENAME_CONFIG_GEN}
 		__info_msg "IP地址从[${def_ipaddress}]替换为[${new_ipaddress}]"
 	else
