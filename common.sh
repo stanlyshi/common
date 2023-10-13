@@ -536,8 +536,8 @@ function modify_config() {
 		__info_msg "lxc模式，添加openwrt-generic-rootfs.tar.gz文件编译"
 	fi
 
-	# 修复lxc固件openssl无法打开后台管理界面，以wolfssl替代openssl
-	if [[ "${FIRMWARE_TYPE}" == "lxc" ]]; then
+	# 修复lxc固件openssl无法打开后台管理界面，以wolfssl替代openssl(仅lede源码需要修改，官方不需要，官方使用wolfssl反而会出现问题)
+	if [[ "${FIRMWARE_TYPE}" == "lxc" ]] && [[ "${SOURCE}" =~ (lede|Lede|LEDE) ]]; then
 		# 依赖
 		# LuCI->Collections  ->  [ ] luci-ssl(依赖libustream-mbedtls)
 		# LuCI->Collections  ->  [ ] luci-ssl-openssl(依赖libustream-openssl)
@@ -567,25 +567,52 @@ function modify_config() {
 		#sed -i '$a # CONFIG_PACKAGE_luci-ssl is not set' ${HOME_PATH}/.config
 		#sed -i '$a # CONFIG_PACKAGE_luci-app-cshark is not set' ${HOME_PATH}/.config	
 		
-		if [[ `grep -c "CONFIG_PACKAGE_cache-domains-mbedtls=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_PACKAGE_cache-domains-openssl=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		if [[ `grep -c "CONFIG_PACKAGE_cache-domains-mbedtls=y" ${HOME_PATH}/.config` -ge '1' ]] || [[ `grep -c "CONFIG_PACKAGE_cache-domains-openssl=y" ${HOME_PATH}/.config` -ge '1' ]]; then
 			sed -i '/CONFIG_PACKAGE_cache-domains-mbedtls/d' ${HOME_PATH}/.config
 			sed -i '/CONFIG_PACKAGE_cache-domains-openssl/d' ${HOME_PATH}/.config
 			sed -i '/CONFIG_PACKAGE_cache-domains-wolfssl/d' ${HOME_PATH}/.config
 			sed -i '$a CONFIG_PACKAGE_cache-domains-wolfssl=y' ${HOME_PATH}/.config
 			#sed -i '$a # CONFIG_PACKAGE_cache-domains-mbedtls is not set' ${HOME_PATH}/.config
 			#sed -i '$a # CONFIG_PACKAGE_cache-domains-openssl is not set' ${HOME_PATH}/.config
+			echo "__error_msg \"lxc固件下，您选择cache-domains-mbedtls或cache-domains-openssl，与cache-domains-wolfssl库有冲突，替换为cache-domains-wolfssl\"" >> ${CONFFLICTIONS}
+			echo "" >> ${CONFFLICTIONS}
 		fi
 	else
-		if [[ `grep -c "CONFIG_PACKAGE_libustream-openssl=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-			if [[ `grep -c "CONFIG_PACKAGE_libustream-mbedtls=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		# 强制使用openssl
+		#sed -i '/CONFIG_PACKAGE_libustream-mbedtls/d' ${HOME_PATH}/.config
+		#sed -i '/CONFIG_PACKAGE_libustream-openssl/d' ${HOME_PATH}/.config
+		#sed -i '/CONFIG_PACKAGE_libustream-wolfssl/d' ${HOME_PATH}/.config		
+		#sed -i '$a CONFIG_PACKAGE_libustream-openssl=y' ${HOME_PATH}/.config
+		
+		# 非强制使用openssl，由.config决定，只解决冲突
+		if [[ `grep -c "CONFIG_PACKAGE_libustream-openssl=y" ${HOME_PATH}/.config` -ge '1' ]]; then
+			if [[ `grep -c "CONFIG_PACKAGE_libustream-mbedtls=y" ${HOME_PATH}/.config` -ge '1' ]]; then
 				sed -i 's/CONFIG_PACKAGE_libustream-mbedtls=y/# CONFIG_PACKAGE_libustream-mbedtls is not set/g' ${HOME_PATH}/.config
+				echo "__error_msg \"您同时选择libustream-mbedtls和libustream-openssl，库有冲突，只能二选一，已删除libustream-mbedtls库\"" >> ${CONFFLICTIONS}
+				echo "" >> ${CONFFLICTIONS}
 			fi
-			if [[ `grep -c "CONFIG_PACKAGE_luci-ssl-openssl=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-				if [[ `grep -c "CONFIG_PACKAGE_luci-ssl=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-					sed -i 's/CONFIG_PACKAGE_luci-ssl=y/# CONFIG_PACKAGE_luci-ssl is not set/g' ${HOME_PATH}/.config
-				fi
+			if [[ `grep -c "CONFIG_PACKAGE_libustream-wolfssl=y" ${HOME_PATH}/.config` -ge '1' ]]; then
+				sed -i 's/CONFIG_PACKAGE_libustream-wolfssl=y/# CONFIG_PACKAGE_libustream-wolfssl is not set/g' ${HOME_PATH}/.config
+				echo "__error_msg \"您同时选择libustream-wolfssl和libustream-openssl，库有冲突，只能二选一，已删除libustream-wolfssl库\"" >> ${CONFFLICTIONS}
+				echo "" >> ${CONFFLICTIONS}
 			fi
-			
+			if [[ `grep -c "CONFIG_PACKAGE_luci-ssl=y" ${HOME_PATH}/.config` -ge '1' ]]; then
+				# luci-ssl(依赖于旧的libustream-mbedtls)，替换为luci-ssl-openssl(依赖于libustream-openssl)
+				sed -i 's/CONFIG_PACKAGE_luci-ssl=y/# CONFIG_PACKAGE_luci-ssl is not set/g' ${HOME_PATH}/.config
+				sed -i '/CONFIG_PACKAGE_luci-ssl-openssl=y/d' ${HOME_PATH}/.config
+				sed -i '$a CONFIG_PACKAGE_luci-ssl-openssl=y' ${HOME_PATH}/.config
+				echo "__error_msg \"您选择luci-ssl(依赖于旧的libustream-mbedtls)，与libustream-openssl库有冲突，替换为luci-ssl-openssl(依赖于libustream-openssl)\"" >> ${CONFFLICTIONS}
+				echo "" >> ${CONFFLICTIONS}
+			fi
+			if [[ `grep -c "CONFIG_PACKAGE_cache-domains-mbedtls=y" ${HOME_PATH}/.config` -ge '1' ]] || [[ `grep -c "CONFIG_PACKAGE_cache-domains-wolfssl=y" ${HOME_PATH}/.config` -ge '1' ]]; then
+				# cache-domains-mbedtls(依赖于旧的libustream-mbedtls)，cache-domains-wolfssl（依赖于libustream-wolfssl），替换为cache-domains-openssl（依赖于libustream-openssl）
+				sed -i '/CONFIG_PACKAGE_cache-domains-mbedtls/d' ${HOME_PATH}/.config
+				sed -i '/CONFIG_PACKAGE_cache-domains-openssl/d' ${HOME_PATH}/.config
+				sed -i '/CONFIG_PACKAGE_cache-domains-wolfssl/d' ${HOME_PATH}/.config
+				sed -i '$a CONFIG_PACKAGE_cache-domains-openssl=y' ${HOME_PATH}/.config
+			echo "__error_msg \"您选择cache-domains-mbedtls或cache-domains-wolfssl，与cache-domains-openssl库有冲突，替换为cache-domains-openssl\"" >> ${CONFFLICTIONS}
+			echo "" >> ${CONFFLICTIONS}
+			fi
 		fi
 	fi
 	
