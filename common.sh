@@ -270,7 +270,7 @@ function do_diy() {
 	./scripts/feeds update -a > /dev/null 2>&1 && ./scripts/feeds install -a > /dev/null 2>&1
 		
 	# 修改.config文件
-	modify_config > /dev/null 2>&1
+	modify_config
 	
 	# 编译机型CPU架构、内核版本等信息，替换内核等
 	firmware_settings
@@ -521,6 +521,8 @@ function diy_openwrt() {
 # 修改.config文件配置
 ################################################################################################################
 function modify_config() {
+	echo "--------------common_modify_config start--------------"
+	echo
 	cd ${HOME_PATH}
 	rm -rf ${CONFFLICTIONS} && touch ${CONFFLICTIONS}
 
@@ -845,6 +847,9 @@ function modify_config() {
 			sed -i 's/CONFIG_PACKAGE_antfs-mount=y/# CONFIG_PACKAGE_antfs-mount is not set/g' ${HOME_PATH}/.config
 		fi
 	fi
+	
+	echo
+	echo "--------------common_modify_config end--------------"
 }
 
 ################################################################################################################
