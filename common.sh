@@ -522,6 +522,7 @@ function diy_openwrt() {
 ################################################################################################################
 function modify_config() {
 	cd ${HOME_PATH}
+	rm -rf ${CONFFLICTIONS} && touch ${CONFFLICTIONS}
 
 	__yellow_color "开始处理.config文件..."
 	
@@ -616,8 +617,6 @@ function modify_config() {
 			fi
 		fi
 	fi
-	
-	rm -rf ${CONFFLICTIONS} && touch ${CONFFLICTIONS}
 
 	if [[ `grep -c "CONFIG_TARGET_x86=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_rockchip=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_bcm27xx=y" ${HOME_PATH}/.config` -eq '1' ]]; then
 		sed -i '/CONFIG_TARGET_IMAGES_GZIP/d' ${HOME_PATH}/.config
