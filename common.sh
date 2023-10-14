@@ -530,9 +530,36 @@ function modify_config() {
 	if [[ "${FIRMWARE_TYPE}" == "lxc" ]]; then
 		sed -i '/CONFIG_TARGET_ROOTFS_TARGZ/d' ${HOME_PATH}/.config > /dev/null 2>&1
 		sed -i '$a CONFIG_TARGET_ROOTFS_TARGZ=y' ${HOME_PATH}/.config > /dev/null 2>&1
-		__info_msg "lxc模式，添加openwrt-generic-rootfs.tar.gz文件编译"
+		__info_msg "lxc固件，添加对openwrt-generic-rootfs.tar.gz文件编译"
 	fi
 
+	# https连接，检测修正，主要针对官方源码
+	# CONFIG_PACKAGE_ca-bundle=y 默认已经选择
+	# liubustream-mbedtls、liubustream-openssl、libustream-wolfssl，三者在后面设置
+	if [[ "${SOURCE}" =~ (openwrt|Openwrt|OpenWrt|OpenWRT|OPENWRT|official|Official|OFFICIAL) ]]; then
+		sed -i '/CONFIG_PACKAGE_ca-certificates/d' ${HOME_PATH}/.config
+		sed -i '$a CONFIG_PACKAGE_ca-certificates=y' ${HOME_PATH}/.config
+		sed -i '/CONFIG_PACKAGE_libustream-openssl/d' ${HOME_PATH}/.config
+		sed -i '$a CONFIG_PACKAGE_libustream-openssl=y' ${HOME_PATH}/.config
+		__info_msg "官方源码，已经设置为支持https连接"
+	fi
+
+	# 官方源码：'状态'、'系统'等主菜单，在默认情况下是未选中状态，进行修正
+	if [[ "${SOURCE}" =~ (openwrt|Openwrt|OpenWrt|OpenWRT|OPENWRT|official|Official|OFFICIAL) ]]; then
+		sed -i '/CONFIG_PACKAGE_luci-mod-admin-full/d' ${HOME_PATH}/.config
+		sed -i '/CONFIG_PACKAGE_luci-mod-dsl/d' ${HOME_PATH}/.config
+		sed -i '/CONFIG_PACKAGE_luci-mod-network/d' ${HOME_PATH}/.config
+		sed -i '/CONFIG_PACKAGE_luci-mod-status/d' ${HOME_PATH}/.config
+		sed -i '/CONFIG_PACKAGE_luci-mod-system/d' ${HOME_PATH}/.config
+		
+		sed -i '$a CONFIG_PACKAGE_luci-mod-admin-full=y' ${HOME_PATH}/.config
+		sed -i '$a CONFIG_PACKAGE_luci-mod-dsl=y' ${HOME_PATH}/.config
+		sed -i '$a CONFIG_PACKAGE_luci-mod-network=y' ${HOME_PATH}/.config
+		sed -i '$a CONFIG_PACKAGE_luci-mod-status=y' ${HOME_PATH}/.config
+		sed -i '$a CONFIG_PACKAGE_luci-mod-system=y' ${HOME_PATH}/.config
+		__info_msg "官方源码，'状态'、'系统'等主菜单检测设置"
+	fi
+	
 	# 修复lxc固件openssl无法打开后台管理界面，以wolfssl替代openssl(仅lede源码需要修改，官方不需要，官方使用wolfssl反而会出现问题)
 	if [[ "${FIRMWARE_TYPE}" == "lxc" ]] && [[ "${SOURCE}" =~ (lede|Lede|LEDE) ]]; then
 		# 依赖关系
@@ -576,40 +603,45 @@ function modify_config() {
 			echo "" >> ${CONFFLICTIONS}
 		fi
 	else
+		# 非lede源码lxc模式的其它固件：openwrt的所有固件、lede普通固件
 		# 强制使用openssl
 		#sed -i '/CONFIG_PACKAGE_libustream-mbedtls/d' ${HOME_PATH}/.config
 		#sed -i '/CONFIG_PACKAGE_libustream-openssl/d' ${HOME_PATH}/.config
-		#sed -i '/CONFIG_PACKAGE_libustream-wolfssl/d' ${HOME_PATH}/.config		
+		#sed -i '/CONFIG_PACKAGE_libustream-wolfssl/d' ${HOME_PATH}/.config
 		#sed -i '$a CONFIG_PACKAGE_libustream-openssl=y' ${HOME_PATH}/.config
 		
 		# 非强制使用openssl，由.config决定，只解决冲突
 		if [[ `grep -c "CONFIG_PACKAGE_libustream-openssl=y" ${HOME_PATH}/.config` -ge '1' ]]; then
-			if [[ `grep -c "CONFIG_PACKAGE_libustream-mbedtls=y" ${HOME_PATH}/.config` -ge '1' ]]; then
-				sed -i 's/CONFIG_PACKAGE_libustream-mbedtls=y/# CONFIG_PACKAGE_libustream-mbedtls is not set/g' ${HOME_PATH}/.config
+			if [[ `grep -c "CONFIG_PACKAGE_libustream-mbedtls" ${HOME_PATH}/.config` -ge '1' ]]; then
+				sed -i '/CONFIG_PACKAGE_libustream-mbedtls/d' ${HOME_PATH}/.config
+				sed -i '$a # CONFIG_PACKAGE_libustream-mbedtls is not set' ${HOME_PATH}/.config
 				echo "__error_msg \"您同时选择libustream-mbedtls和libustream-openssl，库有冲突，只能二选一，已删除libustream-mbedtls库\"" >> ${CONFFLICTIONS}
 				echo "" >> ${CONFFLICTIONS}
 			fi
-			if [[ `grep -c "CONFIG_PACKAGE_libustream-wolfssl=y" ${HOME_PATH}/.config` -ge '1' ]]; then
-				sed -i 's/CONFIG_PACKAGE_libustream-wolfssl=y/# CONFIG_PACKAGE_libustream-wolfssl is not set/g' ${HOME_PATH}/.config
+			# libustream-wolfssl可能处于=y或=m状态
+			if [[ `grep -c "CONFIG_PACKAGE_libustream-wolfssl" ${HOME_PATH}/.config` -ge '1' ]]; then
+				sed -i '/CONFIG_PACKAGE_libustream-wolfssl/d' ${HOME_PATH}/.config
+				sed -i '$a # CONFIG_PACKAGE_libustream-wolfssl is not set' ${HOME_PATH}/.config
 				echo "__error_msg \"您同时选择libustream-wolfssl和libustream-openssl，库有冲突，只能二选一，已删除libustream-wolfssl库\"" >> ${CONFFLICTIONS}
 				echo "" >> ${CONFFLICTIONS}
 			fi
+			# luci-ssl(依赖于旧的libustream-mbedtls)，替换为luci-ssl-openssl(依赖于libustream-openssl)
 			if [[ `grep -c "CONFIG_PACKAGE_luci-ssl=y" ${HOME_PATH}/.config` -ge '1' ]]; then
-				# luci-ssl(依赖于旧的libustream-mbedtls)，替换为luci-ssl-openssl(依赖于libustream-openssl)
 				sed -i 's/CONFIG_PACKAGE_luci-ssl=y/# CONFIG_PACKAGE_luci-ssl is not set/g' ${HOME_PATH}/.config
 				sed -i '/CONFIG_PACKAGE_luci-ssl-openssl=y/d' ${HOME_PATH}/.config
 				sed -i '$a CONFIG_PACKAGE_luci-ssl-openssl=y' ${HOME_PATH}/.config
 				echo "__error_msg \"您选择luci-ssl(依赖于旧的libustream-mbedtls)，与libustream-openssl库有冲突，替换为luci-ssl-openssl(依赖于libustream-openssl)\"" >> ${CONFFLICTIONS}
 				echo "" >> ${CONFFLICTIONS}
 			fi
+			# cache-domains-mbedtls(依赖于旧的libustream-mbedtls)，cache-domains-wolfssl（依赖于libustream-wolfssl）
+			# 替换为cache-domains-openssl（依赖于libustream-openssl）
 			if [[ `grep -c "CONFIG_PACKAGE_cache-domains-mbedtls=y" ${HOME_PATH}/.config` -ge '1' ]] || [[ `grep -c "CONFIG_PACKAGE_cache-domains-wolfssl=y" ${HOME_PATH}/.config` -ge '1' ]]; then
-				# cache-domains-mbedtls(依赖于旧的libustream-mbedtls)，cache-domains-wolfssl（依赖于libustream-wolfssl），替换为cache-domains-openssl（依赖于libustream-openssl）
 				sed -i '/CONFIG_PACKAGE_cache-domains-mbedtls/d' ${HOME_PATH}/.config
 				sed -i '/CONFIG_PACKAGE_cache-domains-openssl/d' ${HOME_PATH}/.config
 				sed -i '/CONFIG_PACKAGE_cache-domains-wolfssl/d' ${HOME_PATH}/.config
 				sed -i '$a CONFIG_PACKAGE_cache-domains-openssl=y' ${HOME_PATH}/.config
-			echo "__error_msg \"您选择cache-domains-mbedtls或cache-domains-wolfssl，与cache-domains-openssl库有冲突，替换为cache-domains-openssl\"" >> ${CONFFLICTIONS}
-			echo "" >> ${CONFFLICTIONS}
+				echo "__error_msg \"您选择cache-domains-mbedtls或cache-domains-wolfssl，与cache-domains-openssl库有冲突，替换为cache-domains-openssl\"" >> ${CONFFLICTIONS}
+				echo "" >> ${CONFFLICTIONS}
 			fi
 		fi
 	fi
@@ -649,7 +681,7 @@ function modify_config() {
 		sed -i '/CONFIG_TARGET_ROOTFS_TARGZ/d' ${HOME_PATH}/.config
 		sed -i '$a CONFIG_TARGET_ROOTFS_TARGZ=y' ${HOME_PATH}/.config
 	fi
-	
+		
 	if [[ `grep -c "CONFIG_TARGET_ROOTFS_EXT4FS=y" ${HOME_PATH}/.config` -eq '1' ]]; then	
 		local partsize="$(grep -Eo "CONFIG_TARGET_ROOTFS_PARTSIZE=[0-9]+" ${HOME_PATH}/.config |cut -f2 -d=)"
 		if [[ "${partsize}" -lt "800" ]];then
