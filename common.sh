@@ -232,14 +232,12 @@ function git_clone_source() {
 function update_packages() {
 	gitdate=$(curl -H "Authorization: token ${REPO_TOKEN}" -s "https://api.github.com/repos/${PACKAGES_ADDR}/actions/runs" | jq -r '.workflow_runs[0].created_at')
 	gitdate=$(date -d "$gitdate" +%s)
-	__info_msg "gitdate=${gitdate}"
 	now=$(date -d "$(date '+%Y-%m-%d %H:%M:%S')" +%s)
-	__info_msg "now=${now}"
-	if [[ $(expr $gitdate + 60) < $now ]]; then
+	if [[ $(($gitdate+1800)) < $now ]]; then
 	curl -X POST https://api.github.com/repos/${PACKAGES_ADDR}/dispatches \
 	-H "Accept: application/vnd.github.everest-preview+json" \
 	-H "Authorization: token ${REPO_TOKEN}" \
-	--data '{"event_type": "updated by ${REPOSITORY}"}'
+	--data "{\"event_type\": \"updated by ${REPOSITORY}\"}"
 	fi
 	__info_msg "packages url: https://github.com/${PACKAGES_ADDR}"
 }
@@ -378,15 +376,14 @@ function diy_public() {
 		find "${MATRIX_TARGET_PATH}/patches" -type f -name '*.patch' -print0 | sort -z | xargs -I % -t -0 -n 1 sh -c "cat '%'  | patch -d './' -p1 --forward --no-backup-if-mismatch"
 	fi
 	
-	__yellow_color "开始添加openwrt.sh(或openwrt.lxc.sh)..."
+	#__yellow_color "开始添加openwrt.sh(或openwrt.lxc.sh)..."
 	# openwrt.sh
-	[[ ! -d "${FILES_PATH}/usr/bin" ]] && mkdir -p ${FILES_PATH}/usr/bin
-	if [[ "${FIRMWARE_TYPE}" == "lxc" ]]; then
-		cp -rf ${COMMON_PATH}/custom/openwrt.lxc.sh ${FILES_PATH}/usr/bin/openwrt.lxc && sudo chmod +x ${FILES_PATH}/usr/bin/openwrt.lxc
-	else
-		cp -rf ${COMMON_PATH}/custom/openwrt.sh ${FILES_PATH}/usr/bin/openwrt && sudo chmod +x ${FILES_PATH}/usr/bin/openwrt
-		cp -rf ${COMMON_PATH}/custom/tools.sh "${FILES_PATH}/usr/bin/tools" && sudo chmod +x "${FILES_PATH}/usr/bin/tools"
-	fi
+	#[[ ! -d "${FILES_PATH}/usr/bin" ]] && mkdir -p ${FILES_PATH}/usr/bin
+	#if [[ "${FIRMWARE_TYPE}" == "lxc" ]]; then
+	#	cp -rf ${COMMON_PATH}/custom/openwrt.lxc.sh ${FILES_PATH}/usr/bin/openwrt.lxc && sudo chmod +x ${FILES_PATH}/usr/bin/openwrt.lxc
+	#else
+	#	cp -rf ${COMMON_PATH}/custom/openwrt.sh ${FILES_PATH}/usr/bin/openwrt && sudo chmod +x ${FILES_PATH}/usr/bin/openwrt
+	#fi
 	
 	__yellow_color "开始设置自动更新插件..."
 	# 自动更新插件（luci-app-autoupdate）
@@ -400,7 +397,7 @@ function diy_public() {
 	else
 		find ${HOME_PATH}/feeds -type d -name "luci-app-autoupdate" | xargs -i sudo rm -rf {}
 		find ${HOME_PATH}/package -type d -name "luci-app-autoupdate" | xargs -i sudo rm -rf {}
-		git clone -b main https://github.com/stanlyshi/luci-app-autoupdate ${HOME_PATH}/package/luci-app-autoupdate 2>/dev/null
+		git clone https://github.com/stanlyshi/luci-app-autoupdate ${HOME_PATH}/package/luci-app-autoupdate 2>/dev/null
 		if [[ `grep -c "luci-app-autoupdate" ${HOME_PATH}/include/target.mk` -eq '0' ]]; then
 			sed -i 's?DEFAULT_PACKAGES:=?DEFAULT_PACKAGES:=luci-app-autoupdate luci-app-ttyd ?g' ${HOME_PATH}/include/target.mk
 		fi
@@ -488,8 +485,8 @@ function diy_lede() {
 	#	__info_msg "修复lxc固件openssl"
 	#	sudo rm -rf "${HOME_PATH}/include/openssl-module.mk"
 	#	sudo rm -rf "${HOME_PATH}/package/libs/openssl"
-	#	cp -rf "${HOME_PATH}/build/common/Share/include/openssl-engine.mk" "${HOME_PATH}/include/openssl-engine.mk"
-	#	cp -rf "${HOME_PATH}/build/common/Share/package/libs/openssl" "${HOME_PATH}/package/libs/openssl"
+	#	cp -rf "${HOME_PATH}/build/common/share/include/openssl-engine.mk" "${HOME_PATH}/include/openssl-engine.mk"
+	#	cp -rf "${HOME_PATH}/build/common/share/package/libs/openssl" "${HOME_PATH}/package/libs/openssl"
 	#fi
 
 	echo
@@ -612,14 +609,14 @@ function modify_config() {
 		
 		# 非强制使用openssl，由.config决定，只解决冲突
 		if [[ `grep -c "CONFIG_PACKAGE_libustream-openssl=y" ${HOME_PATH}/.config` -ge '1' ]]; then
-			if [[ `grep -c "CONFIG_PACKAGE_libustream-mbedtls" ${HOME_PATH}/.config` -ge '1' ]]; then
+			if [[ `grep -c "CONFIG_PACKAGE_libustream-mbedtls=y" ${HOME_PATH}/.config` -ge '1' ]]; then
 				sed -i '/CONFIG_PACKAGE_libustream-mbedtls/d' ${HOME_PATH}/.config
 				sed -i '$a # CONFIG_PACKAGE_libustream-mbedtls is not set' ${HOME_PATH}/.config
 				echo "__error_msg \"您同时选择libustream-mbedtls和libustream-openssl，库有冲突，只能二选一，已删除libustream-mbedtls库\"" >> ${CONFFLICTIONS}
 				echo "" >> ${CONFFLICTIONS}
 			fi
 			# libustream-wolfssl可能处于=y或=m状态
-			if [[ `grep -c "CONFIG_PACKAGE_libustream-wolfssl" ${HOME_PATH}/.config` -ge '1' ]]; then
+			if [[ `grep -c "CONFIG_PACKAGE_libustream-wolfssl=y" ${HOME_PATH}/.config` -ge '1' ]] || [[ `grep -c "CONFIG_PACKAGE_libustream-wolfssl=m" ${HOME_PATH}/.config` -ge '1' ]]; then
 				sed -i '/CONFIG_PACKAGE_libustream-wolfssl/d' ${HOME_PATH}/.config
 				sed -i '$a # CONFIG_PACKAGE_libustream-wolfssl is not set' ${HOME_PATH}/.config
 				echo "__error_msg \"您同时选择libustream-wolfssl和libustream-openssl，库有冲突，只能二选一，已删除libustream-wolfssl库\"" >> ${CONFFLICTIONS}
@@ -1147,8 +1144,7 @@ function compile_info() {
 		echo
 		__red_color "LXC固件自动更新"
 		__white_color "1、PVE运行："
-		__green_color "pct pull xxx /bin/openwrt.lxc /bin/openwrt && chmod -f +x /bin/openwrt"
-		__white_color "注意：将xxx改为个人OpenWrt容器的ID，如100"
+		__green_color "wget https://ghproxy.com/https://raw.githubusercontent.com/stanlyshi/pve/main/openwrt.lxc.sh -O /usr/bin/openwrt && chmod +x /usr/bin/openwrt"
 		__white_color "2、PVE运行："
 		__green_color "openwrt"
 		echo
@@ -1168,8 +1164,7 @@ function compile_info() {
 		fi
 		__blue_color "固件版本: ${FIRMWARE_NAME}"
 		__blue_color "云端路径: ${GITHUB_RELEASE_URL}"
-		__white_color "编译成功后，会自动把固件发布到指定地址，生成云端路径"
-		__white_color "修改IP、DNS、网关或者在线更新，请输入命令：openwrt"
+		__white_color "在线更新，请输入命令：autoupdate，详见命令行说明"
 	fi
 	
 	echo
