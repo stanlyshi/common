@@ -81,7 +81,6 @@ function parse_settings() {
 		local package_repo_owner=`echo "${PACKAGES_ADDR}" | awk -F/ '{print $1}'` 2>/dev/null
 		if [[ ${package_repo_owner} != ${GITHUB_ACTOR} ]]; then
 			ENABLE_PACKAGES_UPDATE="false"
-			__warning_msg "非插件库所有者，关闭\"插件库更新\"."
 		fi
 	fi
 	
