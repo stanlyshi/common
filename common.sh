@@ -1246,14 +1246,6 @@ function update_repo() {
 	git clone https://github.com/${GITHUB_REPOSITORY}.git repo
 	
 	cd ${repo_path}
-	
-	# 更新COMPILE_YML文件中的matrix.target设置
-	local compile_yml_target=$(grep 'target: \[' ${repo_path}/.github/workflows/${COMPILE_YML} | sed 's/^[ ]*//g' |grep '^target' |cut -d '#' -f1 |sed 's/\[/\\&/' |sed 's/\]/\\&/') && echo "compile_yml_target=${compile_yml_target}"
-	local build_yml_target=$(grep 'target: \[' ${repo_path}/.github/workflows/${BUILD_YML}  |sed 's/^[ ]*//g' |grep '^target' |cut -d '#' -f1 |sed 's/\[/\\&/' |sed 's/\]/\\&/') && echo "build_yml_target=${build_yml_target}"
-	if [[ -n "${compile_yml_target}" ]] && [[ -n "${build_yml_target}" ]] && [[ "${compile_yml_target}" != "${build_yml_target}" ]]; then
-		ENABLE_REPO_UPDATE="true"
-		sed -i "s/${compile_yml_target}/${build_yml_target}/g" ${repo_path}/.github/workflows/${COMPILE_YML} && echo "change compile target ${compile_yml_target} to ${build_yml_target}"
-	fi
 
 	# 更新settings.ini文件
 	local settings_array=(SOURCE_BRANCH CONFIG_FILE FIRMWARE_TYPE BIOS_MODE NOTICE_TYPE UPLOAD_RELEASE UPLOAD_FIRMWARE UPLOAD_CONFIG ENABLE_CACHEWRTBUILD)
