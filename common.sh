@@ -1249,7 +1249,7 @@ function compile_info() {
 function update_repo() {
 	local repo_path="${GITHUB_WORKSPACE}/repo"
 	local repo_matrix_target_path="${repo_path}/build/${MATRIX_TARGET}"
-	local repo_config_path="${repo_matrix_target_path}/config"
+	local repo_config_file="${repo_matrix_target_path}/config/${CONFIG_FILE}"
 	local repo_settings_ini="${repo_matrix_target_path}/settings.ini"
 	local repo_plugins="${repo_matrix_target_path}/release/plugins"
 	
@@ -1277,9 +1277,9 @@ function update_repo() {
 	
 	# 更新.config文件
 	# ${HOME_PATH}/scripts/diffconfig.sh > ${DIFFCONFIG_TXT}
-	if [[ "$(cat ${DIFFCONFIG_TXT})" != "$(cat ${repo_config_path}/${CONFIG_FILE})" ]]; then
+	if [[ "$(cat ${DIFFCONFIG_TXT})" != "$(cat ${repo_config_file})" ]]; then
 		ENABLE_REPO_UPDATE="true"
-		cp -rf ${DIFFCONFIG_TXT} ${repo_config_path}/${CONFIG_FILE}
+		cp -rf ${DIFFCONFIG_TXT} ${repo_config_file}
 	fi
 	
 	# 更新plugins插件列表
