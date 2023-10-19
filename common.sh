@@ -1249,8 +1249,9 @@ function compile_info() {
 function update_repo() {
 	local repo_path="${GITHUB_WORKSPACE}/repo"
 	local repo_matrix_target_path="${repo_path}/build/${MATRIX_TARGET}"
-	local repo_config_path="${repo_path}/build/${MATRIX_TARGET}/config"
-	local repo_settings_ini="${repo_path}/build/${MATRIX_TARGET}/settings.ini"
+	local repo_config_path="${repo_matrix_target_path}/config"
+	local repo_settings_ini="${repo_matrix_target_path}/settings.ini"
+	local repo_plugins="${repo_matrix_target_path}/release/plugins"
 	
 	[[ -d "${repo_path}" ]] && rm -rf ${repo_path}
 
@@ -1285,10 +1286,10 @@ function update_repo() {
 	plugin_1="$(grep -Eo "CONFIG_PACKAGE_luci-app-.*=y|CONFIG_PACKAGE_luci-theme-.*=y" ${HOME_PATH}/.config |grep -v 'INCLUDE\|_Proxy\|_static\|_dynamic' |sed 's/=y//' |sed 's/CONFIG_PACKAGE_//g')"
 	plugin_2="$(echo "${plugin_1}" |sed 's/^/、/g' |awk '$0=NR$0')"
 	echo "${plugin_2}" > ${HOME_PATH}/plugin_list
-	if [[ "$(cat ${HOME_PATH}/plugin_list)" != "$(cat ${repo_matrix_target_path}/release/plugins)" ]]; then
+	if [[ "$(cat ${HOME_PATH}/plugin_list)" != "$(cat ${repo_plugins})" ]]; then
 		ENABLE_REPO_UPDATE="true"
 		# 覆盖原plugin文件
-		mv -f ${HOME_PATH}/plugin_list ${repo_matrix_target_path}/release/plugins > /dev/null 2>&1
+		mv -f ${HOME_PATH}/plugin_list ${repo_plugins} > /dev/null 2>&1
 	fi
 	
 	# 提交commit，更新repo
