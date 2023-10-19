@@ -1225,14 +1225,14 @@ function compile_info() {
 	
 	echo
 	cd ${HOME_PATH}
-	plugin_1="$(grep -Eo "CONFIG_PACKAGE_luci-app-.*=y|CONFIG_PACKAGE_luci-theme-.*=y" .config |grep -v 'INCLUDE\|_Proxy\|_static\|_dynamic' |sed 's/=y//' |sed 's/CONFIG_PACKAGE_//g')"
-	plugin_2="$(echo "${plugin_1}" |sed 's/^/、/g' |sed 's/$/\"/g' |awk '$0=NR$0' |sed 's/^/__blue_color \"       /g')"
-	echo "${plugin_2}" >plugin_info
-	if [ -n "$(ls -A "${HOME_PATH}/plugin_info" 2>/dev/null)" ]; then
+	local plugin_1="$(grep -Eo "CONFIG_PACKAGE_luci-app-.*=y|CONFIG_PACKAGE_luci-theme-.*=y" .config |grep -v 'INCLUDE\|_Proxy\|_static\|_dynamic' |sed 's/=y//' |sed 's/CONFIG_PACKAGE_//g')"
+	local plugin_2="$(echo "${plugin_1}" |sed 's/^/、/g' |sed 's/$/\"/g' |awk '$0=NR$0' |sed 's/^/__blue_color \"       /g')"
+	echo "${plugin_2}" >plugins_info
+	if [ -n "$(ls -A "${HOME_PATH}/plugins_info" 2>/dev/null)" ]; then
 		__red_color "插件列表"
-		chmod -Rf +x ${HOME_PATH}/plugin_info
-		source ${HOME_PATH}/plugin_info
-		rm -rf ${HOME_PATH}/plugin_info
+		chmod -Rf +x ${HOME_PATH}/plugins_info
+		source ${HOME_PATH}/plugins_info
+		rm -rf ${HOME_PATH}/plugins_info
 		echo
 	fi
 	
@@ -1283,12 +1283,10 @@ function update_repo() {
 	fi
 	
 	# 更新plugins插件列表
-	local plugin_list="$(grep -Eo "CONFIG_PACKAGE_luci-app-.*=y|CONFIG_PACKAGE_luci-theme-.*=y" ${HOME_PATH}/.config |grep -v 'INCLUDE\|_Proxy\|_static\|_dynamic' |sed 's/=y//' |sed 's/CONFIG_PACKAGE_//g')"
-	echo "${plugin_list}" > ${HOME_PATH}/plugin_list
-	if [[ "$(cat ${HOME_PATH}/plugin_list)" != "$(cat ${repo_plugins})" ]]; then
+	local plugins="$(grep -Eo "CONFIG_PACKAGE_luci-app-.*=y|CONFIG_PACKAGE_luci-theme-.*=y" ${HOME_PATH}/.config |grep -v 'INCLUDE\|_Proxy\|_static\|_dynamic' |sed 's/=y//' |sed 's/CONFIG_PACKAGE_//g')"
+	if [[ "${plugins}" != "$(cat ${repo_plugins})" ]]; then
 		ENABLE_REPO_UPDATE="true"
-		# 覆盖原plugin文件
-		mv -f ${HOME_PATH}/plugin_list ${repo_plugins} > /dev/null 2>&1
+		echo "${plugins}" > ${repo_plugins}
 	fi
 	
 	# 提交commit，更新repo
