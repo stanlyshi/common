@@ -1283,9 +1283,8 @@ function update_repo() {
 	fi
 	
 	# 更新plugins插件列表
-	plugin_1="$(grep -Eo "CONFIG_PACKAGE_luci-app-.*=y|CONFIG_PACKAGE_luci-theme-.*=y" ${HOME_PATH}/.config |grep -v 'INCLUDE\|_Proxy\|_static\|_dynamic' |sed 's/=y//' |sed 's/CONFIG_PACKAGE_//g')"
-	plugin_2="$(echo "${plugin_1}" |sed 's/^/、/g' |awk '$0=NR$0')"
-	echo "${plugin_2}" > ${HOME_PATH}/plugin_list
+	local pluginlist="$(grep -Eo "CONFIG_PACKAGE_luci-app-.*=y|CONFIG_PACKAGE_luci-theme-.*=y" ${HOME_PATH}/.config |grep -v 'INCLUDE\|_Proxy\|_static\|_dynamic' |sed 's/=y//' |sed 's/CONFIG_PACKAGE_//g')"
+	echo "${pluginlist}" > ${HOME_PATH}/plugin_list
 	if [[ "$(cat ${HOME_PATH}/plugin_list)" != "$(cat ${repo_plugins})" ]]; then
 		ENABLE_REPO_UPDATE="true"
 		# 覆盖原plugin文件
