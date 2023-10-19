@@ -74,14 +74,13 @@ function parse_settings() {
 		NOTICE_TYPE="false"
 	fi
 
-	if [[ ${PACKAGES_ADDR} == "default" ]]; then
+	if [[ ${PACKAGES_ADDR} =~ (default|DEFAULT|Default) ]]; then
 		PACKAGES_ADDR="roacn/openwrt-packages"
 	fi
 	if [[ ${ENABLE_PACKAGES_UPDATE} == "true" ]]; then
 		local package_repo_owner=`echo "${PACKAGES_ADDR}" | awk -F/ '{print $1}'` 2>/dev/null
 		if [[ ${package_repo_owner} != ${GITHUB_ACTOR} ]]; then
 			ENABLE_PACKAGES_UPDATE="false"
-			__warning_msg "非插件库所有者，关闭\"插件库更新\"."
 		fi
 	fi
 	
@@ -173,9 +172,9 @@ function parse_settings() {
 ################################################################################################################
 function notice_begin() {
 	if [[ "${NOTICE_TYPE}" == "TG" ]]; then
-		curl -k --data chat_id="${TELEGRAM_CHAT_ID}" --data "text=🎉 主人：您正在使用【${REPOSITORY}】仓库【${MATRIX_TARGET}】文件夹编译【${LUCI_EDITION}-${SOURCE}】固件,请耐心等待...... 😋" "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"
+		curl -k --data chat_id="${TELEGRAM_CHAT_ID}" --data "text=✨主人✨：您正在使用【${REPOSITORY}】仓库【${MATRIX_TARGET}】文件夹编译【${SOURCE}-${LUCI_EDITION}】固件,请耐心等待...... 😋" "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"
 	elif [[ "${NOTICE_TYPE}" == "PUSH" ]]; then
-		curl -k --data token="${PUSH_PLUS_TOKEN}" --data title="开始编译【${SOURCE}-${MATRIX_TARGET}】" --data "content=🎉 主人：您正在使用【${REPOSITORY}】仓库【${MATRIX_TARGET}】文件夹编译【${LUCI_EDITION}-${SOURCE}】固件,请耐心等待...... 😋💐" "http://www.pushplus.plus/send"
+		curl -k --data token="${PUSH_PLUS_TOKEN}" --data title="开始编译【${SOURCE}-${MATRIX_TARGET}】" --data "content=✨主人✨：您正在使用【${REPOSITORY}】仓库【${MATRIX_TARGET}】文件夹编译【${SOURCE}-${LUCI_EDITION}】固件,请耐心等待...... 😋" "http://www.pushplus.plus/send"
 	fi
 }
 
@@ -184,9 +183,9 @@ function notice_begin() {
 ################################################################################################################
 function notice_end() {
 	if [[ "${NOTICE_TYPE}" == "TG" ]]; then
-		curl -k --data chat_id="${TELEGRAM_CHAT_ID}" --data "text=我亲爱的✨主人✨：您使用【${REPOSITORY}】仓库【${MATRIX_TARGET}】文件夹编译的【${FIRMWARE_NAME_PREFIX}】固件顺利编译完成了！💐https://github.com/${GITHUB_REPOSITORY}/releases" "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"
+		curl -k --data chat_id="${TELEGRAM_CHAT_ID}" --data "text=🎉 我亲爱的✨主人✨：您使用【${REPOSITORY}】仓库【${MATRIX_TARGET}】文件夹编译的【${FIRMWARE_NAME_PREFIX}】固件顺利编译完成了！💐 https://github.com/${GITHUB_REPOSITORY}/releases" "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"
 	elif [[ "${NOTICE_TYPE}" == "PUSH" ]]; then
-		curl -k --data token="${PUSH_PLUS_TOKEN}" --data title="【${SOURCE}-${TARGET_PROFILE}】编译成功" --data "content=我亲爱的✨主人✨：您使用【${REPOSITORY}】仓库【${MATRIX_TARGET}】文件夹编译的【${FIRMWARE_NAME_PREFIX}】固件顺利编译完成了！💐https://github.com/${GITHUB_REPOSITORY}/releases" "http://www.pushplus.plus/send"
+		curl -k --data token="${PUSH_PLUS_TOKEN}" --data title="【${SOURCE}-${TARGET_PROFILE}】编译成功" --data "content=🎉 我亲爱的✨主人✨：您使用【${REPOSITORY}】仓库【${MATRIX_TARGET}】文件夹编译的【${FIRMWARE_NAME_PREFIX}】固件顺利编译完成了！💐 https://github.com/${GITHUB_REPOSITORY}/releases" "http://www.pushplus.plus/send"
 	fi
 }
 
@@ -230,12 +229,14 @@ function git_clone_source() {
 # 插件源仓库更新
 ################################################################################################################
 function update_packages() {
-	gitdate=$(curl -H "Authorization: token ${REPO_TOKEN}" -s "https://api.github.com/repos/${PACKAGES_ADDR}/actions/runs" | jq -r '.workflow_runs[0].created_at')
-	gitdate=$(date -d "$gitdate" +%s)
-	echo "git latest merge upstream timestamp: ${gitdate}"
-	now=$(date -d "$(date '+%Y-%m-%d %H:%M:%S')" +%s)
-	echo "time now timestamp: ${now}"
-	if [[ $(($gitdate+1800)) < $now ]]; then
+	local gitdate=$(curl -H "Authorization: token ${REPO_TOKEN}" -s "https://api.github.com/repos/${PACKAGES_ADDR}/actions/runs" | jq -r '.workflow_runs[0].created_at')
+	local gitdate_timestamp=$(date -d "$gitdate" +%s)
+	local gitdate_hms="$(date -d "$gitdate" '+%Y-%m-%d %H:%M:%S')"
+	echo "github latest merge upstream timestamp: ${gitdate_timestamp}, time: ${gitdate_hms}"
+	local now_hms="$(date '+%Y-%m-%d %H:%M:%S')"
+	local now_timestamp=$(date -d "$now_hms" +%s)
+	echo "time now timestamp: ${now_timestamp}, time: ${now_hms}"
+	if [[ $(($gitdate_timestamp+1800)) < $now_timestamp ]]; then
 	curl -X POST https://api.github.com/repos/${PACKAGES_ADDR}/dispatches \
 	-H "Accept: application/vnd.github.everest-preview+json" \
 	-H "Authorization: token ${REPO_TOKEN}" \
@@ -753,13 +754,13 @@ function modify_config() {
 		fi
 	fi
 		
-	if [[ `grep -c "CONFIG_PACKAGE_luci-app-passwall_INCLUDE_Trojan_Plus=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-		if [[ `grep -c "CONFIG_PACKAGE_luci-app-passwall_INCLUDE_Trojan_GO=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-			sed -i 's/CONFIG_PACKAGE_luci-app-passwall_INCLUDE_Trojan_GO=y/# CONFIG_PACKAGE_luci-app-passwall_INCLUDE_Trojan_GO is not set/g' ${HOME_PATH}/.config
-			echo "__error_msg \"您选择了passwall的Trojan_GO，会和passwall的Trojan_Plus冲突导致编译错误，只能二选一，已删除Trojan_GO\"" >> ${CONFFLICTIONS}
-			echo "" >> ${CONFFLICTIONS}
-		fi
-	fi
+	#if [[ `grep -c "CONFIG_PACKAGE_luci-app-passwall_INCLUDE_Trojan_Plus=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+	#	if [[ `grep -c "CONFIG_PACKAGE_luci-app-passwall_INCLUDE_Trojan_GO=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+	#		sed -i 's/CONFIG_PACKAGE_luci-app-passwall_INCLUDE_Trojan_GO=y/# CONFIG_PACKAGE_luci-app-passwall_INCLUDE_Trojan_GO is not set/g' ${HOME_PATH}/.config
+	#		echo "__error_msg \"您选择了passwall的Trojan_GO，会和passwall的Trojan_Plus冲突导致编译错误，只能二选一，已删除Trojan_GO\"" >> ${CONFFLICTIONS}
+	#		echo "" >> ${CONFFLICTIONS}
+	#	fi
+	#fi
 	
 	if [[ `grep -c "CONFIG_PACKAGE_luci-app-qbittorrent=y" ${HOME_PATH}/.config` -eq '1' ]]; then
 		if [[ `grep -c "CONFIG_PACKAGE_luci-app-qbittorrent-simple=y" ${HOME_PATH}/.config` -eq '1' ]]; then
@@ -1194,23 +1195,32 @@ function compile_info() {
 	echo
 	
 	echo
-	__red_color "Github在线编译CPU型号"
-	__blue_color $(cat /proc/cpuinfo | grep name | cut -d: -f2 | uniq)
+	__red_color "CPU信息"
+	echo "--------------------------------------------------------------------------------"
+	local cpu=$(grep "physical id" /proc/cpuinfo| sort| uniq| wc -l)
+	local cores=$(grep "cores" /proc/cpuinfo|uniq|awk '{print $4}')
+	local processor=$(grep -c "processor" /proc/cpuinfo)
+	local name=$(cat /proc/cpuinfo | grep name | cut -d: -f2 | uniq | sed 's/^[[:space:]]\+//')
+	echo "物理CPU:${cpu}	核心线程:${cores}/${processor}"
+	echo "CPU型号:${name}"
 	echo
-	echo -e "常见CPU类型及性能排行:
+	echo -e "性能排行:
 	Intel(R) Xeon(R) Platinum 8370C CPU @ 2.80GHz
 	Intel(R) Xeon(R) Platinum 8272CL CPU @ 2.60GHz
 	Intel(R) Xeon(R) Platinum 8171M CPU @ 2.60GHz
 	Intel(R) Xeon(R) CPU E5-2673 v4 @ 2.30GHz
 	Intel(R) Xeon(R) CPU E5-2673 v3 @ 2.40GHz"
 	echo
-	
 	echo
-	__red_color "系统空间使用情况"
+	__red_color "内存信息"
+	echo "--------------------------------------------------------------------------------"
+	free -m
+	echo
+	echo
+	__red_color "硬盘信息"
+	echo "--------------------------------------------------------------------------------"
 	echo " 系统空间       类型   总数   已用   可用   使用率"
-	echo "=============================================================="
-	df -hT                                             
-	echo "=============================================================="
+	df -hT
 	echo
 	
 	echo
