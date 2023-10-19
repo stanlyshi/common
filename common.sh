@@ -150,7 +150,7 @@ function parse_settings() {
 	
 	# 文件
 	echo DIFFCONFIG_TXT="${GITHUB_WORKSPACE}/diffconfig.txt" >> ${GITHUB_ENV}
-	echo RELEASEINFO_MD="${GITHUB_WORKSPACE}/openwrt/build/${MATRIX_TARGET}/releaseinfo.md" >> ${GITHUB_ENV}
+	echo RELEASEINFO_MD="${GITHUB_WORKSPACE}/openwrt/build/${MATRIX_TARGET}/release/releaseinfo.md" >> ${GITHUB_ENV}
 	echo SETTINGS_INI="${GITHUB_WORKSPACE}/openwrt/build/${MATRIX_TARGET}/settings.ini" >> ${GITHUB_ENV}
 	echo FILES_TO_CLEAR="${GITHUB_WORKSPACE}/openwrt/default_clear" >> ${GITHUB_ENV}
 	echo CONFFLICTIONS="${GITHUB_WORKSPACE}/openwrt/confflictions" >> ${GITHUB_ENV}
@@ -1285,10 +1285,10 @@ function update_repo() {
 	plugin_1="$(grep -Eo "CONFIG_PACKAGE_luci-app-.*=y|CONFIG_PACKAGE_luci-theme-.*=y" ${HOME_PATH}/.config |grep -v 'INCLUDE\|_Proxy\|_static\|_dynamic' |sed 's/=y//' |sed 's/CONFIG_PACKAGE_//g')"
 	plugin_2="$(echo "${plugin_1}" |sed 's/^/、/g' |awk '$0=NR$0')"
 	echo "${plugin_2}" > ${HOME_PATH}/plugin_list
-	if [[ "$(cat ${HOME_PATH}/plugin_list)" != "$(cat ${repo_matrix_target_path}/plugins)" ]]; then
+	if [[ "$(cat ${HOME_PATH}/plugin_list)" != "$(cat ${repo_matrix_target_path}/release/plugins)" ]]; then
 		ENABLE_REPO_UPDATE="true"
 		# 覆盖原plugin文件
-		mv -f ${HOME_PATH}/plugin_list ${repo_matrix_target_path}/plugins > /dev/null 2>&1
+		mv -f ${HOME_PATH}/plugin_list ${repo_matrix_target_path}/release/plugins > /dev/null 2>&1
 	fi
 	
 	# 提交commit，更新repo
