@@ -1202,7 +1202,7 @@ function compile_info() {
 	local processor=$(grep -c "processor" /proc/cpuinfo)
 	local name=$(cat /proc/cpuinfo | grep name | cut -d: -f2 | uniq | sed 's/^[[:space:]]\+//')
 	echo "物理CPU:${cpu}	核心线程:${cores}/${processor}"
-	echo "CPU型号:${name}"
+	echo -e "CPU型号:\033[34m${name}\033[0m"
 	echo
 	echo -e "性能排行:
 	Intel(R) Xeon(R) Platinum 8370C CPU @ 2.80GHz
