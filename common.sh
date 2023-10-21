@@ -380,14 +380,14 @@ function diy_public() {
 	# 替换编译前源码中对应目录文件
 	if [ -n "$(ls -A "${MATRIX_TARGET_PATH}/diy" 2>/dev/null)" ]; then
 		sudo rm -rf ${MATRIX_TARGET_PATH}/diy/{LICENSE,*README*,*readme*} > /dev/null 2>&1
-		cp -rf ${MATRIX_TARGET_PATH}/diy/* ${FILES_PATH} > /dev/null 2>&1 && chmod -Rf +x ${FILES_PATH}
+		cp -rf ${MATRIX_TARGET_PATH}/diy/* ${HOME_PATH} > /dev/null 2>&1 && chmod -Rf +x ${FILES_PATH}
 	fi
 	
 	__yellow_color "开始替换files文件夹内文件..."
 	# 替换编译后固件中对应目录文件（备用）
 	if [ -n "$(ls -A "${MATRIX_TARGET_PATH}/files" 2>/dev/null)" ]; then
 		sudo rm -rf ${MATRIX_TARGET_PATH}/files/{LICENSE,*README*,.*readme*} > /dev/null 2>&1
-		cp -rf ${MATRIX_TARGET_PATH}/files ${HOME_PATH} > /dev/null 2>&1
+		cp -rf ${MATRIX_TARGET_PATH}/files/* ${FILES_PATH} > /dev/null 2>&1
 	fi
 	
 	__yellow_color "开始执行补丁文件..."
