@@ -386,7 +386,7 @@ function diy_public() {
 	
 	__yellow_color "开始替换files文件夹内文件..."
 	# 替换编译后固件中对应目录文件（备用）
-	sudo rm -rf ${MATRIX_TARGET_PATH}/files/{*README*,.*readme*} > /dev/null 2>&1
+	sudo rm -rf ${MATRIX_TARGET_PATH}/files/{*README*,*readme*} > /dev/null 2>&1
 	if [ -n "$(ls -A "${MATRIX_TARGET_PATH}/files" 2>/dev/null)" ]; then
 		chmod -Rf +x ${MATRIX_TARGET_PATH}/files
 		cp -rf ${MATRIX_TARGET_PATH}/files ${HOME_PATH} > /dev/null 2>&1
