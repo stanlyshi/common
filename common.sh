@@ -365,14 +365,12 @@ function diy_public() {
 	# 检查.config文件是否存在
 	if [ -z "$(ls -A "${CONFIG_PATH}/${CONFIG_FILE}" 2>/dev/null)" ]; then
 		__error_msg "编译脚本的[${MATRIX_TARGET}配置文件夹内缺少${CONFIG_FILE}文件],请在[${MATRIX_TARGET}/config/]文件夹内补齐"
-		echo
 		exit 1
 	fi
 	
 	# 检查diy_part.sh文件是否存在
 	if [ -z "$(ls -A "${MATRIX_TARGET_PATH}/${DIY_PART_SH}" 2>/dev/null)" ]; then
 		__error_msg "编译脚本的[${MATRIX_TARGET}文件夹内缺少${DIY_PART_SH}文件],请在[${MATRIX_TARGET}]文件夹内补齐"
-		echo
 		exit 1
 	fi
 
@@ -401,7 +399,7 @@ function diy_public() {
 	# openwrt.sh
 	#[[ ! -d "${FILES_PATH}/usr/bin" ]] && mkdir -p ${FILES_PATH}/usr/bin
 	#if [[ "${FIRMWARE_TYPE}" == "lxc" ]]; then
-	#	cp -rf ${COMMON_PATH}/custom/openwrt.lxc.sh ${FILES_PATH}/usr/bin/openwrt.lxc && sudo chmod +x ${FILES_PATH}/usr/bin/openwrt.lxc
+	#	cp -rf ${COMMON_PATH}/custom/openwrt.lxc.sh ${FILES_PATH}/usr/bin/openwrt && sudo chmod +x ${FILES_PATH}/usr/bin/openwrt
 	#else
 	#	cp -rf ${COMMON_PATH}/custom/openwrt.sh ${FILES_PATH}/usr/bin/openwrt && sudo chmod +x ${FILES_PATH}/usr/bin/openwrt
 	#fi
