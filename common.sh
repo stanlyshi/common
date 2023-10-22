@@ -389,7 +389,7 @@ function diy_public() {
 	sudo rm -rf ${MATRIX_TARGET_PATH}/files/{*README*,*readme*} > /dev/null 2>&1
 	if [ -n "$(ls -A "${MATRIX_TARGET_PATH}/files" 2>/dev/null)" ]; then
 		chmod -Rf +x ${MATRIX_TARGET_PATH}/files
-		cp -rf ${MATRIX_TARGET_PATH}/files ${HOME_PATH} > /dev/null 2>&1
+		cp -rf ${MATRIX_TARGET_PATH}/files/* ${FILES_PATH} > /dev/null 2>&1
 	fi
 	
 	__yellow_color "开始执行补丁文件..."
