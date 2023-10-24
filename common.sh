@@ -153,27 +153,28 @@ function parse_settings() {
 	echo COMPILE_DATE_STAMP="$(date -d "$(date +'%Y-%m-%d %H:%M:%S')" +%s)" >> ${GITHUB_ENV}
 	
 	# 路径
-	echo HOME_PATH="${GITHUB_WORKSPACE}/openwrt" >> ${GITHUB_ENV}
-	echo BIN_PATH="${GITHUB_WORKSPACE}/openwrt/bin" >> ${GITHUB_ENV}
-	echo AUTOUPDATE_PATH="${GITHUB_WORKSPACE}/openwrt/bin/autoupdate" >> ${GITHUB_ENV}
-	echo FEEDS_PATH="${GITHUB_WORKSPACE}/openwrt/feeds" >> ${GITHUB_ENV}
-	echo BUILD_PATH="${GITHUB_WORKSPACE}/openwrt/build" >> ${GITHUB_ENV}
-	echo COMMON_PATH="${GITHUB_WORKSPACE}/openwrt/build/common" >> ${GITHUB_ENV}
-	echo MATRIX_TARGET_PATH="${GITHUB_WORKSPACE}/openwrt/build/${MATRIX_TARGET}" >> ${GITHUB_ENV}
-	echo CONFIG_PATH="${GITHUB_WORKSPACE}/openwrt/build/${MATRIX_TARGET}/config" >> ${GITHUB_ENV}
+	HOME_PATH="${GITHUB_WORKSPACE}/openwrt"
+	echo HOME_PATH="${HOME_PATH}" >> ${GITHUB_ENV}
+	echo BIN_PATH="${HOME_PATH}/bin" >> ${GITHUB_ENV}
+	echo AUTOUPDATE_PATH="${HOME_PATH}/bin/autoupdate" >> ${GITHUB_ENV}
+	echo FEEDS_PATH="${HOME_PATH}/feeds" >> ${GITHUB_ENV}
+	echo BUILD_PATH="${HOME_PATH}/build" >> ${GITHUB_ENV}
+	echo COMMON_PATH="${HOME_PATH}/build/common" >> ${GITHUB_ENV}
+	echo MATRIX_TARGET_PATH="${HOME_PATH}/build/${MATRIX_TARGET}" >> ${GITHUB_ENV}
+	echo CONFIG_PATH="${HOME_PATH}/build/${MATRIX_TARGET}/config" >> ${GITHUB_ENV}
 	
 	# 文件
-	echo DIFFCONFIG_TXT="${GITHUB_WORKSPACE}/diffconfig.txt" >> ${GITHUB_ENV}
-	echo RELEASEINFO_MD="${GITHUB_WORKSPACE}/openwrt/build/${MATRIX_TARGET}/release/releaseinfo.md" >> ${GITHUB_ENV}
-	echo SETTINGS_INI="${GITHUB_WORKSPACE}/openwrt/build/${MATRIX_TARGET}/settings.ini" >> ${GITHUB_ENV}
-	echo FILES_TO_CLEAR="${GITHUB_WORKSPACE}/openwrt/default_clear" >> ${GITHUB_ENV}
-	echo CONFFLICTIONS="${GITHUB_WORKSPACE}/openwrt/confflictions" >> ${GITHUB_ENV}
+	echo DIFFCONFIG_TXT="${HOME_PATH}/diffconfig.txt" >> ${GITHUB_ENV}
+	echo RELEASEINFO_MD="${HOME_PATH}/build/${MATRIX_TARGET}/release/releaseinfo.md" >> ${GITHUB_ENV}
+	echo SETTINGS_INI="${HOME_PATH}/build/${MATRIX_TARGET}/settings.ini" >> ${GITHUB_ENV}
+	echo FILES_TO_CLEAR="${HOME_PATH}/default_clear" >> ${GITHUB_ENV}
+	echo CONFFLICTIONS="${HOME_PATH}/confflictions" >> ${GITHUB_ENV}
 	
 	# https://github.com/coolsnowwolf/lede/tree/master/package/base-files/files
-	echo FILES_PATH="${GITHUB_WORKSPACE}/openwrt/package/base-files/files" >> ${GITHUB_ENV}
-	echo FILE_DEFAULT_UCI="${GITHUB_WORKSPACE}/openwrt/package/base-files/files/etc/default_uci" >> ${GITHUB_ENV}
-	echo FILES_TO_DELETE="${GITHUB_WORKSPACE}/openwrt/package/base-files/files/etc/default_delete" >> ${GITHUB_ENV}
-	echo FILES_TO_KEEP="${GITHUB_WORKSPACE}/openwrt/package/base-files/files/lib/upgrade/keep.d/base-files-essential" >> ${GITHUB_ENV}
+	echo FILES_PATH="${HOME_PATH}/package/base-files/files" >> ${GITHUB_ENV}
+	echo FILE_DEFAULT_UCI="${HOME_PATH}/package/base-files/files/etc/default_uci" >> ${GITHUB_ENV}
+	echo FILES_TO_DELETE="${HOME_PATH}/package/base-files/files/etc/default_delete" >> ${GITHUB_ENV}
+	echo FILES_TO_KEEP="${HOME_PATH}/package/base-files/files/lib/upgrade/keep.d/base-files-essential" >> ${GITHUB_ENV}
 	echo FILENAME_DEFAULT_UCI="default_uci" >> ${GITHUB_ENV}
 	echo FILENAME_DEFAULT_SETTINGS="default_settings" >> ${GITHUB_ENV}
 	echo FILENAME_DEFAULT_RUNONCE="default_settings_runonce" >> ${GITHUB_ENV}
@@ -226,12 +227,12 @@ function init_environment() {
 function git_clone_source() {
 	# 在每matrix.target目录下下载源码
 	git clone -b "${SOURCE_BRANCH}" --single-branch "${SOURCE_URL}" openwrt > /dev/null 2>&1
-	ln -sf /${MATRIX_TARGET}/openwrt ${GITHUB_WORKSPACE}/openwrt
+	ln -sf /${MATRIX_TARGET}/openwrt ${HOME_PATH}
 	
 	# 将build等文件夹复制到openwrt文件夹下
 	cd ${GITHUB_WORKSPACE}
-	cp -rf $(find ./ -maxdepth 1 -type d ! -path './openwrt' ! -path './') ${GITHUB_WORKSPACE}/openwrt/
-	#rm -rf ${GITHUB_WORKSPACE}/openwrt/build/ && cp -rf ${GITHUB_WORKSPACE}/build/ ${GITHUB_WORKSPACE}/openwrt/build/
+	cp -rf $(find ./ -maxdepth 1 -type d ! -path './openwrt' ! -path './') ${HOME_PATH}/
+	#rm -rf ${HOME_PATH}/build/ && cp -rf ${GITHUB_WORKSPACE}/build/ ${HOME_PATH}/build/
 	
 	# 下载common仓库
 	sudo rm -rf ${COMMON_PATH} && git clone -b main --depth 1 https://github.com/stanlyshi/common ${COMMON_PATH}
@@ -477,6 +478,10 @@ function diy_public() {
 		/etc/smartdns/custom.conf
 		EOF
 	fi
+	
+	__yellow_color "目录文件..."
+	echo "${HOME_PATH}:"
+	ls -l /${MATRIX_TARGET}/openwrt
 	
 	echo
 	echo "--------------common_diy_public end--------------"
@@ -1159,6 +1164,8 @@ function firmware_settings() {
 ################################################################################################################
 function make_defconfig() {
 	cd ${HOME_PATH}
+	echo "files under ${HOME_PATH}:"
+	ls -l /${MATRIX_TARGET}/openwrt
 	
 	# 生成.config文件
 	make defconfig > /dev/null
@@ -1362,6 +1369,8 @@ function update_repo() {
 ################################################################################################################
 function organize_firmware() {
 	cd ${FIRMWARE_PATH}
+	echo "files under ${HOME_PATH}:"
+	ls -l /${MATRIX_TARGET}/openwrt
 	echo "files under ${FIRMWARE_PATH}:"
 	ls -l ${FIRMWARE_PATH}
 
