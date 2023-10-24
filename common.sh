@@ -576,14 +576,22 @@ function modify_config() {
 	# 复制自定义.config文件
 	cp -rf ${CONFIG_PATH}/${CONFIG_FILE} ${HOME_PATH}/.config
 	make defconfig > /dev/null 2>&1
-
+	
+	# 缓存加速
+	if [[ "${ENABLE_CACHEWRTBUILD}" == "true" ]]; then
+		sed -i '/CONFIG_DEVEL/d' ${HOME_PATH}/.config > /dev/null 2>&1
+		sed -i '/CONFIG_CCACHE/d' ${HOME_PATH}/.config > /dev/null 2>&1
+		sed -i '$a CONFIG_DEVEL=y' ${HOME_PATH}/.config > /dev/null 2>&1
+		sed -i '$a CONFIG_CCACHE=y' ${HOME_PATH}/.config > /dev/null 2>&1
+	fi
+	
 	# lxc模式下编译.tar.gz固件
 	if [[ "${FIRMWARE_TYPE}" == "lxc" ]]; then
 		sed -i '/CONFIG_TARGET_ROOTFS_TARGZ/d' ${HOME_PATH}/.config > /dev/null 2>&1
 		sed -i '$a CONFIG_TARGET_ROOTFS_TARGZ=y' ${HOME_PATH}/.config > /dev/null 2>&1
 		__info_msg "lxc固件，添加对openwrt-generic-rootfs.tar.gz文件编译"
 	fi
-
+	
 	# https连接，检测修正，主要针对官方源码
 	# CONFIG_PACKAGE_ca-bundle=y 默认已经选择
 	# liubustream-mbedtls、liubustream-openssl、libustream-wolfssl，三者在后面设置
@@ -594,7 +602,7 @@ function modify_config() {
 		sed -i '$a CONFIG_PACKAGE_libustream-openssl=y' ${HOME_PATH}/.config
 		__info_msg "官方源码，已经设置为支持https连接"
 	fi
-
+	
 	# 官方源码：'状态'、'系统'等主菜单，在默认情况下是未选中状态，进行修正
 	if [[ "${SOURCE}" =~ (openwrt|Openwrt|OpenWrt|OpenWRT|OPENWRT|official|Official|OFFICIAL) ]]; then
 		sed -i '/CONFIG_PACKAGE_luci-mod-admin-full/d' ${HOME_PATH}/.config
@@ -696,7 +704,7 @@ function modify_config() {
 			fi
 		fi
 	fi
-
+	
 	if [[ `grep -c "CONFIG_TARGET_x86=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_rockchip=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_bcm27xx=y" ${HOME_PATH}/.config` -eq '1' ]]; then
 		sed -i '/CONFIG_TARGET_IMAGES_GZIP/d' ${HOME_PATH}/.config
 		sed -i '$a CONFIG_TARGET_IMAGES_GZIP=y' ${HOME_PATH}/.config
