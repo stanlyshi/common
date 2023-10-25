@@ -578,11 +578,20 @@ function modify_config() {
 	make defconfig > /dev/null 2>&1
 	
 	# 缓存加速
-	if [[ "${ENABLE_CACHEWRTBUILD}" == "true" ]]; then
+	if [[ "${ENABLE_CACHEWRTBUILD}" =~ (fast|Fast|FAST) ]]; then
+		__info_msg "极限缓存加速，如编译出错，请切换为普通加速，或在settings.ini中关闭缓存加速"
 		sed -i '/CONFIG_DEVEL/d' ${HOME_PATH}/.config > /dev/null 2>&1
 		sed -i '/CONFIG_CCACHE/d' ${HOME_PATH}/.config > /dev/null 2>&1
 		sed -i '$a CONFIG_DEVEL=y' ${HOME_PATH}/.config > /dev/null 2>&1
 		sed -i '$a CONFIG_CCACHE=y' ${HOME_PATH}/.config > /dev/null 2>&1
+	elif [[ "${ENABLE_CACHEWRTBUILD}" =~ (true|True|TRUE|normal|Normal|NORMAL) ]]; then
+		__info_msg "普通缓存加速，如编译出错，请在settings.ini中关闭缓存加速"
+		sed -i '/CONFIG_DEVEL/d' ${HOME_PATH}/.config > /dev/null 2>&1
+		sed -i '/CONFIG_CCACHE/d' ${HOME_PATH}/.config > /dev/null 2>&1
+	else
+		__info_msg "关闭缓存加速，希望快速编译，请在settings.ini中开启缓存加速"
+		sed -i '/CONFIG_DEVEL/d' ${HOME_PATH}/.config > /dev/null 2>&1
+		sed -i '/CONFIG_CCACHE/d' ${HOME_PATH}/.config > /dev/null 2>&1
 	fi
 	
 	# lxc模式下编译.tar.gz固件
