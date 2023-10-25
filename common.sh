@@ -579,13 +579,13 @@ function modify_config() {
 	
 	# 缓存加速
 	if [[ "${ENABLE_CACHEWRTBUILD}" =~ (fast|Fast|FAST) ]]; then
-		__info_msg "快速缓存加速，如编译出错，请切换为普通加速，或关闭缓存加速"
+		__info_msg "快速缓存加速，如编译出错，请尝试删除缓存，或切换为普通加速，或关闭缓存加速"
 		sed -i '/CONFIG_DEVEL/d' ${HOME_PATH}/.config > /dev/null 2>&1
 		sed -i '/CONFIG_CCACHE/d' ${HOME_PATH}/.config > /dev/null 2>&1
 		sed -i '$a CONFIG_DEVEL=y' ${HOME_PATH}/.config > /dev/null 2>&1
 		sed -i '$a CONFIG_CCACHE=y' ${HOME_PATH}/.config > /dev/null 2>&1
 	elif [[ "${ENABLE_CACHEWRTBUILD}" =~ (true|True|TRUE|normal|Normal|NORMAL) ]]; then
-		__info_msg "普通缓存加速，如编译出错，请关闭缓存加速"
+		__info_msg "普通缓存加速，如编译出错，请尝试删除缓存，或关闭缓存加速"
 		sed -i '/CONFIG_DEVEL/d' ${HOME_PATH}/.config > /dev/null 2>&1
 		sed -i '/CONFIG_CCACHE/d' ${HOME_PATH}/.config > /dev/null 2>&1
 	else
@@ -1264,17 +1264,19 @@ function compile_info() {
 	else
 		__white_color "上传.config配置文件至Github Artifacts: 关闭"
 	fi
-	if [[ "${ENABLE_CACHEWRTBUILD}" =~ (fast|Fast|FAST) ]]; then
-		__blue_color "缓存加速：快速加速"
-	elif [[ "${ENABLE_CACHEWRTBUILD}" =~ (true|True|TRUE|normal|Normal|NORMAL) ]]; then
-		__blue_color "缓存加速：普通加速"
-	else
-		__white_color "缓存加速：关闭"
-	fi
 	if [[ "${NOTICE_TYPE}" =~ (TG|telegram|PUSH|pushplus|WX|WeChat) ]]; then
 		__blue_color "pushplus/Telegram通知: 开启"
 	else
 		__white_color "pushplus/Telegram通知: 关闭"
+	fi
+	if [[ "${ENABLE_CACHEWRTBUILD}" =~ (fast|Fast|FAST) ]]; then
+		__blue_color "缓存加速：快速加速"
+		__white_color "如编译出错，请尝试删除缓存，或切换为普通加速，或关闭缓存加速"
+	elif [[ "${ENABLE_CACHEWRTBUILD}" =~ (true|True|TRUE|normal|Normal|NORMAL) ]]; then
+		__blue_color "缓存加速：普通加速"
+		__white_color "如编译出错，请尝试删除缓存，或关闭缓存加速"
+	else
+		__white_color "缓存加速：关闭"
 	fi
 	echo
 	
