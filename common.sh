@@ -1264,6 +1264,13 @@ function compile_info() {
 	else
 		__white_color "上传.config配置文件至Github Artifacts: 关闭"
 	fi
+	if [[ "${ENABLE_CACHEWRTBUILD}" =~ (fast|Fast|FAST) ]]; then
+		__blue_color "缓存加速：快速加速"
+	elif [[ "${ENABLE_CACHEWRTBUILD}" =~ (true|True|TRUE|normal|Normal|NORMAL) ]]; then
+		__blue_color "缓存加速：普通加速"
+	else
+		__white_color "缓存加速：关闭"
+	fi
 	if [[ "${NOTICE_TYPE}" =~ (TG|telegram|PUSH|pushplus|WX|WeChat) ]]; then
 		__blue_color "pushplus/Telegram通知: 开启"
 	else
