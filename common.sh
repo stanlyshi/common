@@ -45,7 +45,7 @@ function parse_settings() {
 		[[ "${INPUTS_FIRMWARE_TYPE}" =~ (default|DEFAULT|Default) ]] && FIRMWARE_TYPE="${FIRMWARE_TYPE}" || FIRMWARE_TYPE="${INPUTS_FIRMWARE_TYPE}"
 		[[ "${INPUTS_BIOS_MODE}" =~ (default|DEFAULT|Default) ]] && BIOS_MODE="${BIOS_MODE}" || BIOS_MODE="${INPUTS_BIOS_MODE}"
 		[[ "${INPUTS_NOTICE_TYPE}" =~ (default|DEFAULT|Default) ]] && NOTICE_TYPE="${NOTICE_TYPE}" || NOTICE_TYPE="${INPUTS_NOTICE_TYPE}"
-  		[[ "${ENABLE_CACHEWRTBUILD}" =~ (default|DEFAULT|Default) ]] && ENABLE_CACHEWRTBUILD="${ENABLE_CACHEWRTBUILD}" || ENABLE_CACHEWRTBUILD="${INPUTS_ENABLE_CACHEWRTBUILD}"
+  		[[ "${ENABLE_CCACHE}" =~ (default|DEFAULT|Default) ]] && ENABLE_CCACHE="${ENABLE_CCACHE}" || ENABLE_CCACHE="${INPUTS_ENABLE_CCACHE}"
 
 		ENABLE_SSH="${INPUTS_ENABLE_SSH}"
 		UPLOAD_RELEASE="${INPUTS_UPLOAD_RELEASE}"
@@ -129,7 +129,7 @@ function parse_settings() {
 	echo UPLOAD_RELEASE="${UPLOAD_RELEASE}" >> ${GITHUB_ENV}
 	echo UPLOAD_FIRMWARE="${UPLOAD_FIRMWARE}" >> ${GITHUB_ENV}
 	echo UPLOAD_CONFIG="${UPLOAD_CONFIG}" >> ${GITHUB_ENV}
-	echo ENABLE_CACHEWRTBUILD="${ENABLE_CACHEWRTBUILD}" >> ${GITHUB_ENV}
+	echo ENABLE_CCACHE="${ENABLE_CCACHE}" >> ${GITHUB_ENV}
 	
 	# 基础设置
 	echo SOURCE="${SOURCE}" >> ${GITHUB_ENV}
@@ -578,13 +578,13 @@ function modify_config() {
 	make defconfig > /dev/null 2>&1
 	
 	# 缓存加速
-	if [[ "${ENABLE_CACHEWRTBUILD}" =~ (fast|Fast|FAST) ]]; then
+	if [[ "${ENABLE_CCACHE}" =~ (fast|Fast|FAST) ]]; then
 		__info_msg "快速缓存加速，如编译出错，请尝试删除缓存，或切换为普通加速，或关闭缓存加速"
 		sed -i '/CONFIG_DEVEL/d' ${HOME_PATH}/.config > /dev/null 2>&1
 		sed -i '/CONFIG_CCACHE/d' ${HOME_PATH}/.config > /dev/null 2>&1
 		sed -i '$a CONFIG_DEVEL=y' ${HOME_PATH}/.config > /dev/null 2>&1
 		sed -i '$a CONFIG_CCACHE=y' ${HOME_PATH}/.config > /dev/null 2>&1
-	elif [[ "${ENABLE_CACHEWRTBUILD}" =~ (true|True|TRUE|normal|Normal|NORMAL) ]]; then
+	elif [[ "${ENABLE_CCACHE}" =~ (true|True|TRUE|normal|Normal|NORMAL) ]]; then
 		__info_msg "普通缓存加速，如编译出错，请尝试删除缓存，或关闭缓存加速"
 		sed -i '/CONFIG_DEVEL/d' ${HOME_PATH}/.config > /dev/null 2>&1
 		sed -i '/CONFIG_CCACHE/d' ${HOME_PATH}/.config > /dev/null 2>&1
@@ -1269,10 +1269,10 @@ function compile_info() {
 	else
 		__white_color "pushplus/Telegram通知: 关闭"
 	fi
-	if [[ "${ENABLE_CACHEWRTBUILD}" =~ (fast|Fast|FAST) ]]; then
+	if [[ "${ENABLE_CCACHE}" =~ (fast|Fast|FAST) ]]; then
 		__blue_color "缓存加速：快速加速"
 		__white_color "如编译出错，请尝试删除缓存，或切换为普通加速，或关闭缓存加速"
-	elif [[ "${ENABLE_CACHEWRTBUILD}" =~ (true|True|TRUE|normal|Normal|NORMAL) ]]; then
+	elif [[ "${ENABLE_CCACHE}" =~ (true|True|TRUE|normal|Normal|NORMAL) ]]; then
 		__blue_color "缓存加速：普通加速"
 		__white_color "如编译出错，请尝试删除缓存，或关闭缓存加速"
 	else
@@ -1349,7 +1349,7 @@ function update_repo() {
 	cd ${repo_path}
 
 	# 更新settings.ini文件
-	local settings_array=(SOURCE_BRANCH CONFIG_FILE FIRMWARE_TYPE BIOS_MODE NOTICE_TYPE UPLOAD_RELEASE UPLOAD_FIRMWARE UPLOAD_CONFIG ENABLE_CACHEWRTBUILD)
+	local settings_array=(SOURCE_BRANCH CONFIG_FILE FIRMWARE_TYPE BIOS_MODE NOTICE_TYPE UPLOAD_RELEASE UPLOAD_FIRMWARE UPLOAD_CONFIG ENABLE_CCACHE)
 	for x in ${settings_array[*]}; do
 		local settings_key="$(grep -E "${x}=" ${SETTINGS_INI} |sed 's/^[ ]*//g' |grep -v '^#' | awk '{print $1}' | awk -F'=' '{print $1}')"
 		local settings_val="$(grep -E "${x}=" ${SETTINGS_INI} |sed 's/^[ ]*//g' |grep -v '^#' | awk '{print $1}' | awk -F'=' '{print $2}' | sed 's#"##g')"
