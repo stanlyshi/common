@@ -53,16 +53,16 @@ function parse_settings() {
 		UPLOAD_CONFIG="${INPUTS_UPLOAD_CONFIG}"
 	fi
 	
-	if [[ "${NOTICE_TYPE}" =~ 'false' ]]; then
+	if [[ ${NOTICE_TYPE} =~ (false|False|FALSE) ]]; then
 		NOTICE_TYPE="false"
-	elif [[ "${NOTICE_TYPE}" =~ (TG|telegram|Telegram|TELEGRAM) ]]; then
+	elif [[ ${NOTICE_TYPE} =~ (TG|telegram|Telegram|TELEGRAM) ]]; then
 		NOTICE_TYPE="TG"
-	elif [[ "${NOTICE_TYPE}" =~ (PUSH|pushplus|Pushplus|PUSHPLUS) ]]; then
+	elif [[ ${NOTICE_TYPE} =~ (PUSH|pushplus|Pushplus|PUSHPLUS) ]]; then
 		NOTICE_TYPE="PUSH"
-	elif [[ "${NOTICE_TYPE}" =~ (WX|wechat|Wechat|WeChat|WECHAT) ]]; then
+	elif [[ ${NOTICE_TYPE} =~ (WX|wechat|Wechat|WeChat|WECHAT) ]]; then
 		NOTICE_TYPE="WX"
 	fi
-
+	
 	if [[ ${PACKAGES_ADDR} =~ (default|DEFAULT|Default) ]]; then
 		PACKAGES_ADDR="roacn/openwrt-packages"
 	fi
