@@ -55,23 +55,12 @@ function parse_settings() {
 	
 	if [[ "${NOTICE_TYPE}" =~ 'false' ]]; then
 		NOTICE_TYPE="false"
-	elif [[ -n "$(echo "${NOTICE_TYPE}" |grep -i 'TG\|telegram')" ]]; then
-		if [[ -z ${TELEGRAM_CHAT_ID} || -z ${TELEGRAM_BOT_TOKEN} ]]; then
-			NOTICE_TYPE="false"
-		else
-			NOTICE_TYPE="TG"
-		fi	
-	elif [[ -n "$(echo "${NOTICE_TYPE}" |grep -i 'PUSH\|pushplus')" ]]; then
-		if [[ -z ${PUSH_PLUS_TOKEN} ]]; then
-			NOTICE_TYPE="false"
-		else
-			NOTICE_TYPE="TG"
-		fi
+	elif [[ "${NOTICE_TYPE}" =~ (TG|telegram|Telegram|TELEGRAM) ]]; then
+		NOTICE_TYPE="TG"
+	elif [[ "${NOTICE_TYPE}" =~ (PUSH|pushplus|Pushplus|PUSHPLUS) ]]; then
 		NOTICE_TYPE="PUSH"
-	elif [[ -n "$(echo "${NOTICE_TYPE}" |grep -i 'WX\|WeChat')" ]]; then
+	elif [[ "${NOTICE_TYPE}" =~ (WX|wechat|Wechat|WeChat|WECHAT) ]]; then
 		NOTICE_TYPE="WX"
-	else
-		NOTICE_TYPE="false"
 	fi
 
 	if [[ ${PACKAGES_ADDR} =~ (default|DEFAULT|Default) ]]; then
