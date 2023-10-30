@@ -81,28 +81,28 @@ function parse_settings() {
 		SOURCE="lede"
 		SOURCE_OWNER="Lean's"
 		LUCI_EDITION="18.06"
-		PACKAGE_BRANCH="Lede"
+		#PACKAGES_BRANCH="Lede"
 	;;
 	openwrt|Openwrt|OpenWrt|OpenWRT|OPENWRT|official|Official|OFFICIAL)
 		SOURCE_URL="https://github.com/openwrt/openwrt"
 		SOURCE="official"
 		SOURCE_OWNER="openwrt's"
 		LUCI_EDITION="$(echo ${SOURCE_BRANCH} |sed 's/openwrt-//g')"
-		PACKAGE_BRANCH="Official"
+		#PACKAGES_BRANCH="Official"
 	;;
 	lienol|Lienol|LIENOL)
 		SOURCE_URL="https://github.com/Lienol/openwrt"
 		SOURCE="lienol"
 		SOURCE_OWNER="Lienol's"
 		LUCI_EDITION="$(echo ${SOURCE_BRANCH})"
-		PACKAGE_BRANCH="Official"
+		#PACKAGES_BRANCH="Official"
 	;;
 	immortalwrt|Immortalwrt|IMMORTALWRT|mortal|immortal)
 		SOURCE_URL="https://github.com/immortalwrt/immortalwrt"
 		SOURCE="Immortalwrt"
 		SOURCE_OWNER="Immortalwrt's"
 		LUCI_EDITION="$(echo ${SOURCE_BRANCH} |sed 's/openwrt-//g')"
-		PACKAGE_BRANCH="Official"
+		#PACKAGES_BRANCH="Official"
 	;;
 	*)
 		__error_msg "不支持${SOURCE_ABBR}源码"
@@ -127,7 +127,7 @@ function parse_settings() {
 	echo SOURCE_URL="${SOURCE_URL}" >> ${GITHUB_ENV}
 	echo SOURCE_OWNER="${SOURCE_OWNER}" >> ${GITHUB_ENV}
 	echo LUCI_EDITION="${LUCI_EDITION}" >> ${GITHUB_ENV}
-	echo PACKAGE_BRANCH="${PACKAGE_BRANCH}" >> ${GITHUB_ENV}	
+	echo PACKAGES_BRANCH="${PACKAGES_BRANCH}" >> ${GITHUB_ENV}	
 	echo REPOSITORY="${GITHUB_REPOSITORY##*/}" >> ${GITHUB_ENV}
 	echo DIY_PART_SH="${DIY_PART_SH}" >> ${GITHUB_ENV}
 	echo BIOS_MODE="${BIOS_MODE}" >> ${GITHUB_ENV}
@@ -299,7 +299,7 @@ function update_feeds() {
 	# 添加插件源
 	__yellow_color "开始添加插件源..."
 	local packages_url="https://github.com/${PACKAGES_ADDR}.git"
-	local packages_branch="${PACKAGE_BRANCH}"
+	local packages_branch="${PACKAGES_BRANCH}"
 	local packages="pkg${GITHUB_ACTOR}"
 	__info_msg "源码：${SOURCE} 插件源：${packages_url} 插件源分支：${packages_branch} 文件夹：${packages}"
 	
