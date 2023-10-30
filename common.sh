@@ -59,18 +59,20 @@ function parse_settings() {
 		NOTICE_TYPE="TG"
 	elif [[ ${NOTICE_TYPE} =~ (PUSH|pushplus|Pushplus|PUSHPLUS) ]]; then
 		NOTICE_TYPE="PUSH"
-	elif [[ ${NOTICE_TYPE} =~ (WX|wechat|Wechat|WeChat|WECHAT) ]]; then
-		NOTICE_TYPE="WX"
+	else
+		NOTICE_TYPE="false"
 	fi
 	
 	if [[ ${PACKAGES_ADDR} =~ (default|DEFAULT|Default) ]]; then
 		PACKAGES_ADDR="roacn/openwrt-packages"
 	fi
-	if [[ ${ENABLE_PACKAGES_UPDATE} == "true" ]]; then
-		local package_repo_owner=`echo "${PACKAGES_ADDR}" | awk -F/ '{print $1}'` 2>/dev/null
-		if [[ ${package_repo_owner} != ${GITHUB_ACTOR} ]]; then
-			ENABLE_PACKAGES_UPDATE="false"
-		fi
+	
+	local package_repo_owner=`echo "${PACKAGES_ADDR}" | awk -F/ '{print $1}'` 2>/dev/null
+	if [[ ${package_repo_owner} == ${GITHUB_ACTOR} ]]; then
+		ENABLE_PACKAGES_UPDATE="true"
+		update_packages
+	else
+		ENABLE_PACKAGES_UPDATE="false"
 	fi
 	
 	case "${SOURCE_ABBR}" in
@@ -241,10 +243,10 @@ function update_packages() {
 	local now_timestamp=$(date -d "$now_hms" +%s)
 	echo "time now timestamp: ${now_timestamp}, time: ${now_hms}"
 	if [[ $(($gitdate_timestamp+1800)) < $now_timestamp ]]; then
-	curl -X POST https://api.github.com/repos/${PACKAGES_ADDR}/dispatches \
-	-H "Accept: application/vnd.github.everest-preview+json" \
-	-H "Authorization: token ${REPO_TOKEN}" \
-	--data "{\"event_type\": \"updated by ${REPOSITORY}\"}"
+		curl -X POST https://api.github.com/repos/${PACKAGES_ADDR}/dispatches \
+		-H "Accept: application/vnd.github.everest-preview+json" \
+		-H "Authorization: token ${REPO_TOKEN}" \
+		--data "{\"event_type\": \"updated by ${GITHUB_REPOSITORY##*/}\"}"
 	fi
 	__info_msg "packages url: https://github.com/${PACKAGES_ADDR}"
 }
@@ -389,9 +391,9 @@ function diy_public() {
 	# openwrt.sh
 	#[[ ! -d "${FILES_PATH}/usr/bin" ]] && mkdir -p ${FILES_PATH}/usr/bin
 	#if [[ "${FIRMWARE_TYPE}" == "lxc" ]]; then
-	#	cp -rf ${COMMON_PATH}/custom/openwrt.lxc.sh ${FILES_PATH}/usr/bin/openwrt && sudo chmod +x ${FILES_PATH}/usr/bin/openwrt
+	#	wget https://ghproxy.com/https://raw.githubusercontent.com/stanlyshi/pve/main/openwrt.lxc.sh -O /usr/bin/openwrt ${FILES_PATH}/usr/bin/openwrt && sudo chmod +x ${FILES_PATH}/usr/bin/openwrt
 	#else
-	#	cp -rf ${COMMON_PATH}/custom/openwrt.sh ${FILES_PATH}/usr/bin/openwrt && sudo chmod +x ${FILES_PATH}/usr/bin/openwrt
+	#	wget https://raw.githubusercontent.com/stanlyshi/luci-app-autoupdate/main/root/usr/bin/autoupdate -O  ${FILES_PATH}/usr/bin/openwrt && sudo chmod +x ${FILES_PATH}/usr/bin/openwrt
 	#fi
 	
 	__yellow_color "开始设置自动更新插件..."
@@ -737,17 +739,6 @@ function modify_config() {
 		sed -i 's/CONFIG_PACKAGE_luci-app-autoupdate=y/# CONFIG_PACKAGE_luci-app-autoupdate is not set/g' ${HOME_PATH}/.config
 		sed -i '/CONFIG_TARGET_ROOTFS_TARGZ/d' ${HOME_PATH}/.config
 		sed -i '$a CONFIG_TARGET_ROOTFS_TARGZ=y' ${HOME_PATH}/.config
-	fi
-		
-	if [[ `grep -c "CONFIG_TARGET_ROOTFS_EXT4FS=y" ${HOME_PATH}/.config` -eq '1' ]]; then	
-		local partsize="$(grep -Eo "CONFIG_TARGET_ROOTFS_PARTSIZE=[0-9]+" ${HOME_PATH}/.config |cut -f2 -d=)"
-		if [[ "${partsize}" -lt "800" ]];then
-			sed -i '/CONFIG_TARGET_ROOTFS_PARTSIZE/d' ${HOME_PATH}/.config
-			sed -i '$a CONFIG_TARGET_ROOTFS_PARTSIZE=800' ${HOME_PATH}/.config
-			echo "__error_msg \"EXT4提示：请注意，您选择了ext4安装的固件格式,而检测到您的分配的固件系统分区过小\"" >> ${CONFFLICTIONS}
-			echo "__error_msg \"为避免编译出错,已自动帮您修改成950M\"" >> ${CONFFLICTIONS}
-			echo "" >> ${CONFFLICTIONS}
-		fi
 	fi
 	
 	if [[ `grep -c "CONFIG_PACKAGE_luci-app-adblock=y" ${HOME_PATH}/.config` -eq '1' ]]; then
