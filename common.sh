@@ -63,11 +63,7 @@ function parse_settings() {
 		NOTICE_TYPE="false"
 	fi
 	
-	if [[ ${PACKAGES_ADDR} =~ (default|DEFAULT|Default) ]]; then
-		PACKAGES_ADDR="roacn/openwrt-packages"
-	fi
-	
-	local package_repo_owner=`echo "${PACKAGES_ADDR}" | awk -F/ '{print $1}'` 2>/dev/null
+	local package_repo_owner=`echo "${PACKAGES_REPO}" | awk -F/ '{print $1}'` 2>/dev/null
 	if [[ ${package_repo_owner} == ${GITHUB_ACTOR} ]]; then
 		ENABLE_PACKAGES_UPDATE="true"
 		update_packages
@@ -131,7 +127,7 @@ function parse_settings() {
 	echo REPOSITORY="${GITHUB_REPOSITORY##*/}" >> ${GITHUB_ENV}
 	echo DIY_PART_SH="${DIY_PART_SH}" >> ${GITHUB_ENV}
 	echo BIOS_MODE="${BIOS_MODE}" >> ${GITHUB_ENV}
-	echo PACKAGES_ADDR="${PACKAGES_ADDR}" >> ${GITHUB_ENV}
+	echo PACKAGES_REPO="${PACKAGES_REPO}" >> ${GITHUB_ENV}
 	echo ENABLE_PACKAGES_UPDATE="${ENABLE_PACKAGES_UPDATE}" >> ${GITHUB_ENV}
 	echo ENABLE_REPO_UPDATE="false" >> ${GITHUB_ENV}
 	echo GITHUB_API="zzz_api" >> ${GITHUB_ENV}
@@ -235,7 +231,7 @@ function git_clone_source() {
 # 插件源仓库更新
 ################################################################################################################
 function update_packages() {
-	local gitdate=$(curl -H "Authorization: token ${REPO_TOKEN}" -s "https://api.github.com/repos/${PACKAGES_ADDR}/actions/runs" | jq -r '.workflow_runs[0].created_at')
+	local gitdate=$(curl -H "Authorization: token ${REPO_TOKEN}" -s "https://api.github.com/repos/${PACKAGES_REPO}/actions/runs" | jq -r '.workflow_runs[0].created_at')
 	local gitdate_timestamp=$(date -d "$gitdate" +%s)
 	local gitdate_hms="$(date -d "$gitdate" '+%Y-%m-%d %H:%M:%S')"
 	echo "github latest merge upstream timestamp: ${gitdate_timestamp}, time: ${gitdate_hms}"
@@ -243,12 +239,12 @@ function update_packages() {
 	local now_timestamp=$(date -d "$now_hms" +%s)
 	echo "time now timestamp: ${now_timestamp}, time: ${now_hms}"
 	if [[ $(($gitdate_timestamp+1800)) < $now_timestamp ]]; then
-		curl -X POST https://api.github.com/repos/${PACKAGES_ADDR}/dispatches \
+		curl -X POST https://api.github.com/repos/${PACKAGES_REPO}/dispatches \
 		-H "Accept: application/vnd.github.everest-preview+json" \
 		-H "Authorization: token ${REPO_TOKEN}" \
 		--data "{\"event_type\": \"updated by ${GITHUB_REPOSITORY##*/}\"}"
 	fi
-	__info_msg "packages url: https://github.com/${PACKAGES_ADDR}"
+	__info_msg "packages url: https://github.com/${PACKAGES_REPO}"
 }
 
 ################################################################################################################
@@ -298,7 +294,7 @@ function update_feeds() {
 	
 	# 添加插件源
 	__yellow_color "开始添加插件源..."
-	local packages_url="https://github.com/${PACKAGES_ADDR}.git"
+	local packages_url="https://github.com/${PACKAGES_REPO}.git"
 	local packages_branch="${PACKAGES_BRANCH}"
 	local packages="pkg${GITHUB_ACTOR}"
 	__info_msg "源码：${SOURCE} 插件源：${packages_url} 插件源分支：${packages_branch} 文件夹：${packages}"
@@ -309,9 +305,15 @@ function update_feeds() {
 	#sed -i "1i src-git ${packages} ${packages_url};${packages_branch}" "feeds.conf.default"
 	
 	# 当插件源添加至 feeds.conf.default 结尾时，重复插件，先删除相应文件，操作完毕后，再一次运行./scripts/feeds update -a，即可更新对应的.index与target.index文件
-	cat >> "feeds.conf.default" <<-EOF
-	src-git ${packages} ${packages_url};${packages_branch}
-	EOF
+	if [[ -z "${packages_branch}" ]]; then
+		cat >> "feeds.conf.default" <<-EOF
+		src-git ${packages} ${packages_url}
+		EOF
+	else
+		cat >> "feeds.conf.default" <<-EOF
+		src-git ${packages} ${packages_url};${packages_branch}
+		EOF
+	fi
 	
 	# 更新插件源
 	__yellow_color "开始更新插件源..."
