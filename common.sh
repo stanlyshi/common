@@ -157,6 +157,7 @@ function parse_settings() {
 	echo FILES_TO_CLEAR="${HOME_PATH}/default_clear" >> ${GITHUB_ENV}
 	echo CONFFLICTIONS="${HOME_PATH}/confflictions" >> ${GITHUB_ENV}
 	
+	# 源码files文件夹
 	# https://github.com/coolsnowwolf/lede/tree/master/package/base-files/files
 	echo FILES_PATH="${HOME_PATH}/package/base-files/files" >> ${GITHUB_ENV}
 	echo FILE_DEFAULT_UCI="${HOME_PATH}/package/base-files/files/etc/default_uci" >> ${GITHUB_ENV}
@@ -219,7 +220,6 @@ function git_clone_source() {
 	# 将build等文件夹复制到openwrt文件夹下
 	cd ${GITHUB_WORKSPACE}
 	cp -rf $(find ./ -maxdepth 1 -type d ! -path './openwrt' ! -path './') ${HOME_PATH}/
-	#rm -rf ${HOME_PATH}/build/ && cp -rf ${GITHUB_WORKSPACE}/build/ ${HOME_PATH}/build/
 	
 	# 下载common仓库
 	sudo rm -rf ${COMMON_PATH} && git clone -b main --depth 1 https://github.com/stanlyshi/common ${COMMON_PATH}
@@ -605,16 +605,16 @@ function modify_config() {
 		__info_msg "官方源码，已经设置为支持https连接"
 	fi
 	
-	# 官方源码：'状态'、'系统'等主菜单，在默认情况下是未选中状态，进行修正
+	# 官方源码：'状态'、'网络'、'系统'等主菜单，在默认情况下是未选中状态，进行修正
 	if [[ "${SOURCE}" =~ (openwrt|Openwrt|OpenWrt|OpenWRT|OPENWRT|official|Official|OFFICIAL) ]]; then
 		sed -i '/CONFIG_PACKAGE_luci-mod-admin-full/d' ${HOME_PATH}/.config
-		sed -i '/CONFIG_PACKAGE_luci-mod-dsl/d' ${HOME_PATH}/.config
+		#sed -i '/CONFIG_PACKAGE_luci-mod-dsl/d' ${HOME_PATH}/.config
 		sed -i '/CONFIG_PACKAGE_luci-mod-network/d' ${HOME_PATH}/.config
 		sed -i '/CONFIG_PACKAGE_luci-mod-status/d' ${HOME_PATH}/.config
 		sed -i '/CONFIG_PACKAGE_luci-mod-system/d' ${HOME_PATH}/.config
 		
 		sed -i '$a CONFIG_PACKAGE_luci-mod-admin-full=y' ${HOME_PATH}/.config
-		sed -i '$a CONFIG_PACKAGE_luci-mod-dsl=y' ${HOME_PATH}/.config
+		#sed -i '$a CONFIG_PACKAGE_luci-mod-dsl=y' ${HOME_PATH}/.config
 		sed -i '$a CONFIG_PACKAGE_luci-mod-network=y' ${HOME_PATH}/.config
 		sed -i '$a CONFIG_PACKAGE_luci-mod-status=y' ${HOME_PATH}/.config
 		sed -i '$a CONFIG_PACKAGE_luci-mod-system=y' ${HOME_PATH}/.config
