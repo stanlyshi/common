@@ -1156,7 +1156,7 @@ function firmware_settings() {
 function make_defconfig() {
 	cd ${HOME_PATH}
 	echo "files under ${HOME_PATH}:"
-	tree -L 2
+	tree -C -L 2 --dirsfirst
 	
 	# 生成.config文件
 	make defconfig > /dev/null
