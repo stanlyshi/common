@@ -741,11 +741,11 @@ function modify_config() {
 	fi
 	
 	if [[ `grep -c "CONFIG_PACKAGE_luci-app-dockerman=y" ${HOME_PATH}/.config` -eq '0' ]]; then
-		if [[ `grep -c "CONFIG_PACKAGE_luci-app-docker=y" ${HOME_PATH}/.config` -eq '0' ]]; then	
-			sed -Ei 's/.*(CONFIG_PACKAGE_luci-lib-docker).*/# \1 is not set/g' ${HOME_PATH}/.config
-			sed -Ei 's/.*(CONFIG_PACKAGE_luci-i18n-dockerman-zh-cn).*/# \1 is not set/g' ${HOME_PATH}/.config
-			sed -Ei 's/.*(CONFIG_PACKAGE_docker).*/# \1 is not set/g' ${HOME_PATH}/.config
-			sed -Ei 's/.*(CONFIG_PACKAGE_dockerd).*/# \1 is not set/g' ${HOME_PATH}/.config
+		if [[ `grep -c "CONFIG_PACKAGE_luci-app-docker=y" ${HOME_PATH}/.config` -eq '0' ]]; then
+			sed -i 's/CONFIG_PACKAGE_luci-lib-docker=y/# CONFIG_PACKAGE_luci-lib-docker is not set/g' ${HOME_PATH}/.config
+			sed -i 's/CONFIG_PACKAGE_luci-i18n-dockerman-zh-cn=y/# CONFIG_PACKAGE_luci-i18n-dockerman-zh-cn is not set/g' ${HOME_PATH}/.config
+			sed -i 's/CONFIG_PACKAGE_docker=y/# CONFIG_PACKAGE_docker is not set/g' ${HOME_PATH}/.config
+			sed -i 's/CONFIG_PACKAGE_dockerd=y/# CONFIG_PACKAGE_dockerd is not set/g' ${HOME_PATH}/.config
 		fi
 	fi
 	
