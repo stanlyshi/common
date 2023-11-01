@@ -584,8 +584,7 @@ function modify_config() {
 	
 	# lxc模式下编译.tar.gz固件
 	if [[ "${FIRMWARE_TYPE}" == "lxc" ]]; then
-		sed -i '/CONFIG_TARGET_ROOTFS_TARGZ/d' ${HOME_PATH}/.config > /dev/null 2>&1
-		sed -i '$a CONFIG_TARGET_ROOTFS_TARGZ=y' ${HOME_PATH}/.config > /dev/null 2>&1
+		sed -Ei 's/.*(CONFIG_TARGET_ROOTFS_TARGZ).*/\1=y/g' ${HOME_PATH}/.config
 		__info_msg "lxc固件，添加对openwrt-generic-rootfs.tar.gz文件编译"
 	fi
 	
@@ -593,26 +592,20 @@ function modify_config() {
 	# CONFIG_PACKAGE_ca-bundle=y 默认已经选择
 	# liubustream-mbedtls、liubustream-openssl、libustream-wolfssl，三者在后面设置
 	if [[ "${SOURCE}" =~ (openwrt|Openwrt|OpenWrt|OpenWRT|OPENWRT|official|Official|OFFICIAL) ]]; then
-		sed -i '/CONFIG_PACKAGE_ca-certificates/d' ${HOME_PATH}/.config
-		sed -i '$a CONFIG_PACKAGE_ca-certificates=y' ${HOME_PATH}/.config
-		sed -i '/CONFIG_PACKAGE_libustream-openssl/d' ${HOME_PATH}/.config
-		sed -i '$a CONFIG_PACKAGE_libustream-openssl=y' ${HOME_PATH}/.config
+		sed -Ei 's/.*(CONFIG_PACKAGE_ca-certificates).*/\1=y/g' ${HOME_PATH}/.config
+		sed -Ei 's/.*(CONFIG_PACKAGE_libustream-openssl).*/\1=y/g' ${HOME_PATH}/.config
+		sed -Ei 's/.*(CONFIG_PACKAGE_libustream-mbedtls).*/# \1 is not set/g' ${HOME_PATH}/.config
+		sed -Ei 's/.*(CONFIG_PACKAGE_libustream-wolfssl).*/# \1 is not set/g' ${HOME_PATH}/.config
 		__info_msg "官方源码，已经设置为支持https连接"
 	fi
 	
 	# 官方源码：'状态'、'网络'、'系统'等主菜单，在默认情况下是未选中状态，进行修正
 	if [[ "${SOURCE}" =~ (openwrt|Openwrt|OpenWrt|OpenWRT|OPENWRT|official|Official|OFFICIAL) ]]; then
-		sed -i '/CONFIG_PACKAGE_luci-mod-admin-full/d' ${HOME_PATH}/.config
-		#sed -i '/CONFIG_PACKAGE_luci-mod-dsl/d' ${HOME_PATH}/.config
-		sed -i '/CONFIG_PACKAGE_luci-mod-network/d' ${HOME_PATH}/.config
-		sed -i '/CONFIG_PACKAGE_luci-mod-status/d' ${HOME_PATH}/.config
-		sed -i '/CONFIG_PACKAGE_luci-mod-system/d' ${HOME_PATH}/.config
-		
-		sed -i '$a CONFIG_PACKAGE_luci-mod-admin-full=y' ${HOME_PATH}/.config
-		#sed -i '$a CONFIG_PACKAGE_luci-mod-dsl=y' ${HOME_PATH}/.config
-		sed -i '$a CONFIG_PACKAGE_luci-mod-network=y' ${HOME_PATH}/.config
-		sed -i '$a CONFIG_PACKAGE_luci-mod-status=y' ${HOME_PATH}/.config
-		sed -i '$a CONFIG_PACKAGE_luci-mod-system=y' ${HOME_PATH}/.config
+		sed -Ei 's/.*(CONFIG_PACKAGE_luci-mod-admin-full).*/\1=y/g' ${HOME_PATH}/.config
+		#sed -Ei 's/.*(CONFIG_PACKAGE_luci-mod-dsl).*/\1=y/g' ${HOME_PATH}/.config
+		sed -Ei 's/.*(CONFIG_PACKAGE_luci-mod-network).*/\1=y/g' ${HOME_PATH}/.config
+		sed -Ei 's/.*(CONFIG_PACKAGE_luci-mod-status).*/\1=y/g' ${HOME_PATH}/.config
+		sed -Ei 's/.*(CONFIG_PACKAGE_luci-mod-system).*/\1=y/g' ${HOME_PATH}/.config
 		__info_msg "官方源码，'状态'、'系统'等主菜单检测设置"
 	fi
 	
@@ -634,58 +627,42 @@ function modify_config() {
 		# 插件
 		# LuCI->Applications  ->  [ ] luci-app-cshark(依赖Network->cshark,cshark依赖libustream-mbedtls)
 		
-		sed -i '/CONFIG_PACKAGE_libustream-wolfssl/d' ${HOME_PATH}/.config
-		sed -i '/CONFIG_PACKAGE_libustream-mbedtls/d' ${HOME_PATH}/.config
-		sed -i '/CONFIG_PACKAGE_libustream-openssl/d' ${HOME_PATH}/.config
+		sed -Ei 's/.*(CONFIG_PACKAGE_libustream-wolfssl).*/\1=y/g' ${HOME_PATH}/.config
+		sed -Ei 's/.*(CONFIG_PACKAGE_libustream-mbedtls).*/# \1 is not set/g' ${HOME_PATH}/.config
+		sed -Ei 's/.*(CONFIG_PACKAGE_libustream-openssl).*/# \1 is not set/g' ${HOME_PATH}/.config
 		sed -i '/CONFIG_PACKAGE_luci-ssl-openssl=y/d' ${HOME_PATH}/.config
 		sed -i '/CONFIG_PACKAGE_luci-ssl=y/d' ${HOME_PATH}/.config
 		sed -i '/CONFIG_PACKAGE_luci-app-cshark=y/d' ${HOME_PATH}/.config
-		
-		sed -i '$a CONFIG_PACKAGE_libustream-wolfssl=y' ${HOME_PATH}/.config
-		sed -i '$a # CONFIG_PACKAGE_libustream-mbedtls is not set' ${HOME_PATH}/.config
-		sed -i '$a # CONFIG_PACKAGE_libustream-openssl is not set' ${HOME_PATH}/.config
 		#sed -i '$a # CONFIG_PACKAGE_luci-ssl-openssl is not set' ${HOME_PATH}/.config
 		#sed -i '$a # CONFIG_PACKAGE_luci-ssl is not set' ${HOME_PATH}/.config
-		#sed -i '$a # CONFIG_PACKAGE_luci-app-cshark is not set' ${HOME_PATH}/.config	
+		#sed -i '$a # CONFIG_PACKAGE_luci-app-cshark is not set' ${HOME_PATH}/.config
 		
 		if [[ `grep -c "CONFIG_PACKAGE_cache-domains-mbedtls=y" ${HOME_PATH}/.config` -ge '1' ]] || [[ `grep -c "CONFIG_PACKAGE_cache-domains-openssl=y" ${HOME_PATH}/.config` -ge '1' ]]; then
-			sed -i '/CONFIG_PACKAGE_cache-domains-mbedtls/d' ${HOME_PATH}/.config
-			sed -i '/CONFIG_PACKAGE_cache-domains-openssl/d' ${HOME_PATH}/.config
-			sed -i '/CONFIG_PACKAGE_cache-domains-wolfssl/d' ${HOME_PATH}/.config
-			sed -i '$a CONFIG_PACKAGE_cache-domains-wolfssl=y' ${HOME_PATH}/.config
-			#sed -i '$a # CONFIG_PACKAGE_cache-domains-mbedtls is not set' ${HOME_PATH}/.config
-			#sed -i '$a # CONFIG_PACKAGE_cache-domains-openssl is not set' ${HOME_PATH}/.config
+			sed -Ei 's/.*(CONFIG_PACKAGE_cache-domains-wolfssl).*/\1=y/g' ${HOME_PATH}/.config
+			sed -Ei 's/.*(CONFIG_PACKAGE_cache-domains-mbedtls).*/# \1 is not set/g' ${HOME_PATH}/.config
+			sed -Ei 's/.*(CONFIG_PACKAGE_cache-domains-openssl).*/# \1 is not set/g' ${HOME_PATH}/.config
 			echo "__error_msg \"lxc固件下，您选择cache-domains-mbedtls或cache-domains-openssl，与cache-domains-wolfssl库有冲突，替换为cache-domains-wolfssl\"" >> ${CONFFLICTIONS}
 			echo "" >> ${CONFFLICTIONS}
 		fi
 	else
-		# 非lede源码lxc模式的其它固件：openwrt的所有固件、lede普通固件
-		# 强制使用openssl
-		#sed -i '/CONFIG_PACKAGE_libustream-mbedtls/d' ${HOME_PATH}/.config
-		#sed -i '/CONFIG_PACKAGE_libustream-openssl/d' ${HOME_PATH}/.config
-		#sed -i '/CONFIG_PACKAGE_libustream-wolfssl/d' ${HOME_PATH}/.config
-		#sed -i '$a CONFIG_PACKAGE_libustream-openssl=y' ${HOME_PATH}/.config
-		
+		# 非lede源码lxc模式的其它固件：openwrt的所有固件、lede普通固件		
 		# 非强制使用openssl，由.config决定，只解决冲突
 		if [[ `grep -c "CONFIG_PACKAGE_libustream-openssl=y" ${HOME_PATH}/.config` -ge '1' ]]; then
 			if [[ `grep -c "CONFIG_PACKAGE_libustream-mbedtls=y" ${HOME_PATH}/.config` -ge '1' ]]; then
-				sed -i '/CONFIG_PACKAGE_libustream-mbedtls/d' ${HOME_PATH}/.config
-				sed -i '$a # CONFIG_PACKAGE_libustream-mbedtls is not set' ${HOME_PATH}/.config
+				sed -Ei 's/.*(CONFIG_PACKAGE_libustream-mbedtls).*/# \1 is not set/g' ${HOME_PATH}/.config
 				echo "__error_msg \"您同时选择libustream-mbedtls和libustream-openssl，库有冲突，只能二选一，已删除libustream-mbedtls库\"" >> ${CONFFLICTIONS}
 				echo "" >> ${CONFFLICTIONS}
 			fi
 			# libustream-wolfssl可能处于=y或=m状态
 			if [[ `grep -c "CONFIG_PACKAGE_libustream-wolfssl=y" ${HOME_PATH}/.config` -ge '1' ]] || [[ `grep -c "CONFIG_PACKAGE_libustream-wolfssl=m" ${HOME_PATH}/.config` -ge '1' ]]; then
-				sed -i '/CONFIG_PACKAGE_libustream-wolfssl/d' ${HOME_PATH}/.config
-				sed -i '$a # CONFIG_PACKAGE_libustream-wolfssl is not set' ${HOME_PATH}/.config
+				sed -Ei 's/.*(CONFIG_PACKAGE_libustream-wolfssl).*/# \1 is not set/g' ${HOME_PATH}/.config
 				echo "__error_msg \"您同时选择libustream-wolfssl和libustream-openssl，库有冲突，只能二选一，已删除libustream-wolfssl库\"" >> ${CONFFLICTIONS}
 				echo "" >> ${CONFFLICTIONS}
 			fi
 			# luci-ssl(依赖于旧的libustream-mbedtls)，替换为luci-ssl-openssl(依赖于libustream-openssl)
 			if [[ `grep -c "CONFIG_PACKAGE_luci-ssl=y" ${HOME_PATH}/.config` -ge '1' ]]; then
 				sed -i 's/CONFIG_PACKAGE_luci-ssl=y/# CONFIG_PACKAGE_luci-ssl is not set/g' ${HOME_PATH}/.config
-				sed -i '/CONFIG_PACKAGE_luci-ssl-openssl=y/d' ${HOME_PATH}/.config
-				sed -i '$a CONFIG_PACKAGE_luci-ssl-openssl=y' ${HOME_PATH}/.config
+				sed -Ei 's/.*(CONFIG_PACKAGE_luci-ssl-openssl).*/\1=y/g' ${HOME_PATH}/.config
 				echo "__error_msg \"您选择luci-ssl(依赖于旧的libustream-mbedtls)，与libustream-openssl库有冲突，替换为luci-ssl-openssl(依赖于libustream-openssl)\"" >> ${CONFFLICTIONS}
 				echo "" >> ${CONFFLICTIONS}
 			fi
@@ -693,9 +670,8 @@ function modify_config() {
 			# 替换为cache-domains-openssl（依赖于libustream-openssl）
 			if [[ `grep -c "CONFIG_PACKAGE_cache-domains-mbedtls=y" ${HOME_PATH}/.config` -ge '1' ]] || [[ `grep -c "CONFIG_PACKAGE_cache-domains-wolfssl=y" ${HOME_PATH}/.config` -ge '1' ]]; then
 				sed -i '/CONFIG_PACKAGE_cache-domains-mbedtls/d' ${HOME_PATH}/.config
-				sed -i '/CONFIG_PACKAGE_cache-domains-openssl/d' ${HOME_PATH}/.config
 				sed -i '/CONFIG_PACKAGE_cache-domains-wolfssl/d' ${HOME_PATH}/.config
-				sed -i '$a CONFIG_PACKAGE_cache-domains-openssl=y' ${HOME_PATH}/.config
+				sed -Ei 's/.*(CONFIG_PACKAGE_cache-domains-openssl).*/\1=y/g' ${HOME_PATH}/.config
 				echo "__error_msg \"您选择cache-domains-mbedtls或cache-domains-wolfssl，与cache-domains-openssl库有冲突，替换为cache-domains-openssl\"" >> ${CONFFLICTIONS}
 				echo "" >> ${CONFFLICTIONS}
 			fi
@@ -703,12 +679,9 @@ function modify_config() {
 	fi
 	
 	if [[ `grep -c "CONFIG_TARGET_x86=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_rockchip=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_bcm27xx=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-		#sed -i '/CONFIG_TARGET_IMAGES_GZIP/d' ${HOME_PATH}/.config
-		#sed -i '$a CONFIG_TARGET_IMAGES_GZIP=y' ${HOME_PATH}/.config
-		#sed -i '/CONFIG_PACKAGE_snmpd/d' ${HOME_PATH}/.config
-		#sed -i '$a CONFIG_PACKAGE_snmpd=y' ${HOME_PATH}/.config
-		sed -i '/CONFIG_PACKAGE_openssh-sftp-server/d' ${HOME_PATH}/.config
-		sed -i '$a CONFIG_PACKAGE_openssh-sftp-server=y' ${HOME_PATH}/.config
+		#sed -Ei 's/.*(CONFIG_TARGET_IMAGES_GZIP).*/\1=y/g' ${HOME_PATH}/.config
+		#sed -Ei 's/.*(CONFIG_PACKAGE_snmpd).*/\1=y/g' ${HOME_PATH}/.config
+		sed -Ei 's/.*(CONFIG_PACKAGE_openssh-sftp-server).*/\1=y/g' ${HOME_PATH}/.config
 		if [[ `grep -c "CONFIG_TARGET_ROOTFS_PARTSIZE=" ${HOME_PATH}/.config` -eq '1' ]]; then
 			local partsize="$(grep -Eo "CONFIG_TARGET_ROOTFS_PARTSIZE=[0-9]+" ${HOME_PATH}/.config |cut -f2 -d=)"
 			if [[ "${partsize}" -lt "400" ]];then
@@ -719,10 +692,8 @@ function modify_config() {
 	fi
 	
 	if [[ `grep -c "CONFIG_TARGET_mxs=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_sunxi=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_zynq=y" ${HOME_PATH}/.config` -eq '1' ]]; then	
-		#sed -i '/CONFIG_TARGET_IMAGES_GZIP/d' ${HOME_PATH}/.config
-		#sed -i '$a CONFIG_TARGET_IMAGES_GZIP=y' ${HOME_PATH}/.config
-		sed -i '/CONFIG_PACKAGE_openssh-sftp-server/d' ${HOME_PATH}/.config
-		sed -i '$a CONFIG_PACKAGE_openssh-sftp-server=y' ${HOME_PATH}/.config
+		#sed -Ei 's/.*(CONFIG_TARGET_IMAGES_GZIP).*/\1=y/g' ${HOME_PATH}/.config
+		sed -Ei 's/.*(CONFIG_PACKAGE_openssh-sftp-server).*/\1=y/g' ${HOME_PATH}/.config
 		if [[ `grep -c "CONFIG_TARGET_ROOTFS_PARTSIZE=" ${HOME_PATH}/.config` -eq '1' ]]; then
 			local partsize="$(grep -Eo "CONFIG_TARGET_ROOTFS_PARTSIZE=[0-9]+" ${HOME_PATH}/.config |cut -f2 -d=)"
 			if [[ "${partsize}" -lt "400" ]];then
@@ -733,9 +704,8 @@ function modify_config() {
 	fi
 	
 	if [[ `grep -c "CONFIG_TARGET_armvirt=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_armsr=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-		sed -i 's/CONFIG_PACKAGE_luci-app-autoupdate=y/# CONFIG_PACKAGE_luci-app-autoupdate is not set/g' ${HOME_PATH}/.config
-		sed -i '/CONFIG_TARGET_ROOTFS_TARGZ/d' ${HOME_PATH}/.config
-		sed -i '$a CONFIG_TARGET_ROOTFS_TARGZ=y' ${HOME_PATH}/.config
+		sed -Ei 's/.*(CONFIG_PACKAGE_luci-app-autoupdate).*/# \1 is not set/g' ${HOME_PATH}/.config
+		sed -Ei 's/.*(CONFIG_TARGET_ROOTFS_TARGZ).*/\1=y/g' ${HOME_PATH}/.config
 	fi
 	
 	if [[ `grep -c "CONFIG_PACKAGE_luci-app-adblock=y" ${HOME_PATH}/.config` -eq '1' ]]; then
@@ -756,8 +726,9 @@ function modify_config() {
 		fi
 	fi
 	
-	if [[ `grep -c "CONFIG_PACKAGE_luci-app-docker=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-		if [[ `grep -c "CONFIG_PACKAGE_luci-app-dockerman=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+	if [[ `grep -c "CONFIG_PACKAGE_luci-app-dockerman=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		sed -Ei 's/.*(CONFIG_PACKAGE_luci-i18n-dockerman-zh-cn).*/\1=y/g' ${HOME_PATH}/.config
+		if [[ `grep -c "CONFIG_PACKAGE_luci-app-docker=y" ${HOME_PATH}/.config` -eq '1' ]]; then
 			sed -i 's/CONFIG_PACKAGE_luci-app-docker=y/# CONFIG_PACKAGE_luci-app-docker is not set/g' ${HOME_PATH}/.config
 			sed -i 's/CONFIG_PACKAGE_luci-i18n-docker-zh-cn=y/# CONFIG_PACKAGE_luci-i18n-docker-zh-cn is not set/g' ${HOME_PATH}/.config
 			echo "__error_msg \"您同时选择luci-app-docker和luci-app-dockerman，插件有冲突，相同功能插件只能二选一，已删除luci-app-docker\"" >> ${CONFFLICTIONS}
@@ -765,18 +736,13 @@ function modify_config() {
 		fi
 	fi
 	
-	if [[ `grep -c "CONFIG_PACKAGE_luci-app-dockerman=y" ${HOME_PATH}/.config` -eq '0' ]] && [[ `grep -c "CONFIG_PACKAGE_luci-app-docker=y" ${HOME_PATH}/.config` -eq '0' ]]; then
-		sed -i '/CONFIG_PACKAGE_luci-lib-docker/d' ${HOME_PATH}/.config
-		sed -i '/CONFIG_PACKAGE_luci-i18n-dockerman-zh-cn/d' ${HOME_PATH}/.config
-		sed -i '/CONFIG_PACKAGE_docker/d' ${HOME_PATH}/.config
-		sed -i '/CONFIG_PACKAGE_dockerd/d' ${HOME_PATH}/.config
-		sed -i '/CONFIG_PACKAGE_runc/d' ${HOME_PATH}/.config
-		
-		sed -i '$a # CONFIG_PACKAGE_luci-lib-docker is not set' ${HOME_PATH}/.config
-		sed -i '$a # CONFIG_PACKAGE_luci-i18n-dockerman-zh-cn is not set' ${HOME_PATH}/.config
-		sed -i '$a # CONFIG_PACKAGE_docker is not set' ${HOME_PATH}/.config
-		sed -i '$a # CONFIG_PACKAGE_dockerd is not set' ${HOME_PATH}/.config
-		sed -i '$a # CONFIG_PACKAGE_runc is not set' ${HOME_PATH}/.config
+	if [[ `grep -c "CONFIG_PACKAGE_luci-app-dockerman=y" ${HOME_PATH}/.config` -eq '0' ]]; then
+		if [[ `grep -c "CONFIG_PACKAGE_luci-app-docker=y" ${HOME_PATH}/.config` -eq '0' ]]; then	
+			sed -Ei 's/.*(CONFIG_PACKAGE_luci-lib-docker).*/# \1 is not set/g' ${HOME_PATH}/.config
+			sed -Ei 's/.*(CONFIG_PACKAGE_luci-i18n-dockerman-zh-cn).*/# \1 is not set/g' ${HOME_PATH}/.config
+			sed -Ei 's/.*(CONFIG_PACKAGE_docker).*/# \1 is not set/g' ${HOME_PATH}/.config
+			sed -Ei 's/.*(CONFIG_PACKAGE_dockerd).*/# \1 is not set/g' ${HOME_PATH}/.config
+		fi
 	fi
 	
 	if [[ `grep -c "CONFIG_PACKAGE_luci-app-ipsec-server=y" ${HOME_PATH}/.config` -eq '1' ]]; then
@@ -817,18 +783,6 @@ function modify_config() {
 			echo "__error_msg \"您同时选择luci-app-samba和luci-app-samba4，插件有冲突，相同功能插件只能二选一，已删除luci-app-samba\"" >> ${CONFFLICTIONS}
 			echo "" >> ${CONFFLICTIONS}
 		fi
-	elif [[ `grep -c "CONFIG_PACKAGE_samba4-server=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-		sed -i '/CONFIG_PACKAGE_samba4-admin/d' ${HOME_PATH}/.config
-		sed -i '/CONFIG_PACKAGE_samba4-client/d' ${HOME_PATH}/.config
-		sed -i '/CONFIG_PACKAGE_samba4-libs/d' ${HOME_PATH}/.config
-		sed -i '/CONFIG_PACKAGE_samba4-server/d' ${HOME_PATH}/.config
-		sed -i '/CONFIG_PACKAGE_samba4-utils/d' ${HOME_PATH}/.config
-		
-		sed -i '$a # CONFIG_PACKAGE_samba4-admin is not set' ${HOME_PATH}/.config
-		sed -i '$a # CONFIG_PACKAGE_samba4-client is not set' ${HOME_PATH}/.config
-		sed -i '$a # CONFIG_PACKAGE_samba4-libs is not set' ${HOME_PATH}/.config
-		sed -i '$a # CONFIG_PACKAGE_samba4-server is not set' ${HOME_PATH}/.config
-		sed -i '$a # CONFIG_PACKAGE_samba4-utils is not set' ${HOME_PATH}/.config
 	fi
 	
 	if [[ `grep -c "CONFIG_PACKAGE_luci-app-sfe=y" ${HOME_PATH}/.config` -eq '1' ]]; then
@@ -885,30 +839,10 @@ function modify_config() {
 			echo "" >> ${CONFFLICTIONS}
 		fi
 		if [[ `grep -c "CONFIG_PACKAGE_luci-app-argon-config=y" ${HOME_PATH}/.config` -eq '0' ]]; then
-			sed -i '/luci-app-argon-config/d' ${HOME_PATH}/.config
-			sed -i '$a CONFIG_PACKAGE_luci-app-argon-config=y' ${HOME_PATH}/.config
+			sed -Ei 's/.*(CONFIG_PACKAGE_luci-app-argon-config).*/\1=y/g' ${HOME_PATH}/.config
 		fi
 	else
-		sed -i '/luci-app-argon-config/d' ${HOME_PATH}/.config
-		sed -i '$a # CONFIG_PACKAGE_luci-app-argon-config is not set' ${HOME_PATH}/.config
-	fi
-	
-	if [[ `grep -c "CONFIG_PACKAGE_dnsmasq-full=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-		if [[ `grep -c "CONFIG_PACKAGE_dnsmasq=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_PACKAGE_dnsmasq-dhcpv6=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-			sed -i 's/CONFIG_PACKAGE_dnsmasq=y/# CONFIG_PACKAGE_dnsmasq is not set/g' ${HOME_PATH}/.config
-			sed -i 's/CONFIG_PACKAGE_dnsmasq-dhcpv6=y/# CONFIG_PACKAGE_dnsmasq-dhcpv6 is not set/g' ${HOME_PATH}/.config
-		fi
-	fi
-	
-	if [[ `grep -c "CONFIG_PACKAGE_odhcp6c=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-		sed -i '/CONFIG_PACKAGE_odhcpd=y/d' ${HOME_PATH}/.config
-		sed -i '/CONFIG_PACKAGE_odhcpd_full_ext_cer_id=0/d' ${HOME_PATH}/.config
-	fi
-
-	if [[ `grep -c "CONFIG_PACKAGE_antfs-mount=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-		if [[ `grep -c "CONFIG_PACKAGE_ntfs3-mount=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-			sed -i 's/CONFIG_PACKAGE_antfs-mount=y/# CONFIG_PACKAGE_antfs-mount is not set/g' ${HOME_PATH}/.config
-		fi
+		sed -Ei 's/.*(CONFIG_PACKAGE_luci-app-argon-config).*/# \1 is not set/g' ${HOME_PATH}/.config
 	fi
 	
 	if [[ -s ${CONFFLICTIONS} ]]; then
