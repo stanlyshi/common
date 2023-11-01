@@ -77,28 +77,24 @@ function parse_settings() {
 		SOURCE="lede"
 		SOURCE_OWNER="Lean's"
 		LUCI_EDITION="18.06"
-		#PACKAGES_BRANCH="Lede"
 	;;
 	openwrt|Openwrt|OpenWrt|OpenWRT|OPENWRT|official|Official|OFFICIAL)
 		SOURCE_URL="https://github.com/openwrt/openwrt"
 		SOURCE="official"
 		SOURCE_OWNER="openwrt's"
 		LUCI_EDITION="$(echo ${SOURCE_BRANCH} |sed 's/openwrt-//g')"
-		#PACKAGES_BRANCH="Official"
 	;;
 	lienol|Lienol|LIENOL)
 		SOURCE_URL="https://github.com/Lienol/openwrt"
 		SOURCE="lienol"
 		SOURCE_OWNER="Lienol's"
 		LUCI_EDITION="$(echo ${SOURCE_BRANCH})"
-		#PACKAGES_BRANCH="Official"
 	;;
 	immortalwrt|Immortalwrt|IMMORTALWRT|mortal|immortal)
 		SOURCE_URL="https://github.com/immortalwrt/immortalwrt"
 		SOURCE="Immortalwrt"
 		SOURCE_OWNER="Immortalwrt's"
 		LUCI_EDITION="$(echo ${SOURCE_BRANCH} |sed 's/openwrt-//g')"
-		#PACKAGES_BRANCH="Official"
 	;;
 	*)
 		__error_msg "不支持${SOURCE_ABBR}源码"
@@ -112,22 +108,21 @@ function parse_settings() {
 	echo FIRMWARE_TYPE="${FIRMWARE_TYPE}" >> ${GITHUB_ENV}
 	echo BIOS_MODE="${BIOS_MODE}" >> ${GITHUB_ENV}
 	echo NOTICE_TYPE="${NOTICE_TYPE}" >> ${GITHUB_ENV}
+	echo ENABLE_CCACHE="${ENABLE_CCACHE}" >> ${GITHUB_ENV}
 	echo ENABLE_SSH="${ENABLE_SSH}" >> ${GITHUB_ENV}
 	echo UPLOAD_RELEASE="${UPLOAD_RELEASE}" >> ${GITHUB_ENV}
 	echo UPLOAD_FIRMWARE="${UPLOAD_FIRMWARE}" >> ${GITHUB_ENV}
 	echo UPLOAD_CONFIG="${UPLOAD_CONFIG}" >> ${GITHUB_ENV}
-	echo ENABLE_CCACHE="${ENABLE_CCACHE}" >> ${GITHUB_ENV}
 	
 	# 基础设置
+	echo REPOSITORY="${GITHUB_REPOSITORY##*/}" >> ${GITHUB_ENV}
 	echo SOURCE="${SOURCE}" >> ${GITHUB_ENV}
 	echo SOURCE_URL="${SOURCE_URL}" >> ${GITHUB_ENV}
 	echo SOURCE_OWNER="${SOURCE_OWNER}" >> ${GITHUB_ENV}
 	echo LUCI_EDITION="${LUCI_EDITION}" >> ${GITHUB_ENV}
-	echo PACKAGES_BRANCH="${PACKAGES_BRANCH}" >> ${GITHUB_ENV}	
-	echo REPOSITORY="${GITHUB_REPOSITORY##*/}" >> ${GITHUB_ENV}
-	echo DIY_PART_SH="${DIY_PART_SH}" >> ${GITHUB_ENV}
-	echo BIOS_MODE="${BIOS_MODE}" >> ${GITHUB_ENV}
 	echo PACKAGES_REPO="${PACKAGES_REPO}" >> ${GITHUB_ENV}
+	echo PACKAGES_BRANCH="${PACKAGES_BRANCH}" >> ${GITHUB_ENV}	
+	echo DIY_PART_SH="${DIY_PART_SH}" >> ${GITHUB_ENV}
 	echo ENABLE_PACKAGES_UPDATE="${ENABLE_PACKAGES_UPDATE}" >> ${GITHUB_ENV}
 	echo ENABLE_REPO_UPDATE="false" >> ${GITHUB_ENV}
 	echo GITHUB_API="zzz_api" >> ${GITHUB_ENV}
@@ -770,7 +765,7 @@ function modify_config() {
 		fi
 	fi
 	
-	if [[ `grep -c "CONFIG_PACKAGE_luci-app-dockerman=y" ${HOME_PATH}/.config` -eq '0' ]] || [[ `grep -c "CONFIG_PACKAGE_luci-app-docker=y" ${HOME_PATH}/.config` -eq '0' ]]; then
+	if [[ `grep -c "CONFIG_PACKAGE_luci-app-dockerman=y" ${HOME_PATH}/.config` -eq '0' ]] && [[ `grep -c "CONFIG_PACKAGE_luci-app-docker=y" ${HOME_PATH}/.config` -eq '0' ]]; then
 		sed -i '/CONFIG_PACKAGE_luci-lib-docker/d' ${HOME_PATH}/.config
 		sed -i '/CONFIG_PACKAGE_luci-i18n-dockerman-zh-cn/d' ${HOME_PATH}/.config
 		sed -i '/CONFIG_PACKAGE_docker/d' ${HOME_PATH}/.config
@@ -1082,21 +1077,21 @@ function firmware_settings() {
 	GITHUB_RELEASE_URL="${GITHUB_REPOSITORY_URL}/releases/tag/${AUTOUPDATE_TAG}"
 	GITHUB_RELEASE_DOWNLOAD_URL="${GITHUB_REPOSITORY_URL}/releases/download/${AUTOUPDATE_TAG}"
 
-	echo FIRMWARE_NAME="${FIRMWARE_NAME}" >> ${GITHUB_ENV}
-	echo FIRMWARE_NAME_PREFIX="${FIRMWARE_NAME_PREFIX}" >> ${GITHUB_ENV}
 	echo TARGET_BOARD="${TARGET_BOARD}" >> ${GITHUB_ENV}
 	echo TARGET_SUBTARGET="${TARGET_SUBTARGET}" >> ${GITHUB_ENV}
-	echo ARCHITECTURE="${ARCHITECTURE}" >> ${GITHUB_ENV}	
-	echo FIRMWARE_PATH="${FIRMWARE_PATH}" >> ${GITHUB_ENV}
 	echo TARGET_PROFILE="${TARGET_PROFILE}" >> ${GITHUB_ENV}
 	echo TARGET_DEVICE="${TARGET_DEVICE}" >> ${GITHUB_ENV}
+	echo ARCHITECTURE="${ARCHITECTURE}" >> ${GITHUB_ENV}	
+	echo FIRMWARE_NAME="${FIRMWARE_NAME}" >> ${GITHUB_ENV}
+	echo FIRMWARE_NAME_PREFIX="${FIRMWARE_NAME_PREFIX}" >> ${GITHUB_ENV}
+	echo FIRMWARE_BRIEF="${FIRMWARE_BRIEF}" >> ${GITHUB_ENV}
+	echo FIRMWARE_EXT="${FIRMWARE_EXT}" >> ${GITHUB_ENV}
+	echo FIRMWARE_PATH="${FIRMWARE_PATH}" >> ${GITHUB_ENV}
 	echo KERNEL_PATCHVER="${KERNEL_PATCHVER}" >> ${GITHUB_ENV}
 	echo LINUX_KERNEL="${LINUX_KERNEL}" >> ${GITHUB_ENV}
-	echo FIRMWARE_EXT="${FIRMWARE_EXT}" >> ${GITHUB_ENV}
 	echo RELEASE_TAG="${RELEASE_TAG}" >> ${GITHUB_ENV}
 	echo AUTOUPDATE_TAG="${AUTOUPDATE_TAG}" >> ${GITHUB_ENV}
 	echo GITHUB_RELEASE_URL="${GITHUB_RELEASE_URL}" >> ${GITHUB_ENV}
-	echo FIRMWARE_BRIEF="${FIRMWARE_BRIEF}" >> ${GITHUB_ENV}
 	
 	__yellow_color "开始设置自动更新固件相关信息..."
 	# 固件自动更新相关信息等(用于luci-app-autoupdate插件)
@@ -1156,7 +1151,7 @@ function firmware_settings() {
 function make_defconfig() {
 	cd ${HOME_PATH}
 	echo "files under ${HOME_PATH}:"
-	tree -C -h -L 2 --dirsfirst
+	tree -h -L 2 --dirsfirst
 	
 	# 生成.config文件
 	make defconfig > /dev/null
