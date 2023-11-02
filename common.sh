@@ -296,7 +296,7 @@ function update_feeds() {
 	local packages_url="https://github.com/${PACKAGES_REPO}.git"
 	local packages_branch="${PACKAGES_BRANCH}"
 	local packages="pkg${GITHUB_ACTOR}"
-	__info_msg "源码：${SOURCE} 插件源：${packages_url} 插件源分支：${packages_branch} 文件夹：${packages}"
+	__info_msg "源码：${SOURCE} 插件源仓库：${packages_url} 插件源分支：${packages_branch} 插件源文件夹：${packages}"
 	
 	sed -i "/${packages}/d; /#/d; /^$/d; /ssrplus/d; /helloworld/d; /passwall/d; /OpenClash/d" "feeds.conf.default"
 	
@@ -331,7 +331,7 @@ function update_feeds() {
 		find ${FEEDS_PATH} -maxdepth 3 -type d -name "${X}" | grep -v "${packages}" | xargs sudo rm -rf {}
 	done
 	
-	# 设置中文语言包
+	# 设置中文语言包(官方：zh_Hans，Lede：zh-cn；对缺失相应文件的插件进行补充)
 	__yellow_color "开始设置中文语言包..."	
 	for e in $(ls -d ${FEEDS_PATH}/${packages}/luci-*/po); do
 		if [[ -d $e/zh-cn && ! -d $e/zh_Hans ]]; then
@@ -613,7 +613,7 @@ function modify_config() {
 		__info_msg "官方源码，'状态'、'系统'等主菜单检测设置"
 	fi
 	
-	# 修复lxc固件openssl无法打开后台管理界面，以wolfssl替代openssl(仅lede源码需要修改，官方不需要，官方使用wolfssl反而会出现问题)
+	# Lede源码：修复lxc固件openssl无法打开后台管理界面，以wolfssl替代openssl(仅lede源码需要修改，官方不需要)
 	if [[ "${FIRMWARE_TYPE}" == "lxc" ]] && [[ "${SOURCE}" =~ (lede|Lede|LEDE) ]]; then
 		# 依赖关系
 		# LuCI -> Collections ->  [ ] luci-ssl(依赖libustream-mbedtls)
@@ -722,14 +722,6 @@ function modify_config() {
 		fi
 	fi
 	
-	if [[ `grep -c "CONFIG_PACKAGE_luci-app-fileassistant=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-		if [[ `grep -c "CONFIG_PACKAGE_luci-app-advanced=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-			sed -i 's/CONFIG_PACKAGE_luci-app-fileassistant=y/# CONFIG_PACKAGE_luci-app-fileassistant is not set/g' ${HOME_PATH}/.config
-			echo "__error_msg \"您同时选择luci-app-advanced和luci-app-fileassistant，luci-app-advanced已附带luci-app-fileassistant，所以删除了luci-app-fileassistant\"" >> ${CONFFLICTIONS}
-			echo "" >> ${CONFFLICTIONS}
-		fi
-	fi
-	
 	if [[ `grep -c "CONFIG_PACKAGE_luci-app-dockerman=y" ${HOME_PATH}/.config` -eq '1' ]]; then
 		sed -Ei 's/.*(CONFIG_PACKAGE_luci-i18n-dockerman-zh-cn).*/\1=y/g' ${HOME_PATH}/.config
 		if [[ `grep -c "CONFIG_PACKAGE_luci-app-docker=y" ${HOME_PATH}/.config` -eq '1' ]]; then
@@ -757,18 +749,6 @@ function modify_config() {
 		fi
 	fi
 	
-	if [[ `grep -c "CONFIG_PACKAGE_luci-app-vnstat=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-		if [[ `grep -c "CONFIG_PACKAGE_luci-app-kodexplorer=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-			sed -i 's/CONFIG_PACKAGE_luci-app-vnstat=y/# CONFIG_PACKAGE_luci-app-vnstat is not set/g' ${HOME_PATH}/.config
-			sed -i 's/CONFIG_PACKAGE_vnstat=y/# CONFIG_PACKAGE_vnstat is not set/g' ${HOME_PATH}/.config
-			sed -i 's/CONFIG_PACKAGE_vnstati=y/# CONFIG_PACKAGE_vnstati is not set/g' ${HOME_PATH}/.config
-			sed -i 's/CONFIG_PACKAGE_libgd=y/# CONFIG_PACKAGE_libgd is not set/g' ${HOME_PATH}/.config
-			sed -i '/luci-i18n-vnstat/d' ${HOME_PATH}/.config
-			echo "__error_msg \"您同时选择luci-app-kodexplorer和luci-app-vnstat，插件有依赖冲突，只能二选一，已删除luci-app-vnstat\"" >> ${CONFFLICTIONS}
-			echo "" >> ${CONFFLICTIONS}
-		fi
-	fi
-	
 	if [[ `grep -c "CONFIG_PACKAGE_luci-app-qbittorrent=y" ${HOME_PATH}/.config` -eq '1' ]]; then
 		if [[ `grep -c "CONFIG_PACKAGE_luci-app-qbittorrent-simple=y" ${HOME_PATH}/.config` -eq '1' ]]; then
 			sed -i 's/CONFIG_PACKAGE_luci-app-qbittorrent-simple=y/# CONFIG_PACKAGE_luci-app-qbittorrent-simple is not set/g' ${HOME_PATH}/.config
@@ -785,16 +765,6 @@ function modify_config() {
 			sed -i 's/CONFIG_PACKAGE_luci-i18n-samba-zh-cn=y/# CONFIG_PACKAGE_luci-i18n-samba-zh-cn is not set/g' ${HOME_PATH}/.config
 			sed -i 's/CONFIG_PACKAGE_samba36-server=y/# CONFIG_PACKAGE_samba36-server is not set/g' ${HOME_PATH}/.config
 			echo "__error_msg \"您同时选择luci-app-samba和luci-app-samba4，插件有冲突，相同功能插件只能二选一，已删除luci-app-samba\"" >> ${CONFFLICTIONS}
-			echo "" >> ${CONFFLICTIONS}
-		fi
-	fi
-	
-	if [[ `grep -c "CONFIG_PACKAGE_luci-app-sfe=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-		if [[ `grep -c "CONFIG_PACKAGE_luci-app-flowoffload=y" ${HOME_PATH}/.config` -eq '1' ]]; then
-			sed -i 's/CONFIG_DEFAULT_luci-app-flowoffload=y/# CONFIG_DEFAULT_luci-app-flowoffload is not set/g' ${HOME_PATH}/.config
-			sed -i 's/CONFIG_PACKAGE_luci-app-flowoffload=y/# CONFIG_PACKAGE_luci-app-flowoffload is not set/g' ${HOME_PATH}/.config
-			sed -i 's/CONFIG_PACKAGE_luci-i18n-flowoffload-zh-cn=y/# CONFIG_PACKAGE_luci-i18n-flowoffload-zh-cn is not set/g' ${HOME_PATH}/.config
-			echo "__error_msg \"提示：您同时选择了luci-app-sfe和luci-app-flowoffload，两个ACC网络加速，已删除luci-app-flowoffload\"" >> ${CONFFLICTIONS}
 			echo "" >> ${CONFFLICTIONS}
 		fi
 	fi
