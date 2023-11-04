@@ -196,16 +196,16 @@ function notice_end() {
 ################################################################################################################
 function init_environment() {
 	sudo -E apt-get -qq update -y
-	sudo -E apt-get -qq full-upgrade -y
+	#sudo -E apt-get -qq full-upgrade -y
 	sudo -E apt-get -qq install -y ack antlr3 aria2 asciidoc autoconf automake autopoint binutils bison build-essential bzip2 ccache cmake cpio curl device-tree-compiler fastjar flex g++-multilib gawk gcc-multilib gettext git git-core gperf haveged help2man intltool lib32stdc++6 libc6-dev-i386 libelf-dev libglib2.0-dev libgmp3-dev libltdl-dev libmpc-dev libmpfr-dev libncurses5-dev libncursesw5-dev libpcap0.8-dev libpython3-dev libreadline-dev libssl-dev libtool libz-dev lrzsz mkisofs msmtp nano ninja-build p7zip p7zip-full patch pkgconf python2.7 python3 python3-pip qemu-utils rename rsync scons squashfs-tools subversion swig texinfo tree uglifyjs unzip upx upx-ucl vim wget xmlto xxd zlib1g-dev
-	sudo -E apt-get -qq autoremove -y --purge
-	sudo -E apt-get -qq clean
+	#sudo -E apt-get -qq autoremove -y --purge
+	#sudo -E apt-get -qq clean
 	sudo timedatectl set-timezone "$TZ"
 	# "/"目录创建文件夹${MATRIX_TARGET}
 	sudo mkdir -p /${MATRIX_TARGET}
 	sudo chown ${USER}:${GROUPS} /${MATRIX_TARGET}
 	git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-    git config --global user.name "github-actions[bot]" 
+    git config --global user.name "github-actions[bot]"
 }
 
 ################################################################################################################
@@ -817,6 +817,13 @@ function modify_config() {
 		fi
 	else
 		sed -Ei 's/.*(CONFIG_PACKAGE_luci-app-argon-config).*/# \1 is not set/g' ${HOME_PATH}/.config
+	fi
+	
+	if [[ `grep -c "CONFIG_PACKAGE_dnsmasq=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_PACKAGE_dnsmasq-dhcpv6=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+		if [[ `grep -c "CONFIG_PACKAGE_dnsmasq-full=y" ${HOME_PATH}/.config` -eq '1' ]]; then
+			sed -i 's/CONFIG_PACKAGE_dnsmasq=y/# CONFIG_PACKAGE_dnsmasq is not set/g' ${HOME_PATH}/.config
+			sed -i 's/CONFIG_PACKAGE_dnsmasq-dhcpv6=y/# CONFIG_PACKAGE_dnsmasq-dhcpv6 is not set/g' ${HOME_PATH}/.config
+		fi
 	fi
 	
 	if [[ -s ${CONFFLICTIONS} ]]; then
