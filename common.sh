@@ -894,7 +894,7 @@ function firmware_settings() {
 	elif [[ "${TARGET_PROFILE}" == "xiaomi_mi-router-3-pro" ]]; then
 		TARGET_PROFILE="xiaomi_mir3p"
 	fi
-	echo "::notice title=机型信息::${TARGET_PROFILE}"
+
 	__info_msg "CPU架构：${ARCHITECTURE}"
 	
 	# 内核版本
@@ -908,7 +908,6 @@ function firmware_settings() {
 		LINUX_KERNEL=$(egrep -o "${KERNEL_PATCHVER}\.[0-9]+" ${HOME_PATH}/include/kernel-version.mk)
 		[[ -z ${LINUX_KERNEL} ]] && export LINUX_KERNEL="unknown"
 	fi
-	echo "::notice title=内核版本::${LINUX_KERNEL}"
 	
 	# 内核替换
 	if [[ -n "${NEW_KERNEL_PATCHVER}" ]]; then
@@ -923,7 +922,9 @@ function firmware_settings() {
 	else
 		__info_msg "编译固件内核：[ ${KERNEL_PATCHVER} ]"
 	fi
-
+	echo "::notice title=内核版本::${LINUX_KERNEL}"
+	echo "::notice title=固件机型::${TARGET_PROFILE}"
+	
 	# BIOS引导模式
 	if [[ "${BIOS_MODE}" =~ (uefi|UEFI|Uefi) ]]; then
 		sed -i '/CONFIG_GRUB_IMAGES/d' ${HOME_PATH}/.config > /dev/null 2>&1
