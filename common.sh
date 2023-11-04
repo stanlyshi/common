@@ -1073,7 +1073,7 @@ function firmware_settings() {
 function make_defconfig() {
 	cd ${HOME_PATH}
 	echo "files under ${HOME_PATH}:"
-	tree -h -L 2 --dirsfirst
+	tree -L 2 --dirsfirst
 	
 	# 生成.config文件
 	make defconfig > /dev/null
@@ -1178,7 +1178,6 @@ function compile_info() {
 	local cores=$(grep "cores" /proc/cpuinfo|uniq|awk '{print $4}')
 	local processor=$(grep -c "processor" /proc/cpuinfo)
 	local name=$(cat /proc/cpuinfo | grep name | cut -d: -f2 | uniq | sed 's/^[[:space:]]\+//')
- 	echo "CPU_NAME=${name}" >> ${GITHUB_ENV}
 	echo "物理CPU:${cpu}	核心线程:${cores}/${processor}"
 	echo -e "CPU型号:\033[34m${name}\033[0m"
 	echo
