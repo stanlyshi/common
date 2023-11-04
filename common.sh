@@ -1206,6 +1206,8 @@ function compile_info() {
 	local plugin_1="$(grep -Eo "CONFIG_PACKAGE_luci-app-.*=y|CONFIG_PACKAGE_luci-theme-.*=y" .config |grep -v 'INCLUDE\|_Proxy\|_static\|_dynamic' |sed 's/=y//' |sed 's/CONFIG_PACKAGE_//g')"
 	local plugin_2="$(echo "${plugin_1}" |sed 's/^/、/g' |sed 's/$/\"/g' |awk '$0=NR$0' |sed 's/^/__blue_color \"       /g')"
 	echo "${plugin_2}" >plugins_info
+	echo "### 插件列表 :rocket:" >> $GITHUB_STEP_SUMMARY
+	echo "${plugin_2}" >> $GITHUB_STEP_SUMMARY
 	if [ -n "$(ls -A "${HOME_PATH}/plugins_info" 2>/dev/null)" ]; then
 		__red_color "插件列表"
 		echo "--------------------------------------------------------------------------------"
