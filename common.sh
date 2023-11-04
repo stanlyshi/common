@@ -1088,7 +1088,7 @@ function compile_info() {
 	echo
 	__red_color "固件信息"
 	echo "--------------------------------------------------------------------------------"
-	__blue_color "编译源码: ${SOURCE}"
+	 echo "::notice title=编译源码::${SOURCE}"
 	__blue_color "源码链接: ${SOURCE_URL}"
 	__blue_color "源码分支: ${SOURCE_BRANCH}"
 	__blue_color "源码作者: ${SOURCE_OWNER}"
