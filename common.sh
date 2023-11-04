@@ -135,7 +135,7 @@ function parse_settings() {
 	echo COMPILE_DATE_MD="$(date +%m.%d)" >> ${GITHUB_ENV}
 	echo COMPILE_DATE_HM="$(date +%Y%m%d%H%M)" >> ${GITHUB_ENV}
 	echo COMPILE_DATE_HMS="$(date +%Y%m%d%H%M%S)" >> ${GITHUB_ENV}
-	echo COMPILE_DATE_CN="$(date +%Y年%m月%d号%H时%M分)" >> ${GITHUB_ENV}
+	echo COMPILE_DATE_CN="$(date +%Y年%m月%d日%H时%M分)" >> ${GITHUB_ENV}
 	echo COMPILE_DATE_STAMP="$(date -d "$(date +'%Y-%m-%d %H:%M:%S')" +%s)" >> ${GITHUB_ENV}
 	
 	# 路径
@@ -167,6 +167,12 @@ function parse_settings() {
 	echo FILENAME_DEFAULT_RUNONCE="default_settings_runonce" >> ${GITHUB_ENV}
 	echo FILENAME_CONFIG_GEN="config_generate" >> ${GITHUB_ENV}
 	echo FILENAME_TO_DELETE="default_delete" >> ${GITHUB_ENV}
+	
+	echo "::notice title=编译源码::${SOURCE}"
+	echo "::notice title=源码链接::${SOURCE_URL}"
+	echo "::notice title=源码分支::${SOURCE_BRANCH}"
+	echo "::notice title=固件类型::${FIRMWARE_TYPE}"
+	echo "::notice title=LUCI版本::${LUCI_EDITION}"
 }
 
 ################################################################################################################
@@ -885,7 +891,7 @@ function firmware_settings() {
 	elif [[ "${TARGET_PROFILE}" == "xiaomi_mi-router-3-pro" ]]; then
 		TARGET_PROFILE="xiaomi_mir3p"
 	fi
-	__info_msg "机型信息：${TARGET_PROFILE}"
+	echo "::notice title=机型信息::${TARGET_PROFILE}"
 	__info_msg "CPU架构：${ARCHITECTURE}"
 	
 	# 内核版本
@@ -898,8 +904,8 @@ function firmware_settings() {
 	else
 		LINUX_KERNEL=$(egrep -o "${KERNEL_PATCHVER}\.[0-9]+" ${HOME_PATH}/include/kernel-version.mk)
 		[[ -z ${LINUX_KERNEL} ]] && export LINUX_KERNEL="unknown"
-	fi	
-	__info_msg "linux内核版本：${LINUX_KERNEL}"
+	fi
+	echo "::notice title=内核版本::${LINUX_KERNEL}"
 	
 	# 内核替换
 	if [[ -n "${NEW_KERNEL_PATCHVER}" ]]; then
@@ -1088,9 +1094,9 @@ function compile_info() {
 	echo
 	__red_color "固件信息"
 	echo "--------------------------------------------------------------------------------"
-	echo "::notice title=编译源码::${SOURCE}"
-	echo -e "::notice title=源码链接::\033[34m${SOURCE_URL}\033[0m"
-	echo -e "::notice title=源码分支::\033[34m${SOURCE_BRANCH}\033[0m"
+	__blue_color "编译源码: ${SOURCE}"
+	__blue_color "源码链接: ${SOURCE_URL}"
+	__blue_color "源码分支: ${SOURCE_BRANCH}"
 	__blue_color "源码作者: ${SOURCE_OWNER}"
 	__blue_color "内核版本: ${LINUX_KERNEL}"
 	__blue_color "LUCI版本: ${LUCI_EDITION}"
