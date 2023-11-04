@@ -168,6 +168,9 @@ function parse_settings() {
 	echo FILENAME_CONFIG_GEN="config_generate" >> ${GITHUB_ENV}
 	echo FILENAME_TO_DELETE="default_delete" >> ${GITHUB_ENV}
 	
+	local cpu_name=$(cat /proc/cpuinfo | grep name | cut -d: -f2 | uniq | sed 's/^[[:space:]]\+//')
+	echo "::notice title=GithubCPU::${cpu_name}"
+	echo "::notice title=编译时间::$(date +%Y-%m-%d %H:%M:%S)"
 	echo "::notice title=编译源码::${SOURCE}"
 	echo "::notice title=源码链接::${SOURCE_URL}"
 	echo "::notice title=源码分支::${SOURCE_BRANCH}"
