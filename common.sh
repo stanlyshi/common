@@ -1209,7 +1209,7 @@ function compile_info() {
 	local plugins="$(grep -Eo "CONFIG_PACKAGE_luci-app-.*=y|CONFIG_PACKAGE_luci-theme-.*=y" ${HOME_PATH}/.config |grep -v 'INCLUDE\|_Proxy\|_static\|_dynamic' |sed 's/=y//' |sed 's/CONFIG_PACKAGE_//g')"
 	
 	echo "${plugins}" > ${HOME_PATH}/plugins_info
-	echo "### 插件列表 :rocket:" >> $GITHUB_STEP_SUMMARY
+	echo "#### 插件列表 :rocket:" >> $GITHUB_STEP_SUMMARY
 	nl ${HOME_PATH}/plugins_info >> $GITHUB_STEP_SUMMARY
 	
 	local pluginsnr="$(nl ${HOME_PATH}/plugins_info |sed 's/$/\"/g' |sed 's/^/__blue_color \"/g')"
