@@ -1207,20 +1207,19 @@ function compile_info() {
 	echo
 	cd ${HOME_PATH}
 	local plugins="$(grep -Eo "CONFIG_PACKAGE_luci-app-.*=y|CONFIG_PACKAGE_luci-theme-.*=y" ${HOME_PATH}/.config |grep -v 'INCLUDE\|_Proxy\|_static\|_dynamic' |sed 's/=y//' |sed 's/CONFIG_PACKAGE_//g')"
-	local pluginsnr="$(echo "${plugins}" |sed 's/$/\"/g' |awk '$0=NR  $0' |sed 's/^/__blue_color \"       /g')"
 	
 	echo "${plugins}" > ${HOME_PATH}/plugins_info
 	echo "### 插件列表 :rocket:" >> $GITHUB_STEP_SUMMARY
 	nl ${HOME_PATH}/plugins_info >> $GITHUB_STEP_SUMMARY
-	rm -rf ${HOME_PATH}/plugins_info
 	
-	echo "${pluginsnr}" > ${HOME_PATH}/pluginsnr_info
-	if [ -s ${HOME_PATH}/pluginsnr_info ]; then
+	local pluginsnr="$(nl ${HOME_PATH}/plugins_info |sed 's/$/\"/g' |sed 's/^/__blue_color \"/g')"
+	echo "${pluginsnr}" > ${HOME_PATH}/plugins_info
+	if [ -s ${HOME_PATH}/plugins_info ]; then
 		__red_color "插件列表"
 		echo "--------------------------------------------------------------------------------"
-		chmod -Rf +x ${HOME_PATH}/pluginsnr_info
-		source ${HOME_PATH}/pluginsnr_info
-		rm -rf ${HOME_PATH}/pluginsnr_info
+		chmod -Rf +x ${HOME_PATH}/plugins_info
+		source ${HOME_PATH}/plugins_info
+		rm -rf ${HOME_PATH}/plugins_info
 		echo
 	fi
 	
