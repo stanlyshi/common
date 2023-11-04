@@ -1088,9 +1088,9 @@ function compile_info() {
 	echo
 	__red_color "固件信息"
 	echo "--------------------------------------------------------------------------------"
-	 echo "::notice title=编译源码::${SOURCE}"
-	__blue_color "源码链接: ${SOURCE_URL}"
-	__blue_color "源码分支: ${SOURCE_BRANCH}"
+	echo "::notice title=编译源码::${SOURCE}"
+	echo -e "::notice title=源码链接::\033[34m${SOURCE_URL}\033[0m"
+	echo -e "::notice title=源码分支::\033[34m${SOURCE_BRANCH}\033[0m"
 	__blue_color "源码作者: ${SOURCE_OWNER}"
 	__blue_color "内核版本: ${LINUX_KERNEL}"
 	__blue_color "LUCI版本: ${LUCI_EDITION}"
