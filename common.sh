@@ -828,9 +828,9 @@ function modify_config() {
 		sed -Ei 's/.*(CONFIG_PACKAGE_luci-app-argon-config).*/# \1 is not set/g' ${HOME_PATH}/.config
 	fi
 	
-	#if [[ `grep -c "CONFIG_PACKAGE_luci-app-zerotier=y" ${HOME_PATH}/.config` -eq '0' ]]; then
-	#	sed -Ei 's/.*(CONFIG_PACKAGE_zerotier).*/# \1 is not set/g' ${HOME_PATH}/.config
-	#fi
+	if [[ `grep -c "CONFIG_PACKAGE_luci-app-zerotier=y" ${HOME_PATH}/.config` -eq '0' ]]; then
+		sed -Ei 's/.*(CONFIG_PACKAGE_zerotier).*/# \1 is not set/g' ${HOME_PATH}/.config
+	fi
 	
 	if [[ `grep -c "CONFIG_PACKAGE_dnsmasq=y" ${HOME_PATH}/.config` -eq '1' ]] || [[ `grep -c "CONFIG_PACKAGE_dnsmasq-dhcpv6=y" ${HOME_PATH}/.config` -eq '1' ]]; then
 		if [[ `grep -c "CONFIG_PACKAGE_dnsmasq-full=y" ${HOME_PATH}/.config` -eq '1' ]]; then
