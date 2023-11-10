@@ -401,7 +401,7 @@ function diy_public() {
 	# openwrt.sh
 	#[[ ! -d "${FILES_PATH}/usr/bin" ]] && mkdir -p ${FILES_PATH}/usr/bin
 	#if [[ "${FIRMWARE_TYPE}" == "lxc" ]]; then
-	#	wget https://ghproxy.com/https://raw.githubusercontent.com/stanlyshi/pve/main/openwrt.lxc.sh -O /usr/bin/openwrt ${FILES_PATH}/usr/bin/openwrt && sudo chmod +x ${FILES_PATH}/usr/bin/openwrt
+	#	wget https://raw.githubusercontent.com/stanlyshi/pve/main/openwrt.lxc.sh -O /usr/bin/openwrt ${FILES_PATH}/usr/bin/openwrt && sudo chmod +x ${FILES_PATH}/usr/bin/openwrt
 	#else
 	#	wget https://raw.githubusercontent.com/stanlyshi/luci-app-autoupdate/main/root/usr/bin/autoupdate -O  ${FILES_PATH}/usr/bin/openwrt && sudo chmod +x ${FILES_PATH}/usr/bin/openwrt
 	#fi
@@ -1026,10 +1026,10 @@ function firmware_settings() {
 	# 固件自动更新相关信息等(用于luci-app-autoupdate插件)
 	local file_openwrt_autoupdate="${FILES_PATH}/etc/openwrt_autoupdate"
 	local github_api_origin="${GITHUB_REPOSITORY_URL}/releases/download/${AUTOUPDATE_TAG}/${GITHUB_API}"
-	local github_api_ghproxy="https://ghproxy.com/${GITHUB_REPOSITORY_URL}/releases/download/${AUTOUPDATE_TAG}/${GITHUB_API}"
+	local github_api_ghproxy="https://mirror.ghproxy.com/${GITHUB_REPOSITORY_URL}/releases/download/${AUTOUPDATE_TAG}/${GITHUB_API}"
 	local github_api_fastgit="https://download.fastgit.org/${GITHUB_REPOSITORY}/releases/download/${AUTOUPDATE_TAG}/${GITHUB_API}"
 	local release_download_origin="${GITHUB_REPOSITORY_URL}/releases/download/${AUTOUPDATE_TAG}"
-	local release_download_ghproxy="https://ghproxy.com/${GITHUB_REPOSITORY_URL}/releases/download/${AUTOUPDATE_TAG}"
+	local release_download_ghproxy="https://mirror.ghproxy.com/${GITHUB_REPOSITORY_URL}/releases/download/${AUTOUPDATE_TAG}"
 	cat > "${file_openwrt_autoupdate}" <<-EOF
 	GITHUB_REPOSITORY="${GITHUB_REPOSITORY}"
 	GITHUB_REPOSITORY_URL="https://github.com/${GITHUB_REPOSITORY}"
@@ -1119,7 +1119,7 @@ function compile_info() {
 		__red_color "固件更新"
 		echo "--------------------------------------------------------------------------------"
 		__white_color "1、PVE运行："
-		__green_color "wget https://ghproxy.com/https://raw.githubusercontent.com/stanlyshi/pve/main/openwrt.lxc.sh -O /usr/bin/openwrt && chmod +x /usr/bin/openwrt"
+		__green_color "wget https://mirror.ghproxy.com/https://raw.githubusercontent.com/stanlyshi/pve/main/openwrt.lxc.sh -O /usr/bin/openwrt && chmod +x /usr/bin/openwrt"
 		__white_color "2、PVE运行："
 		__green_color "openwrt"
 		echo
