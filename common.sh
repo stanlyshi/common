@@ -1261,7 +1261,7 @@ function update_repo() {
 	cd ${repo_path}
 
 	# 更新settings.ini文件
-	local settings_array=(SOURCE_BRANCH CONFIG_FILE FIRMWARE_TYPE BIOS_MODE NOTICE_TYPE UPLOAD_RELEASE UPLOAD_FIRMWARE UPLOAD_CONFIG ENABLE_CCACHE)
+	local settings_array=(SOURCE_BRANCH CONFIG_FILE FIRMWARE_TYPE BIOS_MODE UPLOAD_CONFIG UPLOAD_FIRMWARE UPLOAD_RELEASE UPLOAD_COWTRANSFER ENABLE_CCACHE)
 	for x in ${settings_array[*]}; do
 		local settings_key="$(grep -E "${x}=" ${SETTINGS_INI} |sed 's/^[ ]*//g' |grep -v '^#' | awk '{print $1}' | awk -F'=' '{print $1}')"
 		local settings_val="$(grep -E "${x}=" ${SETTINGS_INI} |sed 's/^[ ]*//g' |grep -v '^#' | awk '{print $1}' | awk -F'=' '{print $2}' | sed 's#"##g')"
