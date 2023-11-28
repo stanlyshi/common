@@ -153,6 +153,7 @@ function parse_settings() {
 	
 	# 文件
 	echo DIFFCONFIG_TXT="${HOME_PATH}/diffconfig.txt" >> ${GITHUB_ENV}
+	echo RELEASE_MD="${HOME_PATH}/release.md" >> ${GITHUB_ENV}
 	echo RELEASEINFO_MD="${HOME_PATH}/build/${MATRIX_TARGET}/release/releaseinfo.md" >> ${GITHUB_ENV}
 	echo SETTINGS_INI="${HOME_PATH}/build/${MATRIX_TARGET}/settings.ini" >> ${GITHUB_ENV}
 	echo FILES_TO_CLEAR="${HOME_PATH}/default_clear" >> ${GITHUB_ENV}
@@ -1379,6 +1380,8 @@ function organize_firmware() {
 		[[ ! -d ${FIRMWARE_PATH}/ipk ]] && mkdir -p ${FIRMWARE_PATH}/ipk || rm -rf ${FIRMWARE_PATH}/ipk/*
 		cp -rf $(find ${HOME_PATH}/bin/packages/ -type f -name "*.ipk") ${FIRMWARE_PATH}/ipk/ && sync
 		sudo tar -czf ipk.tar.gz ipk && sync && sudo rm -rf ipk
+		
+		echo "COMPILE_DATE_CN " > ${RELEASE_MD}
 	fi
 	__info_msg "重命名固件名称"
 	if [[ `ls -1 | grep -c "armvirt"` -eq '0' ]]; then
@@ -1425,9 +1428,11 @@ function upload_cowtransfer() {
 		echo
 		
 		curl -fsSL git.io/file-transfer | sh
-		./transfer cow --block 2621440 -s -p 64 --no-progress ${FIRMWARE_PATH} 2>&1 | tee cowtransfer.log > /dev/null 2>&1
+		./transfer cow --block 2621440 -s -p 64 --no-progress ${FIRMWARE_PATH} 2>&1 | tee cowtransfer.log
 		local cow="$(cat cowtransfer.log | grep https | cut -f3 -d" ")"
+		__info_msg "[Cowtransfer](${cow})"
 		echo "🔗 [Cowtransfer](${cow})" >> ${RELEASEINFO_MD}
+		echo "🔗 [Cowtransfer](${cow})" >> ${RELEASE_MD}		
 		echo "::notice title=奶牛快传::${cow}"
 		
 		rm -rf {transfer,cowtransfer.log,wetransfer.log}
