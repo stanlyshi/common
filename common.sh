@@ -1428,11 +1428,11 @@ function upload_cowtransfer() {
 		
 		curl -fsSL git.io/file-transfer | sh
 		./transfer cow --block 2621440 -s -p 64 --no-progress ${FIRMWARE_PATH} 2>&1 | tee cowtransfer.log
-		local cow="$(cat cowtransfer.log | grep https | cut -f3 -d" ")"
-		__info_msg "[Cowtransfer](${cow})"
-		echo "🔗 [Cowtransfer](${cow})" >> ${RELEASEINFO_MD}
-		echo "🔗 [Cowtransfer](${cow})" >> ${RELEASE_MD}		
-		echo "::notice title=奶牛快传::${cow}"
+		local url=$(cat cowtransfer.log | grep https | cut -f3 -d" ")
+		__info_msg "[Cowtransfer](${url})"
+		echo "🔗 [Cowtransfer](${url})" >> ${RELEASEINFO_MD}
+		echo "🔗 [Cowtransfer](${url})" >> ${RELEASE_MD}		
+		echo "::notice title=奶牛快传::${url}"
 		
 		rm -rf {transfer,cowtransfer.log,wetransfer.log}
 		echo
