@@ -46,11 +46,12 @@ function parse_settings() {
 		[[ "${INPUTS_BIOS_MODE}" =~ (default|DEFAULT|Default) ]] && BIOS_MODE="${BIOS_MODE}" || BIOS_MODE="${INPUTS_BIOS_MODE}"
 		[[ "${INPUTS_ENABLE_CCACHE}" =~ (default|DEFAULT|Default) ]] && ENABLE_CCACHE="${ENABLE_CCACHE}" || ENABLE_CCACHE="${INPUTS_ENABLE_CCACHE}"
 		[[ "${INPUTS_NOTICE_TYPE}" =~ (default|DEFAULT|Default) ]] && NOTICE_TYPE="${NOTICE_TYPE}" || NOTICE_TYPE="${INPUTS_NOTICE_TYPE}"
+		[[ "${INPUTS_UPLOAD_CONFIG}" =~ (default|DEFAULT|Default) ]] && UPLOAD_CONFIG="${UPLOAD_CONFIG}" || UPLOAD_CONFIG="${INPUTS_UPLOAD_CONFIG}"
+		[[ "${INPUTS_UPLOAD_FIRMWARE}" =~ (default|DEFAULT|Default) ]] && UPLOAD_FIRMWARE="${UPLOAD_FIRMWARE}" || UPLOAD_FIRMWARE="${INPUTS_UPLOAD_FIRMWARE}"
+		[[ "${INPUTS_UPLOAD_RELEASE}" =~ (default|DEFAULT|Default) ]] && UPLOAD_RELEASE="${UPLOAD_RELEASE}" || UPLOAD_RELEASE="${INPUTS_UPLOAD_RELEASE}"
+		[[ "${INPUTS_UPLOAD_COWTRANSFER}" =~ (default|DEFAULT|Default) ]] && UPLOAD_COWTRANSFER="${UPLOAD_COWTRANSFER}" || UPLOAD_COWTRANSFER="${INPUTS_UPLOAD_COWTRANSFER}"
 
 		ENABLE_SSH="${INPUTS_ENABLE_SSH}"
-		UPLOAD_RELEASE="${INPUTS_UPLOAD_RELEASE}"
-		UPLOAD_FIRMWARE="${INPUTS_UPLOAD_FIRMWARE}"
-		UPLOAD_CONFIG="${INPUTS_UPLOAD_CONFIG}"
 	fi
 	
 	if [[ ${NOTICE_TYPE} =~ (false|False|FALSE) ]]; then
@@ -114,9 +115,10 @@ function parse_settings() {
 	echo NOTICE_TYPE="${NOTICE_TYPE}" >> ${GITHUB_ENV}
 	echo ENABLE_CCACHE="${ENABLE_CCACHE}" >> ${GITHUB_ENV}
 	echo ENABLE_SSH="${ENABLE_SSH}" >> ${GITHUB_ENV}
-	echo UPLOAD_RELEASE="${UPLOAD_RELEASE}" >> ${GITHUB_ENV}
-	echo UPLOAD_FIRMWARE="${UPLOAD_FIRMWARE}" >> ${GITHUB_ENV}
 	echo UPLOAD_CONFIG="${UPLOAD_CONFIG}" >> ${GITHUB_ENV}
+	echo UPLOAD_FIRMWARE="${UPLOAD_FIRMWARE}" >> ${GITHUB_ENV}
+	echo UPLOAD_RELEASE="${UPLOAD_RELEASE}" >> ${GITHUB_ENV}
+	echo UPLOAD_COWTRANSFER="${UPLOAD_COWTRANSFER}" >> ${GITHUB_ENV}
 	
 	# 基础设置
 	echo REPOSITORY="${GITHUB_REPOSITORY##*/}" >> ${GITHUB_ENV}
@@ -1411,6 +1413,27 @@ function release_info() {
 	fi
 
 	cat ${RELEASEINFO_MD}
+}
+
+################################################################################################################
+# 上传固件至奶牛快传
+################################################################################################################
+function upload_cowtransfer() {
+	cd ${GITHUB_WORKSPACE}
+	if [[ "${UPLOAD_COWTRANSFER}" == "true" ]]; then
+		__yellow_color "上传固件至奶牛快传..."
+		echo
+		
+		curl -fsSL git.io/file-transfer | sh
+		./transfer cow --block 2621440 -s -p 64 --no-progress ${FIRMWARE_PATH} 2>&1 | tee cowtransfer.log > /dev/null 2>&1
+		local cow="$(cat cowtransfer.log | grep https | cut -f3 -d" ")"
+		echo "🔗 [Cowtransfer](${cow})" >> ${RELEASEINFO_MD}
+		echo "::notice title=奶牛快传::${cow}"
+		
+		rm -rf {transfer,cowtransfer.log,wetransfer.log}
+		echo
+	fi
+
 }
 
 ################################################################################################################
