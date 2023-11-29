@@ -49,7 +49,6 @@ function parse_settings() {
 		[[ $INPUTS_UPLOAD_CONFIG =~ (default|DEFAULT|Default) ]] && UPLOAD_CONFIG="$UPLOAD_CONFIG" || UPLOAD_CONFIG="$INPUTS_UPLOAD_CONFIG"
 		[[ $INPUTS_UPLOAD_FIRMWARE =~ (default|DEFAULT|Default) ]] && UPLOAD_FIRMWARE="$UPLOAD_FIRMWARE" || UPLOAD_FIRMWARE="$INPUTS_UPLOAD_FIRMWARE"
 		[[ $INPUTS_UPLOAD_RELEASE =~ (default|DEFAULT|Default) ]] && UPLOAD_RELEASE="$UPLOAD_RELEASE" || UPLOAD_RELEASE="$INPUTS_UPLOAD_RELEASE"
-		[[ $INPUTS_UPLOAD_COWTRANSFER =~ (default|DEFAULT|Default) ]] && UPLOAD_COWTRANSFER="$UPLOAD_COWTRANSFER" || UPLOAD_COWTRANSFER="$INPUTS_UPLOAD_COWTRANSFER"
 
 		ENABLE_SSH="$INPUTS_ENABLE_SSH"
 	fi
@@ -118,7 +117,6 @@ function parse_settings() {
 	echo "UPLOAD_CONFIG=$UPLOAD_CONFIG" >> $GITHUB_ENV
 	echo "UPLOAD_FIRMWARE=$UPLOAD_FIRMWARE" >> $GITHUB_ENV
 	echo "UPLOAD_RELEASE=$UPLOAD_RELEASE" >> $GITHUB_ENV
-	echo "UPLOAD_COWTRANSFER=$UPLOAD_COWTRANSFER" >> $GITHUB_ENV
 	
 	# 基础设置
 	echo "REPOSITORY=${GITHUB_REPOSITORY##*/}" >> $GITHUB_ENV
@@ -1261,7 +1259,7 @@ function update_repo() {
 	cd $repo_path
 
 	# 更新settings.ini文件
-	local settings_array=(SOURCE_BRANCH CONFIG_FILE FIRMWARE_TYPE BIOS_MODE UPLOAD_CONFIG UPLOAD_FIRMWARE UPLOAD_RELEASE UPLOAD_COWTRANSFER ENABLE_CCACHE)
+	local settings_array=(SOURCE_BRANCH CONFIG_FILE FIRMWARE_TYPE BIOS_MODE UPLOAD_CONFIG UPLOAD_FIRMWARE UPLOAD_RELEASE ENABLE_CCACHE)
 	for x in $settings_array[*]; do
 		local settings_key="$(grep -E "$x=" $SETTINGS_INI |sed 's/^[ ]*//g' |grep -v '^#' | awk '{print $1}' | awk -F'=' '{print $1}')"
 		local settings_val="$(grep -E "$x=" $SETTINGS_INI |sed 's/^[ ]*//g' |grep -v '^#' | awk '{print $1}' | awk -F'=' '{print $2}' | sed 's#"##g')"
@@ -1415,29 +1413,6 @@ function release_info() {
 	fi
 
 	cat $RELEASEINFO_MD
-}
-
-################################################################################################################
-# 上传固件至奶牛快传
-################################################################################################################
-function upload_cowtransfer() {
-	cd $GITHUB_WORKSPACE
-	if [[ "$UPLOAD_COWTRANSFER" == "true" ]]; then
-		__yellow_color "上传固件至奶牛快传..."
-		echo
-		
-		curl -fsSL git.io/file-transfer | sh
-		./transfer cow --block 2621440 -s -p 64 --no-progress $FIRMWARE_PATH 2>&1 | tee cowtransfer.log
-		local url=$(cat cowtransfer.log | grep https | cut -f3 -d" ")
-		__info_msg "[Cowtransfer]($url)"
-		echo "🔗 [Cowtransfer]($url)" >> $RELEASEINFO_MD
-		echo "🔗 [Cowtransfer]($url)" >> $RELEASE_MD		
-		echo "::notice title=奶牛快传::$url"
-		
-		rm -rf {transfer,cowtransfer.log,wetransfer.log}
-		echo
-	fi
-
 }
 
 ################################################################################################################
