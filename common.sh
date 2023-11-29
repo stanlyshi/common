@@ -906,10 +906,10 @@ function firmware_settings() {
 	local kernel_version_file="kernel-$KERNEL_PATCHVER"
 	if [[ -f "$HOME_PATH/include/$kernel_version_file" ]]; then
 		LINUX_KERNEL=$(egrep -o "$KERNEL_PATCHVER\.[0-9]+" $HOME_PATH/include/$kernel_version_file)
-		[[ -z $LINUX_KERNEL ]] && export LINUX_KERNEL="unknown"
+		[[ -z $LINUX_KERNEL ]] && LINUX_KERNEL="unknown"
 	else
 		LINUX_KERNEL=$(egrep -o "$KERNEL_PATCHVER\.[0-9]+" $HOME_PATH/include/kernel-version.mk)
-		[[ -z $LINUX_KERNEL ]] && export LINUX_KERNEL="unknown"
+		[[ -z $LINUX_KERNEL ]] && LINUX_KERNEL="unknown"
 	fi
 	
 	# 内核替换
@@ -1169,9 +1169,9 @@ function compile_info() {
 		__white_color "上传.config配置文件至Github Artifacts: 关闭"
 	fi
 	if [[ "$NOTICE_TYPE" =~ (TG|telegram|PUSH|pushplus|WX|WeChat) ]]; then
-		__blue_color "pushplus/Telegram通知: 开启"
+		__blue_color "Pushplus/Telegram通知: 开启"
 	else
-		__white_color "pushplus/Telegram通知: 关闭"
+		__white_color "Pushplus/Telegram通知: 关闭"
 	fi
 	if [[ "$ENABLE_CCACHE" =~ (fast|Fast|FAST) ]]; then
 		__blue_color "缓存加速：快速加速"
@@ -1191,7 +1191,7 @@ function compile_info() {
 	local cores=$(grep "cores" /proc/cpuinfo|uniq|awk '{print $4}')
 	local processor=$(grep -c "processor" /proc/cpuinfo)
 	local name=$(cat /proc/cpuinfo | grep name | cut -d: -f2 | uniq | sed 's/^[[:space:]]\+//')
-	echo "物理CPU:$cpu	核心线程:$cores/$processor"
+	echo "物理CPU:$cpu	核心/线程:$cores/$processor"
 	echo -e "CPU型号:\033[34m$name\033[0m"
 	echo
 	echo -e "Github在线编译，常见CPU性能排行:
@@ -1395,7 +1395,7 @@ function release_info() {
 	cd $MATRIX_TARGET_PATH
 	__yellow_color "开始准备固件发布信息..."
 	local diy_part_ipaddr=`awk '{print $3}' $MATRIX_TARGET_PATH/$DIY_PART_SH | awk -F= '$1 == "network.lan.ipaddr" {print $2}' | sed "s/'//g" 2>/dev/null`
-	local release_ipaddr=$diy_part_ipaddr:-192.168.1.1
+	local release_ipaddr=${diy_part_ipaddr:-192.168.1.1}
 	
 	sed -i "s#release_device#$TARGET_PROFILE#" $RELEASEINFO_MD > /dev/null 2>&1
 	sed -i "s#default_ip#$release_ipaddr#" $RELEASEINFO_MD > /dev/null 2>&1
