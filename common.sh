@@ -313,10 +313,10 @@ function update_feeds() {
 	local packages="pkg$GITHUB_ACTOR"
 	__info_msg "源码：$SOURCE 插件源仓库：$packages_url 插件源分支：$packages_branch 插件源文件夹：$packages"
 	
-	sed -i "/$packages/d; /#/d; /^$/d; /ssrplus/d; /helloworld/d; /passwall/d; /OpenClash/d" "feeds.conf.default"
+	sed -i "/${packages}/d; /#/d; /^$/d; /ssrplus/d; /helloworld/d; /passwall/d; /OpenClash/d" "feeds.conf.default"
 	
 	# 当插件源添加至 feeds.conf.default 首行时，优先安装自己添加的插件源
-	#sed -i "1i src-git $packages $packages_url;$packages_branch" "feeds.conf.default"
+	#sed -i "1i src-git ${packages} ${packages_url};{$packages_branch}" "feeds.conf.default"
 	
 	# 当插件源添加至 feeds.conf.default 结尾时，重复插件，先删除相应文件，操作完毕后，再一次运行./scripts/feeds update -a，即可更新对应的.index与target.index文件
 	if [[ -z "$packages_branch" ]]; then
@@ -426,7 +426,7 @@ function diy_public() {
 		find $HOME_PATH/package -type d -name "luci-app-autoupdate" | xargs -i sudo rm -rf {}
 		git clone https://github.com/stanlyshi/luci-app-autoupdate $HOME_PATH/package/luci-app-autoupdate 2>/dev/null
 		if [[ `grep -c "luci-app-autoupdate" $HOME_PATH/include/target.mk` -eq '0' ]]; then
-			sed -i 's?DEFAULT_PACKAGES:=?DEFAULT_PACKAGES:=luci-app-autoupdate luci-app-ttyd ?g' $HOME_PATH/include/target.mk
+			sed -i 's/DEFAULT_PACKAGES:=/DEFAULT_PACKAGES:=luci-app-autoupdate luci-app-ttyd /g' $HOME_PATH/include/target.mk
 		fi
 		if [[ -d "$HOME_PATH/package/luci-app-autoupdate" ]]; then
 			__info_msg "增加定时更新固件的插件成功"
@@ -453,7 +453,7 @@ function diy_public() {
 	local def_ipaddress="$(grep "ipaddr:-" "$FILES_PATH/bin/$FILENAME_CONFIG_GEN" | grep -v 'addr_offset' | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+")"
 	local new_ipaddress="$(grep -E "^uci set network.lan.ipaddr" $MATRIX_TARGET_PATH/$DIY_PART_SH | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+")"
 	if [[ -n "$def_ipaddress" ]] && [[ -n "$new_ipaddress" ]]; then
-		sed -i "s/$def_ipaddress/$new_ipaddress/g" $FILES_PATH/bin/$FILENAME_CONFIG_GEN
+		sed -i "s/${def_ipaddress}/${new_ipaddress}/g" $FILES_PATH/bin/$FILENAME_CONFIG_GEN
 		__info_msg "IP地址从[$def_ipaddress]替换为[$new_ipaddress]"
 	else
 		__info_msg "使用默认IP地址：$def_ipaddress"
@@ -917,7 +917,7 @@ function firmware_settings() {
 		if [[ "$NEW_KERNEL_PATCHVER" == "0" ]]; then
 			__info_msg "编译固件内核：[ $KERNEL_PATCHVER ]"
 		elif [[ `ls -1 "$HOME_PATH/target/linux/$TARGET_BOARD" |grep -c "kernel-$NEW_KERNEL_PATCHVER"` -eq '1' ]]; then
-			sed -i "s/$KERNEL_PATCHVER/$NEW_KERNEL_PATCHVER/g" $HOME_PATH/target/linux/$TARGET_BOARD/Makefile
+			sed -i "s/${KERNEL_PATCHVER}/${NEW_KERNEL_PATCHVER}/g" $HOME_PATH/target/linux/$TARGET_BOARD/Makefile
 			__success_msg "内核[ $NEW_KERNEL_PATCHVER ]更换完成"
 		else
 			__error_msg "没发现与$TARGET_PROFILE机型对应[ $NEW_KERNEL_PATCHVER ]内核，使用默认内核[ $KERNEL_PATCHVER ]编译"
@@ -1265,7 +1265,7 @@ function update_repo() {
 		local settings_val="$(grep -E "$x=" $SETTINGS_INI |sed 's/^[ ]*//g' |grep -v '^#' | awk '{print $1}' | awk -F'=' '{print $2}' | sed 's#"##g')"
 		eval eval env_settings_val=\$$x
 		if [[ -n "$settings_key" ]]; then
-			sed -i "s#$x=\"$settings_val\"#$x=\"$env_settings_val\"#g" $SETTINGS_INI
+			sed -i "s#$x=\"${settings_val}\"#$x=\"${env_settings_val}\"#g" $SETTINGS_INI
 		fi
 	done
 	if [[ "$(cat $SETTINGS_INI)" != "$(cat $repo_settings_ini)" ]]; then
@@ -1397,14 +1397,14 @@ function release_info() {
 	local diy_part_ipaddr=`awk '{print $3}' $MATRIX_TARGET_PATH/$DIY_PART_SH | awk -F= '$1 == "network.lan.ipaddr" {print $2}' | sed "s/'//g" 2>/dev/null`
 	local release_ipaddr=${diy_part_ipaddr:-192.168.1.1}
 	
-	sed -i "s#release_device#$TARGET_PROFILE#" $RELEASEINFO_MD > /dev/null 2>&1
-	sed -i "s#default_ip#$release_ipaddr#" $RELEASEINFO_MD > /dev/null 2>&1
+	sed -i "s#release_device#${TARGET_PROFILE}#" $RELEASEINFO_MD > /dev/null 2>&1
+	sed -i "s#default_ip#${release_ipaddr}#" $RELEASEINFO_MD > /dev/null 2>&1
 	sed -i "s#default_password#-#" $RELEASEINFO_MD > /dev/null 2>&1
-	sed -i "s#release_source#$LUCI_EDITION-$SOURCE#" $RELEASEINFO_MD > /dev/null 2>&1
-	sed -i "s#release_kernel#$LINUX_KERNEL#" $RELEASEINFO_MD > /dev/null 2>&1
-	sed -i "s#\/repository\/#\/$GITHUB_REPOSITORY\/#" $RELEASEINFO_MD > /dev/null 2>&1
-	sed -i "s#\/branch\/#\/$GITHUB_REPOSITORY_REFNAME\/#" $RELEASEINFO_MD > /dev/null 2>&1
-	sed -i "s#\/matrixtarget\/#\/$MATRIX_TARGET\/#" $RELEASEINFO_MD > /dev/null 2>&1
+	sed -i "s#release_source#${SOURCE}-${LUCI_EDITION}#" $RELEASEINFO_MD > /dev/null 2>&1
+	sed -i "s#release_kernel#${LINUX_KERNEL}#" $RELEASEINFO_MD > /dev/null 2>&1
+	sed -i "s#\/repository\/#\/${GITHUB_REPOSITORY}\/#" $RELEASEINFO_MD > /dev/null 2>&1
+	sed -i "s#\/branch\/#\/${GITHUB_REPOSITORY_REFNAME}\/#" $RELEASEINFO_MD > /dev/null 2>&1
+	sed -i "s#\/matrixtarget\/#\/${MATRIX_TARGET}\/#" $RELEASEINFO_MD > /dev/null 2>&1
 	
 	if [[ "$FIRMWARE_TYPE" == "lxc" ]]; then
 		cat >> $RELEASEINFO_MD <<-EOF
