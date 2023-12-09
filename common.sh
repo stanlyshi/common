@@ -316,7 +316,7 @@ function update_feeds() {
 	sed -i "/${packages}/d; /#/d; /^$/d; /ssrplus/d; /helloworld/d; /passwall/d; /OpenClash/d" "feeds.conf.default"
 	
 	# 当插件源添加至 feeds.conf.default 首行时，优先安装自己添加的插件源
-	#sed -i "1i src-git ${packages} ${packages_url};{$packages_branch}" "feeds.conf.default"
+	#sed -i "1i src-git $packages $packages_url;$packages_branch" "feeds.conf.default"
 	
 	# 当插件源添加至 feeds.conf.default 结尾时，重复插件，先删除相应文件，操作完毕后，再一次运行./scripts/feeds update -a，即可更新对应的.index与target.index文件
 	if [[ -z "$packages_branch" ]]; then
