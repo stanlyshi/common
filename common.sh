@@ -63,7 +63,7 @@ function parse_settings() {
 		NOTICE_TYPE="false"
 	fi
 	
-	if [[ $PACKAGES_REPO =~ (default|DEFAULT|Default) ]] || [[ -z $PACKAGES_REPO ]]; then
+	if [[ $PACKAGES_REPO =~ (default|DEFAULT|Default) || -z $PACKAGES_REPO ]]; then
 		PACKAGES_REPO="roacn/openwrt-packages"
 	fi
 	
@@ -228,7 +228,7 @@ function init_environment() {
 ################################################################################################################
 function git_clone_source() {
 	# 在每matrix.target目录下下载源码
-	git clone -b "$SOURCE_BRANCH" --single-branch "$SOURCE_URL" openwrt > /dev/null 2>&1
+	git clone -b $SOURCE_BRANCH $SOURCE_URL openwrt > /dev/null 2>&1
 	ln -sf /$MATRIX_TARGET/openwrt $HOME_PATH
 	
 	# 将build等文件夹复制到openwrt文件夹下
@@ -274,13 +274,13 @@ function do_diy() {
 	diy_public
 	
 	# 执行私有脚本
-	if [[ "$SOURCE" =~ (lede|Lede|LEDE) ]]; then
+	if [[ $SOURCE =~ (lede|Lede|LEDE) ]]; then
 		diy_lede
-	elif [[ "$SOURCE" =~ (openwrt|Openwrt|OpenWrt|OpenWRT|OPENWRT|official|Official|OFFICIAL) ]]; then
+	elif [[ $SOURCE =~ (openwrt|Openwrt|OpenWrt|OpenWRT|OPENWRT|official|Official|OFFICIAL) ]]; then
 		diy_openwrt
-	elif [[ "$SOURCE" =~ (lienol|Lienol|LIENOL) ]]; then
+	elif [[ $SOURCE =~ (lienol|Lienol|LIENOL) ]]; then
 		diy_lienol
-	elif [[ "$SOURCE" =~ (immortalwrt|Immortalwrt|IMMORTALWRT|mortal|immortal) ]]; then
+	elif [[ $SOURCE =~ (immortalwrt|Immortalwrt|IMMORTALWRT|mortal|immortal) ]]; then
 		diy_immortalwrt
 	fi
 	
@@ -414,7 +414,7 @@ function diy_public() {
 	
 	__yellow_color "开始设置自动更新插件..."
 	# 自动更新插件（luci-app-autoupdate）
-	if [[ "$FIRMWARE_TYPE" == "lxc" ]]; then
+	if [[ $FIRMWARE_TYPE == "lxc" ]]; then
 		find $HOME_PATH/feeds -type d -name "luci-app-autoupdate" | xargs -i sudo rm -rf {}
 		find $HOME_PATH/package -type d -name "luci-app-autoupdate" | xargs -i sudo rm -rf {}
 		if [[ -n "$(grep "luci-app-autoupdate" $HOME_PATH/include/target.mk)" ]]; then
@@ -452,7 +452,7 @@ function diy_public() {
 	# 修改源码中IP设置
 	local def_ipaddress="$(grep "ipaddr:-" "$FILES_PATH/bin/$FILENAME_CONFIG_GEN" | grep -v 'addr_offset' | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+")"
 	local new_ipaddress="$(grep -E "^uci set network.lan.ipaddr" $MATRIX_TARGET_PATH/$DIY_PART_SH | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+")"
-	if [[ -n "$def_ipaddress" ]] && [[ -n "$new_ipaddress" ]]; then
+	if [[ -n "$def_ipaddress" && -n "$new_ipaddress" ]]; then
 		sed -i "s/${def_ipaddress}/${new_ipaddress}/g" $FILES_PATH/bin/$FILENAME_CONFIG_GEN
 		__info_msg "IP地址从[$def_ipaddress]替换为[$new_ipaddress]"
 	else
@@ -581,13 +581,13 @@ function modify_config() {
 	make defconfig > /dev/null 2>&1
 	
 	# 缓存加速
-	if [[ "$ENABLE_CCACHE" =~ (fast|Fast|FAST) ]]; then
+	if [[ $ENABLE_CCACHE =~ (fast|Fast|FAST) ]]; then
 		__info_msg "快速缓存加速，如编译出错，请尝试删除缓存，或切换为普通加速，或关闭缓存加速"
 		sed -i '/CONFIG_DEVEL/d' $HOME_PATH/.config > /dev/null 2>&1
 		sed -i '/CONFIG_CCACHE/d' $HOME_PATH/.config > /dev/null 2>&1
 		sed -i '$a CONFIG_DEVEL=y' $HOME_PATH/.config > /dev/null 2>&1
 		sed -i '$a CONFIG_CCACHE=y' $HOME_PATH/.config > /dev/null 2>&1
-	elif [[ "$ENABLE_CCACHE" =~ (true|True|TRUE|normal|Normal|NORMAL) ]]; then
+	elif [[ $ENABLE_CCACHE =~ (true|True|TRUE|normal|Normal|NORMAL) ]]; then
 		__info_msg "普通缓存加速，如编译出错，请尝试删除缓存，或关闭缓存加速"
 		sed -i '/CONFIG_DEVEL/d' $HOME_PATH/.config > /dev/null 2>&1
 		sed -i '/CONFIG_CCACHE/d' $HOME_PATH/.config > /dev/null 2>&1
@@ -606,7 +606,7 @@ function modify_config() {
 	# https连接，检测修正，主要针对官方源码
 	# CONFIG_PACKAGE_ca-bundle=y 默认已经选择
 	# liubustream-mbedtls、liubustream-openssl、libustream-wolfssl，三者在后面设置
-	if [[ "$SOURCE" =~ (openwrt|Openwrt|OpenWrt|OpenWRT|OPENWRT|official|Official|OFFICIAL) ]]; then
+	if [[ $SOURCE =~ (openwrt|Openwrt|OpenWrt|OpenWRT|OPENWRT|official|Official|OFFICIAL) ]]; then
 		sed -Ei 's/.*(CONFIG_PACKAGE_ca-certificates).*/\1=y/g' $HOME_PATH/.config
 		sed -Ei 's/.*(CONFIG_PACKAGE_libustream-openssl).*/\1=y/g' $HOME_PATH/.config
 		sed -Ei 's/.*(CONFIG_PACKAGE_libustream-mbedtls).*/# \1 is not set/g' $HOME_PATH/.config
@@ -615,7 +615,7 @@ function modify_config() {
 	fi
 	
 	# 官方源码：'状态'、'网络'、'系统'等主菜单，在默认情况下是未选中状态，进行修正
-	if [[ "$SOURCE" =~ (openwrt|Openwrt|OpenWrt|OpenWRT|OPENWRT|official|Official|OFFICIAL) ]]; then
+	if [[ $SOURCE =~ (openwrt|Openwrt|OpenWrt|OpenWRT|OPENWRT|official|Official|OFFICIAL) ]]; then
 		sed -Ei 's/.*(CONFIG_PACKAGE_luci-mod-admin-full).*/\1=y/g' $HOME_PATH/.config
 		#sed -Ei 's/.*(CONFIG_PACKAGE_luci-mod-dsl).*/\1=y/g' $HOME_PATH/.config
 		sed -Ei 's/.*(CONFIG_PACKAGE_luci-mod-network).*/\1=y/g' $HOME_PATH/.config
@@ -625,7 +625,7 @@ function modify_config() {
 	fi
 	
 	# Lede源码：修复lxc固件openssl无法打开后台管理界面，以wolfssl替代openssl(仅lede源码需要修改，官方不需要)
-	if [[ "$FIRMWARE_TYPE" == "lxc" ]] && [[ "$SOURCE" =~ (lede|Lede|LEDE) ]]; then
+	if [[ $FIRMWARE_TYPE == "lxc" &&  $SOURCE =~ (lede|Lede|LEDE) ]]; then
 		# 依赖关系
 		# LuCI -> Collections ->  [ ] luci-ssl(依赖libustream-mbedtls)
 		# LuCI -> Collections ->  [ ] luci-ssl-openssl(依赖libustream-openssl)
@@ -652,7 +652,7 @@ function modify_config() {
 		#sed -i '$a # CONFIG_PACKAGE_luci-ssl is not set' $HOME_PATH/.config
 		#sed -i '$a # CONFIG_PACKAGE_luci-app-cshark is not set' $HOME_PATH/.config
 		
-		if [[ `grep -c "CONFIG_PACKAGE_cache-domains-mbedtls=y" $HOME_PATH/.config` -ge '1' ]] || [[ `grep -c "CONFIG_PACKAGE_cache-domains-openssl=y" $HOME_PATH/.config` -ge '1' ]]; then
+		if [[ `grep -c "CONFIG_PACKAGE_cache-domains-mbedtls=y" $HOME_PATH/.config` -ge '1' || `grep -c "CONFIG_PACKAGE_cache-domains-openssl=y" $HOME_PATH/.config` -ge '1' ]]; then
 			sed -Ei 's/.*(CONFIG_PACKAGE_cache-domains-wolfssl).*/\1=y/g' $HOME_PATH/.config
 			sed -Ei 's/.*(CONFIG_PACKAGE_cache-domains-mbedtls).*/# \1 is not set/g' $HOME_PATH/.config
 			sed -Ei 's/.*(CONFIG_PACKAGE_cache-domains-openssl).*/# \1 is not set/g' $HOME_PATH/.config
@@ -669,7 +669,7 @@ function modify_config() {
 				echo "" >> $CONFFLICTIONS
 			fi
 			# libustream-wolfssl可能处于=y或=m状态
-			if [[ `grep -c "CONFIG_PACKAGE_libustream-wolfssl=y" $HOME_PATH/.config` -ge '1' ]] || [[ `grep -c "CONFIG_PACKAGE_libustream-wolfssl=m" $HOME_PATH/.config` -ge '1' ]]; then
+			if [[ `grep -c "CONFIG_PACKAGE_libustream-wolfssl=y" $HOME_PATH/.config` -ge '1' || `grep -c "CONFIG_PACKAGE_libustream-wolfssl=m" $HOME_PATH/.config` -ge '1' ]]; then
 				sed -Ei 's/.*(CONFIG_PACKAGE_libustream-wolfssl).*/# \1 is not set/g' $HOME_PATH/.config
 				echo "__error_msg \"您同时选择libustream-wolfssl和libustream-openssl，库有冲突，只能二选一，已删除libustream-wolfssl库\"" >> $CONFFLICTIONS
 				echo "" >> $CONFFLICTIONS
@@ -683,7 +683,7 @@ function modify_config() {
 			fi
 			# cache-domains-mbedtls(依赖于旧的libustream-mbedtls)，cache-domains-wolfssl（依赖于libustream-wolfssl）
 			# 替换为cache-domains-openssl（依赖于libustream-openssl）
-			if [[ `grep -c "CONFIG_PACKAGE_cache-domains-mbedtls=y" $HOME_PATH/.config` -ge '1' ]] || [[ `grep -c "CONFIG_PACKAGE_cache-domains-wolfssl=y" $HOME_PATH/.config` -ge '1' ]]; then
+			if [[ `grep -c "CONFIG_PACKAGE_cache-domains-mbedtls=y" $HOME_PATH/.config` -ge '1' || `grep -c "CONFIG_PACKAGE_cache-domains-wolfssl=y" $HOME_PATH/.config` -ge '1' ]]; then
 				sed -i '/CONFIG_PACKAGE_cache-domains-mbedtls/d' $HOME_PATH/.config
 				sed -i '/CONFIG_PACKAGE_cache-domains-wolfssl/d' $HOME_PATH/.config
 				sed -Ei 's/.*(CONFIG_PACKAGE_cache-domains-openssl).*/\1=y/g' $HOME_PATH/.config
@@ -693,7 +693,7 @@ function modify_config() {
 		fi
 	fi
 	
-	if [[ `grep -c "CONFIG_TARGET_x86=y" $HOME_PATH/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_rockchip=y" $HOME_PATH/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_bcm27xx=y" $HOME_PATH/.config` -eq '1' ]]; then
+	if [[ `grep -c "CONFIG_TARGET_x86=y" $HOME_PATH/.config` -eq '1' || `grep -c "CONFIG_TARGET_rockchip=y" $HOME_PATH/.config` -eq '1' || `grep -c "CONFIG_TARGET_bcm27xx=y" $HOME_PATH/.config` -eq '1' ]]; then
 		#sed -Ei 's/.*(CONFIG_TARGET_IMAGES_GZIP).*/\1=y/g' $HOME_PATH/.config
 		#sed -Ei 's/.*(CONFIG_PACKAGE_snmpd).*/\1=y/g' $HOME_PATH/.config
 		sed -Ei 's/.*(CONFIG_PACKAGE_openssh-sftp-server).*/\1=y/g' $HOME_PATH/.config
@@ -706,7 +706,7 @@ function modify_config() {
 		fi
 	fi
 	
-	if [[ `grep -c "CONFIG_TARGET_mxs=y" $HOME_PATH/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_sunxi=y" $HOME_PATH/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_zynq=y" $HOME_PATH/.config` -eq '1' ]]; then	
+	if [[ `grep -c "CONFIG_TARGET_mxs=y" $HOME_PATH/.config` -eq '1' || `grep -c "CONFIG_TARGET_sunxi=y" $HOME_PATH/.config` -eq '1' || `grep -c "CONFIG_TARGET_zynq=y" $HOME_PATH/.config` -eq '1' ]]; then	
 		#sed -Ei 's/.*(CONFIG_TARGET_IMAGES_GZIP).*/\1=y/g' $HOME_PATH/.config
 		sed -Ei 's/.*(CONFIG_PACKAGE_openssh-sftp-server).*/\1=y/g' $HOME_PATH/.config
 		if [[ `grep -c "CONFIG_TARGET_ROOTFS_PARTSIZE=" $HOME_PATH/.config` -eq '1' ]]; then
@@ -718,7 +718,7 @@ function modify_config() {
 		fi
 	fi
 	
-	if [[ `grep -c "CONFIG_TARGET_armvirt=y" $HOME_PATH/.config` -eq '1' ]] || [[ `grep -c "CONFIG_TARGET_armsr=y" $HOME_PATH/.config` -eq '1' ]]; then
+	if [[ `grep -c "CONFIG_TARGET_armvirt=y" $HOME_PATH/.config` -eq '1' || `grep -c "CONFIG_TARGET_armsr=y" $HOME_PATH/.config` -eq '1' ]]; then
 		sed -Ei 's/.*(CONFIG_PACKAGE_luci-app-autoupdate).*/# \1 is not set/g' $HOME_PATH/.config
 		sed -Ei 's/.*(CONFIG_TARGET_ROOTFS_TARGZ).*/\1=y/g' $HOME_PATH/.config
 	fi
@@ -838,7 +838,7 @@ function modify_config() {
 		sed -Ei 's/.*(CONFIG_PACKAGE_zerotier).*/# \1 is not set/g' $HOME_PATH/.config
 	fi
 	
-	if [[ `grep -c "CONFIG_PACKAGE_dnsmasq=y" $HOME_PATH/.config` -eq '1' ]] || [[ `grep -c "CONFIG_PACKAGE_dnsmasq-dhcpv6=y" $HOME_PATH/.config` -eq '1' ]]; then
+	if [[ `grep -c "CONFIG_PACKAGE_dnsmasq=y" $HOME_PATH/.config` -eq '1' || `grep -c "CONFIG_PACKAGE_dnsmasq-dhcpv6=y" $HOME_PATH/.config` -eq '1' ]]; then
 		if [[ `grep -c "CONFIG_PACKAGE_dnsmasq-full=y" $HOME_PATH/.config` -eq '1' ]]; then
 			sed -i 's/CONFIG_PACKAGE_dnsmasq=y/# CONFIG_PACKAGE_dnsmasq is not set/g' $HOME_PATH/.config
 			sed -i 's/CONFIG_PACKAGE_dnsmasq-dhcpv6=y/# CONFIG_PACKAGE_dnsmasq-dhcpv6 is not set/g' $HOME_PATH/.config
@@ -873,7 +873,7 @@ function firmware_settings() {
 	__yellow_color "开始获取固件机型架构信息..."
 	if [ `grep -c "CONFIG_TARGET_x86_64=y" .config` -eq '1' ]; then
 		TARGET_PROFILE="x86-64"
-	elif [[ `grep -c "CONFIG_TARGET_x86=y" .config` == '1' ]] && [[ `grep -c "CONFIG_TARGET_x86_64=y" .config` == '0' ]]; then
+	elif [[ `grep -c "CONFIG_TARGET_x86=y" .config` == '1' &&  `grep -c "CONFIG_TARGET_x86_64=y" .config` == '0' ]]; then
 		TARGET_PROFILE="x86-32"
 	elif [[ -n "$(grep -Eo 'CONFIG_TARGET.*armsr.*armv8.*=y' $HOME_PATH/.config)" ]]; then
 		TARGET_PROFILE="Armvirt_64"
@@ -886,15 +886,15 @@ function firmware_settings() {
 	fi
 	TARGET_DEVICE="$TARGET_PROFILE"
 	# 修改TARGET_PROFILE
-	if [[ "$TARGET_PROFILE" =~ (phicomm_k3|phicomm-k3) ]]; then		
+	if [[ $TARGET_PROFILE =~ (phicomm_k3|phicomm-k3) ]]; then		
 		TARGET_PROFILE="phicomm-k3"
-	elif [[ "$TARGET_PROFILE" =~ (k2p|phicomm_k2p|phicomm-k2p) ]]; then
+	elif [[ $TARGET_PROFILE =~ (k2p|phicomm_k2p|phicomm-k2p) ]]; then
 		TARGET_PROFILE="phicomm-k2p"
-	elif [[ "$TARGET_PROFILE" =~ (xiaomi_mi-router-3g-v2|xiaomi_mir3g_v2) ]]; then
+	elif [[ $TARGET_PROFILE =~ (xiaomi_mi-router-3g-v2|xiaomi_mir3g_v2) ]]; then
 		TARGET_PROFILE="xiaomi_mir3g-v2"
-	elif [[ "$TARGET_PROFILE" == "xiaomi_mi-router-3g" ]]; then
+	elif [[ $TARGET_PROFILE == "xiaomi_mi-router-3g" ]]; then
 		TARGET_PROFILE="xiaomi_mir3g"
-	elif [[ "$TARGET_PROFILE" == "xiaomi_mi-router-3-pro" ]]; then
+	elif [[ $TARGET_PROFILE == "xiaomi_mi-router-3-pro" ]]; then
 		TARGET_PROFILE="xiaomi_mir3p"
 	fi
 
@@ -929,19 +929,19 @@ function firmware_settings() {
 	echo "::notice title=固件机型::$TARGET_PROFILE"
 	
 	# BIOS引导模式
-	if [[ "$BIOS_MODE" =~ (uefi|UEFI|Uefi) ]]; then
+	if [[ $BIOS_MODE =~ (uefi|UEFI|Uefi) ]]; then
 		sed -i '/CONFIG_GRUB_IMAGES/d' $HOME_PATH/.config > /dev/null 2>&1
 		sed -i '$a # CONFIG_GRUB_IMAGES is not set' $HOME_PATH/.config > /dev/null 2>&1
 		sed -i '/CONFIG_GRUB_EFI_IMAGES/d' $HOME_PATH/.config > /dev/null 2>&1
 		sed -i '$a CONFIG_GRUB_EFI_IMAGES=y' $HOME_PATH/.config > /dev/null 2>&1
 		__info_msg "编译uefi固件"
-	elif [[ "$BIOS_MODE" =~ (legacy|LEGACY|Legacy) ]]; then
+	elif [[ $BIOS_MODE =~ (legacy|LEGACY|Legacy) ]]; then
 		sed -i '/CONFIG_GRUB_IMAGES/d' $HOME_PATH/.config > /dev/null 2>&1
 		sed -i '$a CONFIG_GRUB_IMAGES=y' $HOME_PATH/.config > /dev/null 2>&1
 		sed -i '/CONFIG_GRUB_EFI_IMAGES/d' $HOME_PATH/.config > /dev/null 2>&1
 		sed -i '$a # CONFIG_GRUB_EFI_IMAGES is not set' $HOME_PATH/.config > /dev/null 2>&1
 		__info_msg "编译legacy固件"
-	elif [[ "$BIOS_MODE" =~ (both|BOTH|Both|all|ALL|All) ]]; then
+	elif [[ $BIOS_MODE =~ (both|BOTH|Both|all|ALL|All) ]]; then
 		sed -i '/CONFIG_GRUB_IMAGES/d' $HOME_PATH/.config > /dev/null 2>&1
 		sed -i '$a CONFIG_GRUB_IMAGES=y' $HOME_PATH/.config > /dev/null 2>&1
 		sed -i '/CONFIG_GRUB_EFI_IMAGES/d' $HOME_PATH/.config > /dev/null 2>&1
@@ -1168,15 +1168,15 @@ function compile_info() {
 	else
 		__white_color "上传.config配置文件至Github Artifacts: 关闭"
 	fi
-	if [[ "$NOTICE_TYPE" =~ (TG|telegram|PUSH|pushplus|WX|WeChat) ]]; then
+	if [[ $NOTICE_TYPE =~ (TG|telegram|PUSH|pushplus|WX|WeChat) ]]; then
 		__blue_color "Pushplus/Telegram通知: 开启"
 	else
 		__white_color "Pushplus/Telegram通知: 关闭"
 	fi
-	if [[ "$ENABLE_CCACHE" =~ (fast|Fast|FAST) ]]; then
+	if [[ $ENABLE_CCACHE =~ (fast|Fast|FAST) ]]; then
 		__blue_color "缓存加速：快速加速"
 		__white_color "如编译出错，请尝试删除缓存，或切换为普通加速，或关闭缓存加速"
-	elif [[ "$ENABLE_CCACHE" =~ (true|True|TRUE|normal|Normal|NORMAL) ]]; then
+	elif [[ $ENABLE_CCACHE =~ (true|True|TRUE|normal|Normal|NORMAL) ]]; then
 		__blue_color "缓存加速：普通加速"
 		__white_color "如编译出错，请尝试删除缓存，或关闭缓存加速"
 	else
