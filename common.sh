@@ -42,20 +42,15 @@ function parse_settings() {
 	if [[ -n "$INPUTS_SOURCE_BRANCH" ]]; then
 		[[ $INPUTS_SOURCE_BRANCH =~ (default|DEFAULT|Default) ]] && SOURCE_BRANCH="$SOURCE_BRANCH" || SOURCE_BRANCH="$INPUTS_SOURCE_BRANCH"
 		[[ $INPUTS_CONFIG_FILE =~ (default|DEFAULT|Default) ]] && CONFIG_FILE="$CONFIG_FILE" || CONFIG_FILE="$INPUTS_CONFIG_FILE"
-		[[ $INPUTS_FIRMWARE_TYPE =~ (default|DEFAULT|Default) ]] && FIRMWARE_TYPE="$FIRMWARE_TYPE" || FIRMWARE_TYPE="$INPUTS_FIRMWARE_TYPE"
 		[[ $INPUTS_BIOS_MODE =~ (default|DEFAULT|Default) ]] && BIOS_MODE="$BIOS_MODE" || BIOS_MODE="$INPUTS_BIOS_MODE"
 		[[ $INPUTS_ENABLE_CCACHE =~ (default|DEFAULT|Default) ]] && ENABLE_CCACHE="$ENABLE_CCACHE" || ENABLE_CCACHE="$INPUTS_ENABLE_CCACHE"
-		[[ $INPUTS_NOTICE_TYPE =~ (default|DEFAULT|Default) ]] && NOTICE_TYPE="$NOTICE_TYPE" || NOTICE_TYPE="$INPUTS_NOTICE_TYPE"
-		[[ $INPUTS_UPLOAD_CONFIG =~ (default|DEFAULT|Default) ]] && UPLOAD_CONFIG="$UPLOAD_CONFIG" || UPLOAD_CONFIG="$INPUTS_UPLOAD_CONFIG"
 		[[ $INPUTS_UPLOAD_FIRMWARE =~ (default|DEFAULT|Default) ]] && UPLOAD_FIRMWARE="$UPLOAD_FIRMWARE" || UPLOAD_FIRMWARE="$INPUTS_UPLOAD_FIRMWARE"
 		[[ $INPUTS_UPLOAD_RELEASE =~ (default|DEFAULT|Default) ]] && UPLOAD_RELEASE="$UPLOAD_RELEASE" || UPLOAD_RELEASE="$INPUTS_UPLOAD_RELEASE"
 
 		ENABLE_SSH="$INPUTS_ENABLE_SSH"
 	fi
 	
-	if [[ $NOTICE_TYPE =~ (false|False|FALSE) ]]; then
-		NOTICE_TYPE="false"
-	elif [[ $NOTICE_TYPE =~ (TG|telegram|Telegram|TELEGRAM) ]]; then
+	if [[ $NOTICE_TYPE =~ (TG|telegram|Telegram|TELEGRAM) ]]; then
 		NOTICE_TYPE="TG"
 	elif [[ $NOTICE_TYPE =~ (PUSH|pushplus|Pushplus|PUSHPLUS) ]]; then
 		NOTICE_TYPE="PUSH"
@@ -106,27 +101,26 @@ function parse_settings() {
 	;;
 	esac
 	
-	# 下拉列表选项
+	# 基础设置
 	echo "SOURCE_BRANCH=$SOURCE_BRANCH" >> $GITHUB_ENV
 	echo "CONFIG_FILE=$CONFIG_FILE" >> $GITHUB_ENV
 	echo "FIRMWARE_TYPE=$FIRMWARE_TYPE" >> $GITHUB_ENV
 	echo "BIOS_MODE=$BIOS_MODE" >> $GITHUB_ENV
-	echo "NOTICE_TYPE=$NOTICE_TYPE" >> $GITHUB_ENV
 	echo "ENABLE_CCACHE=$ENABLE_CCACHE" >> $GITHUB_ENV
 	echo "ENABLE_SSH=$ENABLE_SSH" >> $GITHUB_ENV
 	echo "UPLOAD_CONFIG=$UPLOAD_CONFIG" >> $GITHUB_ENV
 	echo "UPLOAD_FIRMWARE=$UPLOAD_FIRMWARE" >> $GITHUB_ENV
 	echo "UPLOAD_RELEASE=$UPLOAD_RELEASE" >> $GITHUB_ENV
-	
-	# 基础设置
+	echo "NOTICE_TYPE=$NOTICE_TYPE" >> $GITHUB_ENV
+	echo "DIY_PART_SH=$DIY_PART_SH" >> $GITHUB_ENV
+	echo "PACKAGES_REPO=$PACKAGES_REPO" >> $GITHUB_ENV
+	echo "PACKAGES_BRANCH=$PACKAGES_BRANCH" >> $GITHUB_ENV	
+
 	echo "REPOSITORY=${GITHUB_REPOSITORY##*/}" >> $GITHUB_ENV
 	echo "SOURCE=$SOURCE" >> $GITHUB_ENV
 	echo "SOURCE_URL=$SOURCE_URL" >> $GITHUB_ENV
 	echo "SOURCE_OWNER=$SOURCE_OWNER" >> $GITHUB_ENV
 	echo "LUCI_EDITION=$LUCI_EDITION" >> $GITHUB_ENV
-	echo "PACKAGES_REPO=$PACKAGES_REPO" >> $GITHUB_ENV
-	echo "PACKAGES_BRANCH=$PACKAGES_BRANCH" >> $GITHUB_ENV	
-	echo "DIY_PART_SH=$DIY_PART_SH" >> $GITHUB_ENV
 	echo "ENABLE_PACKAGES_UPDATE=$ENABLE_PACKAGES_UPDATE" >> $GITHUB_ENV
 	echo "ENABLE_REPO_UPDATE=false" >> $GITHUB_ENV
 	echo "GITHUB_API=zzz_api" >> $GITHUB_ENV
@@ -903,6 +897,22 @@ function firmware_settings() {
 	# 内核版本
 	__yellow_color "开始获取内核版本信息、替换内核等..."
 	KERNEL_PATCHVER="$(grep "KERNEL_PATCHVER" "$HOME_PATH/target/linux/$TARGET_BOARD/Makefile" |grep -Eo "[0-9]+\.[0-9]+")"
+	
+	# 内核替换
+	if [[ -n "$NEW_KERNEL_PATCHVER" ]]; then
+		if [[ "$NEW_KERNEL_PATCHVER" == "0" ]]; then
+			__info_msg "编译固件内核：[ $KERNEL_PATCHVER ]"
+		elif [[ `ls -1 "$HOME_PATH/target/linux/$TARGET_BOARD" |grep -c "kernel-$NEW_KERNEL_PATCHVER"` -eq '1' ]]; then
+			sed -i "s/${KERNEL_PATCHVER}/${NEW_KERNEL_PATCHVER}/g" $HOME_PATH/target/linux/$TARGET_BOARD/Makefile
+			KERNEL_PATCHVER=$NEW_KERNEL_PATCHVER
+			__success_msg "内核[ $NEW_KERNEL_PATCHVER ]更换完成"
+		else
+			__error_msg "没发现与$TARGET_PROFILE机型对应[ $NEW_KERNEL_PATCHVER ]内核，使用默认内核[ $KERNEL_PATCHVER ]编译"
+		fi
+	else
+		__info_msg "编译固件内核：[ $KERNEL_PATCHVER ]"
+	fi
+	
 	local kernel_version_file="kernel-$KERNEL_PATCHVER"
 	if [[ -f "$HOME_PATH/include/$kernel_version_file" ]]; then
 		LINUX_KERNEL=$(egrep -o "$KERNEL_PATCHVER\.[0-9]+" $HOME_PATH/include/$kernel_version_file)
@@ -912,19 +922,6 @@ function firmware_settings() {
 		[[ -z $LINUX_KERNEL ]] && LINUX_KERNEL="unknown"
 	fi
 	
-	# 内核替换
-	if [[ -n "$NEW_KERNEL_PATCHVER" ]]; then
-		if [[ "$NEW_KERNEL_PATCHVER" == "0" ]]; then
-			__info_msg "编译固件内核：[ $KERNEL_PATCHVER ]"
-		elif [[ `ls -1 "$HOME_PATH/target/linux/$TARGET_BOARD" |grep -c "kernel-$NEW_KERNEL_PATCHVER"` -eq '1' ]]; then
-			sed -i "s/${KERNEL_PATCHVER}/${NEW_KERNEL_PATCHVER}/g" $HOME_PATH/target/linux/$TARGET_BOARD/Makefile
-			__success_msg "内核[ $NEW_KERNEL_PATCHVER ]更换完成"
-		else
-			__error_msg "没发现与$TARGET_PROFILE机型对应[ $NEW_KERNEL_PATCHVER ]内核，使用默认内核[ $KERNEL_PATCHVER ]编译"
-		fi
-	else
-		__info_msg "编译固件内核：[ $KERNEL_PATCHVER ]"
-	fi
 	echo "::notice title=内核版本::$LINUX_KERNEL"
 	echo "::notice title=固件机型::$TARGET_PROFILE"
 	
