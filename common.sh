@@ -201,7 +201,7 @@ function init_environment() {
 	sudo -E apt-get -qq update -y
 	#sudo -E apt-get -qq full-upgrade -y
 	sudo -E apt-get -qq install -y ack antlr3 aria2 asciidoc autoconf automake autopoint binutils bison \
-	build-essential bzip2 ccache cmake cpio curl device-tree-compiler fastjar flex g++-multilib gawk \
+	build-essential bzip2 ccache clang cmake cpio curl device-tree-compiler fastjar flex g++-multilib gawk \
 	gcc-multilib gettext git git-core gperf haveged help2man intltool lib32stdc++6 libc6-dev-i386 libelf-dev \
 	libfuse-dev libglib2.0-dev libgmp3-dev libltdl-dev libmpc-dev libmpfr-dev libncurses5-dev libncursesw5-dev \
 	libpcap0.8-dev libpython3-dev libreadline-dev libssl-dev libtool libz-dev lrzsz mkisofs msmtp \
