@@ -283,6 +283,10 @@ function do_diy() {
 	
 	# 再次更新插件源，并安装插件源
 	./scripts/feeds update -a > /dev/null 2>&1 && ./scripts/feeds install -a > /dev/null 2>&1
+
+        # 修改golang版本
+	rm -rf feeds/packages/lang/golang
+        git clone https://github.com/sbwml/packages_lang_golang -b 22.x feeds/packages/lang/golang
 		
 	# 修改.config文件
 	modify_config
